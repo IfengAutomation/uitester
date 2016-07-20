@@ -1,2 +1,2 @@
-# uitester
- Android &amp; IOS devices ui test tool
+# UITester
+ Android and IOS devices ui test tool
