@@ -1,3 +1,6 @@
+from threading import Thread
+from uitester.json_rpc import rpc_server
+
 
 class Tester:
     """
@@ -5,6 +8,8 @@ class Tester:
     Delegate all function here.
     UI and CMD should use this class.
     """
+    def __init__(self):
+        self.server = None
 
     def execute_script(self):
         """
@@ -42,4 +47,17 @@ class Tester:
         :return:
         """
         pass
+
+    def start(self):
+        """
+        Start RPC-Server in new thread
+        :return:
+        """
+        self.server = rpc_server.get_server('localhost', 11800)
+        Thread(target=self.server.serve_forever, daemon=True).start()
+
+    def stop(self):
+        if self.server:
+            self.server.shutdown()
+
 

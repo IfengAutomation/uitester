@@ -1,12 +1,11 @@
-import socket
-import SocketServer
+import socketserver
 
 
-class RPCServer(SocketServer.ThreadingTCPServer):
+class RPCServer(socketserver.ThreadingTCPServer):
     pass
 
 
-class RPCRequestHandler(SocketServer.StreamRequestHandler):
+class RPCRequestHandler(socketserver.StreamRequestHandler):
 
     def handle(self):
         data = self.rfile.readline().strip()
