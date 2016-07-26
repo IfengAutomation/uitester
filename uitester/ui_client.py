@@ -1,5 +1,5 @@
 from uitester.ui import mainui
 
 
-def start_ui():
+def start():
     mainui.start()
