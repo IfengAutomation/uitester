@@ -4,4 +4,11 @@ class Request:
     version = 1
     method = ''
     args = []
-    var = None
+    var = ''
+
+    def __init__(self, id, version, method, var, args):
+        self.id = id
+        self.version = version
+        self.method = method
+        self.var = var
+        self.args = args
