@@ -1,0 +1,3 @@
+
+class CommonProxy:
+    pass

@@ -21,6 +21,10 @@ def world():
 
 def execute_cmd(name, *args):
     print('exec {} args={}'.format(name, args))
+    for cmd in commands:
+        if cmd.__name__ == name:
+            cmd()
+            break
 
 
 def start():
