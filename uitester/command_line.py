@@ -40,7 +40,7 @@ class CommandLineClient:
             cmd_name = cmd_line[0:cmd_and_agr_split_index].strip()
             cmd_args = cmd_line[cmd_and_agr_split_index:].strip().split(' ')
             cmd_args = list(filter(lambda x: x != '', cmd_args))
-            self.call(cmd_name, cmd_args)
+            self.call(cmd_name, *cmd_args)
 
     def call(self, func_name, *args, **kwargs):
         if func_name in self.commands:
