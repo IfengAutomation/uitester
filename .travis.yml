@@ -8,6 +8,7 @@ install:
   - pip install -r requirements.txt
   - pip install codecov
 # command to run tests
-script: nosetest --with-coverage
+script:
+  - codecov --token=f732ae6e-083a-43f6-ab25-74ce22121b3a
 after_success:
   - codecov
