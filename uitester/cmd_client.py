@@ -1,34 +1,30 @@
 from colorama import Fore, Back, Style
 from uitester.tester import Tester
+from uitester.command_line import CommandLineClient
 
-commands = []
-
-
-def command(func):
-    print('register cmd {}'.format(func))
-    commands.append(func)
+cmd = CommandLineClient()
+tester = Tester()
 
 
-@command
-def hello():
-    print('hello')
+@cmd.command('help')
+def c_help(*args):
+    pass
 
 
-@command
-def world():
-    print('world')
+@cmd.command('run')
+def c_start_test():
+    # TODO
+    tester.execute_script()
 
 
-def execute_cmd(name, *args):
-    print('exec {} args={}'.format(name, args))
-    for cmd in commands:
-        if cmd.__name__ == name:
-            cmd()
-            break
+@cmd.command('devices')
+def c_devices():
+    # TODO
+    tester.devices()
 
 
 def start():
-    Tester().start()
+    tester.start()
     while True:
         cmd_line = input(Fore.GREEN + '>>').strip()
         if cmd_line == '':
@@ -36,14 +32,7 @@ def start():
         if cmd_line == 'quit':
             break
 
-        cmd_and_agr_split_index = cmd_line.find(' ')
-        if cmd_and_agr_split_index == -1:
-            execute_cmd(cmd_line)
-        else:
-            cmd_name = cmd_line[0:cmd_and_agr_split_index].strip()
-            cmd_args = cmd_line[cmd_and_agr_split_index:].strip().split(' ')
-            cmd_args = list(filter(lambda x: x != '', cmd_args))
-            execute_cmd(cmd_name, cmd_args)
+        cmd.execute_cmd_line(cmd_line)
 
 
 if __name__ == '__main__':

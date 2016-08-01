@@ -11,6 +11,21 @@ class Tester:
     def __init__(self):
         self.server = None
 
+    def devices(self):
+        """
+        show registered devices
+        :return:
+        """
+        pass
+
+    def select_devices(self, select_devices):
+        """
+        select devices for test
+        :param select_devices:
+        :return:
+        """
+        pass
+
     def execute_script(self):
         """
         Execute kw script.
