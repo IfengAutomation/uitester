@@ -40,7 +40,7 @@ class Case(Base, Model):
     __tablename__ = 'case'
     name = Column(String(20))
     content = Column(TEXT)
-    tags = relationship('Tag', secondary=case_tag_table, backref="Case")
+    tags = relationship('Tag', secondary=case_tag_table, backref="case")
 
 
 class Tag(Base):
@@ -48,10 +48,12 @@ class Tag(Base):
     tag 信息
     '''
     __tablename__ = 'tag'
+    DELETE_STATUS = -1
+    DEFAULT_STATUS = 0
     id = Column(Integer, primary_key=True)
     name = Column(String(8), unique=True)
     description = Column(TEXT)
-    status = Column(Integer, default=0)
+    status = Column(Integer, default=DEFAULT_STATUS)
 
 
 class DBCommandLineHelper:
@@ -105,7 +107,7 @@ class DBCommandLineHelper:
 
     def delete_case(self, id):
         case = session.query(Case).filter(Case.id == id).first()
-        del case.tags[:]
+        # del case.tags[:]
         session.delete(case)
         session.commit()
 
@@ -144,7 +146,6 @@ class DBCommandLineHelper:
         tag_list = self.query_tag('点播')
         for tag in tag_list:
             print("tag name :", tag.name)
-
         print("test query_tag_all")
         for tag in tag_list:
             print("tag name :", tag.name)
@@ -161,6 +162,7 @@ class DBCommandLineHelper:
 
 if __name__ == '__main__':
     dBCommandLineHelper = DBCommandLineHelper()
-    # dBCommandLineHelper.init()
+    dBCommandLineHelper.init()
     dBCommandLineHelper.test_tag()
     dBCommandLineHelper.test_case()
+    #  dBCommandLineHelper.delete_case(2)
