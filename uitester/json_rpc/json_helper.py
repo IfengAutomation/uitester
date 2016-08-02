@@ -62,7 +62,8 @@ def json_to_request_obj(json_str):
     """
     json_dict = json.loads(json_str)  # 将json转化为字典
 
-    res_obj1 = Request(0, 1, '', '', [])
+    # res_obj1 = Request(0, 1, '', '', [])
+    res_obj1 = Request()
     res_obj1.__dict__ = json_dict  # 将字典转化为ResponseObj对象
     return res_obj1
 

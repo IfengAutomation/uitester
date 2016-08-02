@@ -1,4 +1,6 @@
 from threading import Thread
+
+from uitester import cache
 from uitester.json_rpc import rpc_server
 
 
@@ -10,6 +12,21 @@ class Tester:
     """
     def __init__(self):
         self.server = None
+
+    def devices(self):
+        """
+        show registered devices
+        :return:
+        """
+        return cache.devices
+
+    def select_devices(self, select_devices):
+        """
+        select devices for test
+        :param select_devices:
+        :return:
+        """
+        pass
 
     def execute_script(self):
         """
@@ -53,7 +70,7 @@ class Tester:
         Start RPC-Server in new thread
         :return:
         """
-        self.server = rpc_server.get_server('localhost', 11800)
+        self.server = rpc_server.get_server('172.30.22.80', 11800)
         Thread(target=self.server.serve_forever, daemon=True).start()
 
     def stop(self):
