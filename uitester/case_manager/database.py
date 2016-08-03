@@ -4,18 +4,21 @@ import datetime
 
 from sqlalchemy import Column
 from sqlalchemy import DateTime
-from sqlalchemy import String, Integer, ForeignKey, Table
+from sqlalchemy import String, Integer, ForeignKey, Table, MetaData
 from sqlalchemy import create_engine
 from sqlalchemy import engine
 from sqlalchemy.dialects.mysql import TEXT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, relationship
 from sqlalchemy.orm import sessionmaker
+import pandas as pd
 
 sql_uri = 'sqlite:///D:/DB/casetest.db'
 Base = declarative_base()
 engine = create_engine(sql_uri, echo=False)
 session = scoped_session(sessionmaker(bind=engine))
+conn = engine.connect()
+metadata = MetaData(conn)
 
 
 class Model:
@@ -107,9 +110,14 @@ class DBCommandLineHelper:
 
     def delete_case(self, id):
         case = session.query(Case).filter(Case.id == id).first()
-        # del case.tags[:]
         session.delete(case)
         session.commit()
+
+    def get_table_data(self, table_name):
+        tbl = Table(table_name, metadata, autoload=True, schema="main")
+        sql = tbl.select()
+        result = conn.execute(sql)
+        return result
 
     def test_case(self):
         print("case insert")
@@ -162,7 +170,6 @@ class DBCommandLineHelper:
 
 if __name__ == '__main__':
     dBCommandLineHelper = DBCommandLineHelper()
-    dBCommandLineHelper.init()
-    dBCommandLineHelper.test_tag()
-    dBCommandLineHelper.test_case()
-    #  dBCommandLineHelper.delete_case(2)
+    # dBCommandLineHelper.init()
+    # dBCommandLineHelper.test_tag()
+    # dBCommandLineHelper.test_case()
