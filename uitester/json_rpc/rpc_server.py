@@ -1,6 +1,6 @@
 import socketserver
 
-from uitester.device_manager.device import Device
+from uitester.device_manager.device import Device, BaseResponseHandler
 from uitester.json_rpc import json_helper
 from uitester.json_rpc.response import Response, RESULT_PASS
 from uitester import cache
@@ -31,7 +31,8 @@ class RPCRequestHandler(socketserver.StreamRequestHandler):
                 pass
 
     def handle_register(self, request):
-        self.device = device = Device(request.args[0], self.send_msg)
+        response_handler = BaseResponseHandler().handle
+        self.device = device = Device(request.args[0], self.send_msg, response_handler)
         # 添加至设备列表
         cache.devices[device.id] = device
         response = Response(request.id, RESULT_PASS)
@@ -42,7 +43,7 @@ class RPCRequestHandler(socketserver.StreamRequestHandler):
         while True:
             data = self.rfile.readline().strip()
             if self.device.response_handler:
-                response = json_helper.decoded_json_to_response(data)
+                response = json_helper.decoded_json_to_response(data.decode())
                 self.device.response_handler(response)   # 处理response结果
 
 

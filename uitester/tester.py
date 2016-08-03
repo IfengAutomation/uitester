@@ -2,6 +2,7 @@ from threading import Thread
 
 from uitester import cache
 from uitester.json_rpc import rpc_server
+from uitester.remote_proxy.proxy import CommonProxy
 
 
 class Tester:
@@ -28,19 +29,45 @@ class Tester:
         """
         pass
 
-    def execute_script(self):
+    def execute_script(self, file_name):
         """
         Execute kw script.
         :return:
         """
-        pass
+        file = open(file_name)
+        for line in file:
+            name_and_agr_split_index = line.find(' ')  # 方法与参数之间分隔符：空格
+            if name_and_agr_split_index == -1:
+                kw_name = line.strip()
+                kw_args = []
+            else:
+                kw_name = line[0:name_and_agr_split_index].strip()
+                kw_args = line[name_and_agr_split_index:].strip().split('#')  # 多个参数时，参数之间分隔符：#
+                kw_args = list(filter(lambda x: x != '', kw_args))
+            print("kw_name:{}, args:{}".format(kw_name, kw_args))
+            self.execute_line(kw_name, *kw_args)
 
-    def execute_line(self):
+    def execute_line(self, kw_name, *args):
         """
         Execute kw line
         :return:
         """
-        pass
+        proxy = CommonProxy()
+        for (id, device) in self.devices().items():
+            proxy.target_devices.add(device)
+        if kw_name == 'StartApp':
+            proxy.start_app(args[0])
+        elif kw_name == 'WaitForText':
+            proxy.wait_for_text(args[0])
+        elif kw_name == 'GetView':
+            proxy.get_view(args[0])
+        elif kw_name == 'EnterText':
+            if cache.entity.get("code"):
+                proxy.enter_text(cache.entity.get("code"), args[1])
+        elif kw_name == 'ClickOnText':
+            proxy.click_on_text(args[0])
+        elif kw_name == 'FinishApp':
+            proxy.finish_app()
 
     def load_library(self):
         """

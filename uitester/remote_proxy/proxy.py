@@ -2,7 +2,7 @@ from uitester.json_rpc.request import Request
 
 
 class CommonProxy:
-    target_devices = []
+    target_devices = set([])
 
     def send_msg_to_devices(self, request):
         for device in self.target_devices:
@@ -35,12 +35,11 @@ class CommonProxy:
         request.args = [text]
         self.send_msg_to_devices(request)
 
-    def enter_text(self, var, text):
+    def enter_text(self, code, text):
         request = Request()
         request.id = 4
         request.method = "EnterText"
-        request.args = [text]
-        request.var = var
+        request.args = [code, text]
         self.send_msg_to_devices(request)
 
     def wait_for_text(self, text):
