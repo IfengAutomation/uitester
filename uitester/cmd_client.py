@@ -42,7 +42,7 @@ def c_devices():
 @cmd.command('kw')
 def c_execute_kw_line(kw_name, *args):
     print(Fore.LIGHTCYAN_EX + 'Command kw name={} args={}'.format(kw_name, args))
-    tester.execute_line(kw_name, *args)
+    tester.execute_line(kw_name.lower(), *args)
 
 
 def start():
