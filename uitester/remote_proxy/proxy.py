@@ -1,8 +1,9 @@
+from uitester import cache
 from uitester.json_rpc.request import Request
 
 
 class CommonProxy:
-    target_devices = []
+    target_devices = set([])
 
     def send_msg_to_devices(self, request):
         for device in self.target_devices:
@@ -26,6 +27,7 @@ class CommonProxy:
         request = Request()
         request.id = 2
         request.method = "FinishActivity"
+        cache.entity = {}
         self.send_msg_to_devices(request)
 
     def click_on_text(self, text):
@@ -35,12 +37,11 @@ class CommonProxy:
         request.args = [text]
         self.send_msg_to_devices(request)
 
-    def enter_text(self, var, text):
+    def enter_text(self, code, text):
         request = Request()
         request.id = 4
         request.method = "EnterText"
-        request.args = [text]
-        request.var = var
+        request.args = [code, text]
         self.send_msg_to_devices(request)
 
     def wait_for_text(self, text):
@@ -48,4 +49,18 @@ class CommonProxy:
         request.id = 5
         request.method = "WaitForText"
         request.args = [text]
+        self.send_msg_to_devices(request)
+
+    def click_on_view(self, code):
+        request = Request()
+        request.id = 6
+        request.method = "ClickOnView"
+        request.args = [code]
+        self.send_msg_to_devices(request)
+
+    def switch_to_tab(self, code, index):
+        request = Request()
+        request.id = 6
+        request.method = "SwitchToTab"
+        request.args = [code, index]
         self.send_msg_to_devices(request)

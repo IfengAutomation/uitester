@@ -38,7 +38,17 @@ class CommandLineClient:
             self.call(cmd_line)
         else:
             cmd_name = cmd_line[0:cmd_and_agr_split_index].strip()
-            cmd_args = cmd_line[cmd_and_agr_split_index:].strip().split(' ')
+            kw_line = cmd_line[cmd_and_agr_split_index:].strip()
+            kw_and_arg_split_index = kw_line.find(' ')
+            if kw_and_arg_split_index == -1:
+                cmd_args = kw_line.split(' ')   # kw_method_name
+            else:
+                cmd_args = []
+                kw_name = kw_line[0:kw_and_arg_split_index].strip()  # kw_method_name
+                cmd_args.append(kw_name)
+                kw_args = kw_line[kw_and_arg_split_index:].strip().split('#')  # kw_method_args
+                for kw_arg in kw_args:
+                    cmd_args.append(kw_arg)
             cmd_args = list(filter(lambda x: x != '', cmd_args))
             self.call(cmd_name, *cmd_args)
 

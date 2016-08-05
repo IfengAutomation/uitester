@@ -1,3 +1,5 @@
+from uitester import cache
+
 
 class Device:
 
@@ -16,4 +18,6 @@ class BaseResponseHandler:
     ResponseHandler.handle will be call when receive a RPC-response from client
     """
     def handle(self, response):
-        pass
+        if response.entity:
+            cache.entity = response.entity
+
