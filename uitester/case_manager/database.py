@@ -11,7 +11,6 @@ from sqlalchemy.dialects.mysql import TEXT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, relationship
 from sqlalchemy.orm import sessionmaker
-import pandas as pd
 
 sql_uri = 'sqlite:///D:/DB/casetest.db'
 Base = declarative_base()
@@ -51,12 +50,9 @@ class Tag(Base):
     tag 信息
     '''
     __tablename__ = 'tag'
-    DELETE_STATUS = -1
-    DEFAULT_STATUS = 0
     id = Column(Integer, primary_key=True)
     name = Column(String(8), unique=True)
     description = Column(TEXT)
-    status = Column(Integer, default=DEFAULT_STATUS)
 
 
 class DBCommandLineHelper:
@@ -69,55 +65,84 @@ class DBCommandLineHelper:
         tag.description = description
         session.add(tag)
         session.commit()
+        return tag
 
     def update_tag(self):
         session.commit()
 
-    def query_tag(self, name):
+    def query_tag_by_name(self, is_accurate, name):
         '''根据标识名查看未删除tag'''
-        name = '%' + name + '%'
-        return session.query(Tag).filter(Tag.status == 0, Tag.name.like(name)).all()
+        if is_accurate == False:
+            name = '%' + name + '%'
+            return session.query(Tag).filter(Tag.name.like(name)).all()
+        else:
+            return session.query(Tag).filter(Tag.name == name).first()
+
+    def query_tag_by_id(self, id):
+        '''根据标识名查看未删除tag'''
+        return session.query(Tag).filter(Tag.id == id).first()
+
 
     def query_tag_all(self):
         '''查看所有未删除tag'''
-        return session.query(Tag).filter(Tag.status == 0).all()
+        return session.query(Tag).all()
+
 
     def delete_tag(self, id):
         '''删除tag'''
-        del_tag = session.query(Tag).filter(Tag.id == id, Tag.status == 0).first()
-        del_tag.status = -1
+        del_tag = session.query(Tag).filter(Tag.id == id).first()
+        session.delete(del_tag)
         session.commit()
+
 
     def insert_case(self, name, content, tags):
         '''插入case'''
         case = Case()
         case.name = name
         case.content = content
-        case.tags = tags
+        if tags is not None:
+            case.tags = tags
         session.add(case)
         session.commit()
+        return case
+
 
     def query_case_by_name(self, name):
         '''查看case'''
         return session.query(Case).filter(Case.name.like('%' + name + '%')).all()
 
+
     def query_case_all(self):
         '''查看case'''
         return session.query(Case).all()
 
+
     def update_case(self):
         session.commit()
+
 
     def delete_case(self, id):
         case = session.query(Case).filter(Case.id == id).first()
         session.delete(case)
         session.commit()
 
+
     def get_table_data(self, table_name):
         tbl = Table(table_name, metadata, autoload=True, schema="main")
         sql = tbl.select()
         result = conn.execute(sql)
         return result
+
+
+    def insert_case_tag(self, case_id, tag_id):
+        '''插入case'''
+        case_tag = case_tag_table
+        case_tag.case_id = case_id
+        case_tag.tag_id = tag_id
+        session.add(case_tag)
+        session.commit()
+        return case_tag
+
 
     def test_case(self):
         print("case insert")
@@ -143,6 +168,7 @@ class DBCommandLineHelper:
         print("test delete")
         self.delete_case(1)
 
+
     def test_tag(self):
         # self.init()
         print("test insert")
@@ -151,7 +177,7 @@ class DBCommandLineHelper:
         self.insert_tag('点播-精选', '点播-精选视频')
         self.insert_tag('直播', '直播视频')
         print("test query")
-        tag_list = self.query_tag('点播')
+        tag_list = self.query_tag_by_name(False,'点播')
         for tag in tag_list:
             print("tag name :", tag.name)
         print("test query_tag_all")
@@ -170,6 +196,8 @@ class DBCommandLineHelper:
 
 if __name__ == '__main__':
     dBCommandLineHelper = DBCommandLineHelper()
-    # dBCommandLineHelper.init()
-    # dBCommandLineHelper.test_tag()
-    # dBCommandLineHelper.test_case()
+    # dBCommandLineHelper.delete_tag(1)
+    dBCommandLineHelper.init()
+    dBCommandLineHelper.test_tag()
+    dBCommandLineHelper.test_case()
+    dBCommandLineHelper.delete_tag(1)
