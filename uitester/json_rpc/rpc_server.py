@@ -44,7 +44,7 @@ class RPCRequestHandler(socketserver.StreamRequestHandler):
             data = self.rfile.readline().strip()
             if self.device.response_handler:
                 response = json_helper.decoded_json_to_response(data.decode())
-                self.device.response_handler(response)   # 处理response结果
+                self.device.response_handler(self.device, response)   # 处理response结果
 
 
 def get_server(host, port):

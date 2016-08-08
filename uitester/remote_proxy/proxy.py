@@ -7,7 +7,11 @@ class CommonProxy:
 
     def send_msg_to_devices(self, request):
         for device in self.target_devices:
-            device.send_msg(request)
+            device.init_msg_list(request)
+
+    def manage_device(self):
+        for device in self.target_devices:
+            device.msg_manager()
 
     def get_view(self, view_id):
         request = Request()
@@ -64,3 +68,23 @@ class CommonProxy:
         request.method = "SwitchToTab"
         request.args = [code, index]
         self.send_msg_to_devices(request)
+
+    def proxy_manager(self, devices, name, *args):
+        for (id, device) in devices.items():
+            self.target_devices.add(device)
+        if name == 'startapp':
+            self.start_app(args[0])
+        elif name == 'waitfortext':
+            self.wait_for_text(args[0])
+        elif name == 'getview':
+            self.get_view(args[0])
+        elif name == 'entertext':
+            self.enter_text(cache.entity.get("code"), args[1])
+        elif name == 'clickontext':
+            self.click_on_text(args[0])
+        elif name == 'clickonview':
+            self.click_on_view(cache.entity.get("code"))
+        elif name == 'switchtotab':
+            self.switch_to_tab(cache.entity.get("code"), args[1])
+        elif name == 'finishapp':
+            self.finish_app()
