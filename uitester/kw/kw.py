@@ -22,9 +22,11 @@ AS = 'as'
 QUOTE = '"'
 SPACE = ' '
 COMMENT = '#'
+DOT = '.'
 
 
-def import_lib(*args, **kwargs):
+
+def kw_import(*args, **kwargs):
     logger.debug('Import lib {}'.format(args))
     for lib_name in args:
         module = __import__(lib_name)
@@ -36,11 +38,34 @@ def import_lib(*args, **kwargs):
                 user_func[attr_name] = attr
 
 
-def check(*args, **kwargs):
+def kw_check(*args, **kwargs):
     logger.debug('Check {}'.format(args))
 
 
-user_func = {'import': import_lib, 'check': check}
+def kw_print(*args, **kwargs):
+    output = []
+    for arg in args:
+        if arg in user_func:
+            output.append('<KW:{}>'.format(arg))
+        elif arg in user_var:
+            output.append('<Var:{}={}>'.format(arg, user_var[arg]))
+        elif arg.count(DOT) == 1:
+            var_name, attr = arg.split(DOT)
+            if var_name in user_var:
+                var = user_var[var_name]
+                if hasattr(var, attr):
+                    attr_value = getattr(var, attr)
+                    output.append(attr_value)
+                else:
+                    output.append('<Var:{} not found attr {}>'.format(var, attr))
+            else:
+                output.append('<Var:{} not found>'.format(var))
+        else:
+            output.append(arg)
+    print(*output)
+
+
+user_func = {'import': kw_import, 'check': kw_check, 'print': kw_print}
 user_var = {}
 
 
@@ -56,12 +81,22 @@ class KWLine:
         self.comment = False
         self.raw = raw
 
+    def prepare(self):
+        # check item0 is func_name
+        if self.items[0] not in user_func:
+            raise ValueError('keyword "{}" not found!'.format(self.items[0]))
+
     def execute(self):
         if self.comment:
             return
+
         logger.debug('exec items {}'.format(self.items))
-        if self.items[0] in user_func:
-            user_func[self.items[0]](*self.items[1:])
+        if self.items[0] not in user_func:
+            raise ValueError('keyword "{}" not found!'.format(self.items[0]))
+
+        res = user_func[self.items[0]](*self.items[1:])
+        if self.var:
+            user_var[self.var] = res
 
     @classmethod
     def parse_line(cls, kw_line, line_number=0):
