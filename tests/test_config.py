@@ -1,5 +1,6 @@
 import unittest
 import os
+import json
 from uitester import config
 
 
@@ -21,5 +22,20 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(conf.port, 11800)
         self.assertTrue(os.path.exists(self.conf_path))
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_save(self):
+        if os.path.exists(self.conf_path):
+            os.remove(self.conf_path)
+        conf = config.Config.read()
+        conf.sdk = 'sdk_path'
+        conf.libs = 'libs'
+        conf.port = 1234
+        conf.save()
+
+        f = open(self.conf_path)
+        conf_str = f.read()
+        f.close()
+
+        conf_json = json.loads(conf_str)
+        self.assertEqual(conf_json['sdk'], 'sdk_path')
+        self.assertEqual(conf_json['libs'], 'libs')
+        self.assertEqual(conf_json['port'], 1234)

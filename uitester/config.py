@@ -7,7 +7,11 @@ config_file = os.path.join(app_dir, 'config')
 
 
 class Config:
-
+    """
+    Config class
+    Config.read() read config from json file, return a Config instance
+    Config.save() save settings in json file
+    """
     def __init__(self):
         self.sdk = ''
         self.libs = os.path.abspath(os.path.join(app_dir, 'libs'))
@@ -32,10 +36,18 @@ class Config:
         f.close()
         return conf
 
-    def update(self):
-        pass
+    @staticmethod
+    def clear_config():
+        if os.path.exists(config_file):
+            os.remove(config_file)
 
     def save(self):
-        pass
+        conf_str = json.dumps(self.__dict__, ensure_ascii=False, indent=4)
+        if not os.path.exists(config_file):
+            Config.make_default_config()
+
+        f = open(config_file, 'w')
+        f.write(conf_str)
+        f.close()
 
 
