@@ -10,5 +10,5 @@ install:
 # command to run tests
 script: nosetests
 after_success:
-  - codecov --token=813ed50d-d50e-44c9-9c75-5e171e925529
-  bash <(curl -s https://codecov.io/bash)
+  #- codecov --token=813ed50d-d50e-44c9-9c75-5e171e925529
+  - bash <(curl -s https://codecov.io/bash)
