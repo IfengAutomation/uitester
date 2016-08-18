@@ -10,5 +10,5 @@ install:
 # command to run tests
 script: nosetests --with-coverage --cover-package=uitester
 after_success:
-#  - codecov
+  - codecov
   - bash <(curl -s https://codecov.io/bash)

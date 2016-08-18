@@ -1,8 +1,19 @@
+# coding=utf-8
+
 from threading import Thread
 
 from uitester import cache
 from uitester.json_rpc import rpc_server
 from uitester.remote_proxy.proxy import CommonProxy
+from uitester.config import Config
+from uitester.context import Context
+from uitester.error_handler import handle_error, error_handlers
+
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('Tester')
+logger.setLevel(logging.DEBUG)
 
 
 class Tester:
@@ -13,7 +24,12 @@ class Tester:
     """
     def __init__(self):
         self.server = None
+        self.conf = Config.read()
+        self.context = Context()
+        setattr(self.context, 'config', self.conf)
+        error_handlers.append(DefaultErrorHandler())
 
+    @handle_error
     def devices(self):
         """
         show registered devices
@@ -21,6 +37,7 @@ class Tester:
         """
         return cache.devices
 
+    @handle_error
     def select_devices(self, select_devices):
         """
         select devices for test
@@ -29,6 +46,7 @@ class Tester:
         """
         pass
 
+    @handle_error
     def execute_script(self, file_name):
         """
         Execute kw script.
@@ -50,6 +68,7 @@ class Tester:
             proxy.proxy_manager(devices, kw_name.lower(), *kw_args)
         proxy.manage_device()
 
+    @handle_error
     def execute_line(self, kw_name, *args):
         """
         Execute kw line
@@ -60,6 +79,7 @@ class Tester:
         proxy.proxy_manager(devices, kw_name.lower(), *args)
         proxy.manage_device()
 
+    @handle_error
     def load_library(self):
         """
         Load kw library write by py
@@ -67,6 +87,7 @@ class Tester:
         """
         pass
 
+    @handle_error
     def get_kw_info(self, name=None, name_startswith=None):
         """
         get kw help
@@ -76,6 +97,7 @@ class Tester:
         """
         pass
 
+    @handle_error
     def get_registered_devices(self):
         """
         get all registered devices
@@ -83,6 +105,7 @@ class Tester:
         """
         pass
 
+    @handle_error
     def start(self):
         """
         Start RPC-Server in new thread
@@ -91,8 +114,13 @@ class Tester:
         self.server = rpc_server.get_server('0.0.0.0', 11800)
         Thread(target=self.server.serve_forever, daemon=True).start()
 
+    @handle_error
     def stop(self):
         if self.server:
             self.server.shutdown()
 
 
+
+class DefaultErrorHandler:
+    def handle(self, e):
+        logger.exception(e)
