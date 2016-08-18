@@ -8,14 +8,13 @@ from types import FunctionType
 
 script_dir = dirname(abspath(__file__))
 libs_dir = join(join(join(script_dir, pardir), pardir), 'libs')
-print(script_dir, libs_dir)
-
+print('Add path {}'.format(libs_dir))
 sys.path.append(libs_dir)
 
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 
 AS = 'as'
@@ -25,9 +24,29 @@ COMMENT = '#'
 DOT = '.'
 
 
+def get_value(word):
+    if word in user_var:
+        return user_var[word]
+
+    dot_count = word.count(DOT)
+    if dot_count > 1:
+        raise ValueError('Unsupported usage {}'.format(word))
+    elif dot_count == 1:
+        var_name, attr_name = word.split(DOT)
+        if var_name in user_var:
+            var = user_var[var_name]
+            if hasattr(var, attr_name):
+                return getattr(var, attr_name)
+            else:
+                raise ValueError('{} not has attr {}'.format(var_name, attr_name))
+        else:
+            raise ValueError('Var {} not found'.format(var_name))
+    else:
+        return word
+
 
 def kw_import(*args, **kwargs):
-    logger.debug('Import lib {}'.format(args))
+    logger.debug('Import kw lib {}'.format(args))
     for lib_name in args:
         module = __import__(lib_name)
         for attr_name in dir(module):
@@ -40,6 +59,10 @@ def kw_import(*args, **kwargs):
 
 def kw_check(*args, **kwargs):
     logger.debug('Check {}'.format(args))
+    if len(args) < 2:
+        raise ValueError('Check need 2 arguments. but {} given'.format(len(args)))
+
+    assert get_value(args[0]) == get_value(args[1])
 
 
 def kw_print(*args, **kwargs):
@@ -82,7 +105,7 @@ class KWLine:
         self.raw = raw
 
     def prepare(self):
-        # check item0 is func_name
+        # TODO check kw line
         if self.items[0] not in user_func:
             raise ValueError('keyword "{}" not found!'.format(self.items[0]))
 
