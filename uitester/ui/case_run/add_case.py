@@ -6,7 +6,9 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QDesktopWidget
 
+from uitester.case_manager.database import DBCommandLineHelper
 from uitester.config import Config
+from uitester.ui.case_manager.tag_names_line_edit import TagLineEdit, TagCompleter
 
 
 class AddCaseWidget(QWidget):
@@ -14,6 +16,7 @@ class AddCaseWidget(QWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.dBCommandLineHelper = DBCommandLineHelper()
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, 'add_case.ui')
         uic.loadUi(ui_file_path, self)
@@ -21,6 +24,11 @@ class AddCaseWidget(QWidget):
         # 设置窗口大小
         screen = QDesktopWidget().screenGeometry()
         self.resize(screen.width() / 5 * 2, screen.height() / 5 * 2)
+
+        # tag name 输入框
+        self.tag_names_line_edit = TagLineEdit("tag_names_line_edit")
+        self.tag_names_line_edit_adapter()   # 设置自动提示
+        self.tag_list = None
 
         # set icon
         search_icon = QIcon()
@@ -45,3 +53,18 @@ class AddCaseWidget(QWidget):
 
     def cancel_event(self):
         self.close()
+
+    def tag_names_line_edit_adapter(self):
+        """
+        给tag_names_line_edit设置自动提示、默认显示提示文字等
+        :return:
+        """
+        self.tag_names_line_edit.setPlaceholderText("Type tag names")   # 设置提示文字
+        self.search_layout.insertWidget(0, self.tag_names_line_edit)
+
+        self.tag_list = self.dBCommandLineHelper.query_tag_all()  # 获取所有tag
+        tag_name_list = []
+        for tag in self.tag_list:
+            tag_name_list.append(tag.name)
+        cmp = TagCompleter(tag_name_list)
+        self.tag_names_line_edit.setCompleter(cmp)

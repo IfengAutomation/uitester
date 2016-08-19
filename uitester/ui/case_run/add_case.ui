@@ -15,34 +15,19 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QWidget" name="searchwidget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QLineEdit" name="tag_lineedit">
-        <property name="inputMask">
-         <string/>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="placeholderText">
-         <string>Type tag to search</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="searchbtn">
-        <property name="text">
-         <string>Search</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>C:/Users/lr/Desktop/search.png</normaloff>C:/Users/lr/Desktop/search.png</iconset>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+    <layout class="QHBoxLayout" name="search_layout">
+     <item>
+      <widget class="QPushButton" name="searchbtn">
+       <property name="text">
+        <string>Search</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>C:/Users/lr/Desktop/search.png</normaloff>C:/Users/lr/Desktop/search.png</iconset>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QTextBrowser" name="cases_to_choose"/>

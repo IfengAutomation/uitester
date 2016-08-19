@@ -9,6 +9,9 @@ from uitester.config import Config
 from uitester.ui.case_run.add_case import AddCaseWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
 
+device = None
+cases = []
+
 
 class RunWidget(QWidget):
     def __init__(self, *args, **kwargs):
@@ -34,11 +37,9 @@ class RunWidget(QWidget):
         self.add_device_widget = AddDeviceWidget()
 
     def click_add_case(self):
-
         self.add_case_widget.setWindowModality(Qt.ApplicationModal)  # 设置QWidget为模态
         self.add_case_widget.show()
 
     def click_run(self):
-        # TODO 选择设备，执行case，根据case执行结果调整casename显示样式（判断case已选，否，则给提示选择case）
         self.add_device_widget.setWindowModality(Qt.ApplicationModal)
         self.add_device_widget.show()
