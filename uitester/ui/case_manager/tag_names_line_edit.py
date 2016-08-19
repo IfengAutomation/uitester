@@ -31,7 +31,6 @@ class TagLineEdit(QLineEdit):
             cr.setWidth(self.cmp.popup().sizeHintForColumn(0)
                         + self.cmp.popup().verticalScrollBar().sizeHint().width())
             self.cmp.complete(cr)
-            pass
         else:
             pass
 

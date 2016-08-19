@@ -2,6 +2,7 @@
 # 导出成 .sql 文件
 import datetime
 
+from flask import logging
 from sqlalchemy import Column
 from sqlalchemy import DateTime
 from sqlalchemy import String, Integer, ForeignKey, Table, MetaData
@@ -11,6 +12,9 @@ from sqlalchemy.dialects.mysql import TEXT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, relationship
 from sqlalchemy.orm import sessionmaker
+
+logger = logging.getLogger('UiTester')
+logger.setLevel(logging.DEBUG)
 
 sql_uri = 'sqlite:///D:/DB/casetest.db'
 Base = declarative_base()
@@ -82,18 +86,15 @@ class DBCommandLineHelper:
         '''根据标识名查看未删除tag'''
         return session.query(Tag).filter(Tag.id == id).first()
 
-
     def query_tag_all(self):
         '''查看所有未删除tag'''
         return session.query(Tag).all()
-
 
     def delete_tag(self, id):
         '''删除tag'''
         del_tag = session.query(Tag).filter(Tag.id == id).first()
         session.delete(del_tag)
         session.commit()
-
 
     def insert_case(self, name, content, tags):
         '''插入case'''
@@ -106,33 +107,32 @@ class DBCommandLineHelper:
         session.commit()
         return case
 
-
     def query_case_by_name(self, name):
         '''查看case'''
         return session.query(Case).filter(Case.name.like('%' + name + '%')).all()
 
+    def query_case_by_tag_name(self, tag_name):
+        '''根据标识名查看case'''
+        tags = self.query_tag_by_name(True,tag_name)
+        return session.query(Case).filter(Case.tags.contains(tags)).all()
 
     def query_case_all(self):
         '''查看case'''
         return session.query(Case).all()
 
-
     def update_case(self):
         session.commit()
-
 
     def delete_case(self, id):
         case = session.query(Case).filter(Case.id == id).first()
         session.delete(case)
         session.commit()
 
-
     def get_table_data(self, table_name):
         tbl = Table(table_name, metadata, autoload=True, schema="main")
         sql = tbl.select()
         result = conn.execute(sql)
         return result
-
 
     def insert_case_tag(self, case_id, tag_id):
         '''插入case'''
@@ -143,55 +143,53 @@ class DBCommandLineHelper:
         session.commit()
         return case_tag
 
-
     def test_case(self):
-        print("case insert")
+        logger.debug("case insert")
         tags_list = self.query_tag_all()
         tags = [tags_list[0], tags_list[1]]
         self.insert_case("测试验证点播视频音频播放操作", "测试验证点播视频音频播放操作", tags)
         self.insert_case("测试点播视频已缓存标记", "测试点播视频已缓存标记", tags)
         self.insert_case("测试点播视频缓存多选", "测试点播视频缓存多选", tags)
         self.insert_case("测试验证点播视频播放相关页面内容视频跳转的时候", "测试验证点播视频播放相关页面内容视频跳转的时候", tags)
-        print("test query_case_by_name")
+        logger.debug("test query_case_by_name")
         case_list = self.query_case_by_name("测试验证点播")
         for case in case_list:
-            print("case name:", case.name)
-        print("test query_case_all")
+            logger.debug("case name:", case.name)
+        logger.debug("test query_case_all")
         case_list = self.query_case_all()
         for case in case_list:
-            print("case name:", case.name)
-        print("test update_case")
+            logger.debug("case name:", case.name)
+        logger.debug("test update_case")
         case_list[0].name = "测试验证点播视频音频播放操作x"
         case_list[0].content = "测试验证点播视频音频播放操作x"
         del case_list[0].tags[1]
         self.update_case()
-        print("test delete")
+        logger.debug("test delete")
         self.delete_case(1)
-
 
     def test_tag(self):
         # self.init()
-        print("test insert")
+        logger.debug("test insert")
         self.insert_tag('主页', '打开app的首页')
         self.insert_tag('点播', '点播视频')
         self.insert_tag('点播-精选', '点播-精选视频')
         self.insert_tag('直播', '直播视频')
-        print("test query")
-        tag_list = self.query_tag_by_name(False,'点播')
+        logger.debug("test query")
+        tag_list = self.query_tag_by_name(False, '点播')
         for tag in tag_list:
-            print("tag name :", tag.name)
-        print("test query_tag_all")
+            logger.debug("tag name :", tag.name)
+        logger.debug("test query_tag_all")
         for tag in tag_list:
-            print("tag name :", tag.name)
+            logger.debug("tag name :", tag.name)
         tag_list_all = self.query_tag_all()
-        print("test update")
+        logger.debug("test update")
         tag_list_all[0].name = "主页-精选"
         self.update_tag()
-        print("test del")
+        logger.debug("test del")
         self.delete_tag(3)
         tag_list = self.query_tag_all()
         for tag in tag_list:
-            print("tag name :", tag.name)
+            logger.debug("tag name :", tag.name)
 
 
 if __name__ == '__main__':
