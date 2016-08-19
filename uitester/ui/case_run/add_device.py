@@ -2,7 +2,10 @@
 import os
 
 from PyQt5 import uic
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QHBoxLayout, QRadioButton
+from PyQt5.QtWidgets import QWidget, QDesktopWidget, QHBoxLayout, QMessageBox
+
+from uitester.ui.case_run import case_run
+from uitester.ui.case_run.device_radio import DeviceRadio
 
 
 class AddDeviceWidget(QWidget):
@@ -24,8 +27,16 @@ class AddDeviceWidget(QWidget):
         self.cancel_device_btn.clicked.connect(self.cancel_event)
 
     def select_event(self):
-        # TODO 选择结果传递，返回Run页面
-        pass
+
+        if not case_run.cases:  # case未选
+            # 判断case是否已选，否：提示先选case
+            QMessageBox.about(self, "Message", "Please add cases first.")
+        else:    # case已选
+            if not case_run.device:   # device 未选择
+                QMessageBox.about(self, "Message", "Please chose a device.")
+            else:
+                # TODO 1、主窗口状态栏显示device id 2、执行注册、执行case  3、关闭窗口
+                pass
 
     def cancel_event(self):
         self.close()
@@ -54,9 +65,9 @@ class AddDeviceWidget(QWidget):
         """
         device_box_layout = QHBoxLayout()
         for device in devices_list:
-            radio = QRadioButton(device)
-            if devices_list.index(device) == 0:  # 默认第一个单选框选中状态
-                radio.setChecked(True)
+            radio = DeviceRadio(device)
+            # if devices_list.index(device) == 0:  # 默认第一个单选框选中状态
+            #     radio.setChecked(True)
             device_box_layout.addWidget(radio)
         self.devices.setLayout(device_box_layout)
 
