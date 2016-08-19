@@ -16,6 +16,7 @@ class Config:
         self.sdk = ''
         self.libs = os.path.abspath(os.path.join(app_dir, 'libs'))
         self.port = 11800
+        self.images = os.path.abspath(os.path.join(app_dir, 'images'))
 
     @classmethod
     def read(cls):
