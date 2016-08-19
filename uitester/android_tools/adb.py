@@ -10,12 +10,17 @@ class ADB:
 
     """ADB"""
 
-    def __init__(self, sdk_path):
-        super(ADB, self).__init__()
-        self.sdk_path = sdk_path
+    def __init__(self, context):
+        self.context = context
+        self.sdk_path = None
+        self.appt_path = None
+        self.adb_path = None
         self.__logcat_process = None
+
+    def update(self):
+        self.sdk_path = sdk_path = self.context.config.sdk
         if platform.system() == 'Windows':
-            self.adbPath = os.path.join(sdk_path, 'platform-tools\\adb.exe')
+            self.adb_path = os.path.join(sdk_path, 'platform-tools\\adb.exe')
             build_tool_parent_dir = os.path.join(sdk_path, 'build-tools')
             dirs = os.listdir(build_tool_parent_dir)
             for dirName in dirs:
@@ -26,7 +31,7 @@ class ADB:
                     self.appt_path = os.path.join(tool_dir, 'aapt.exe')
                     break
         else:
-            self.adbPath = os.path.join(sdk_path, 'platform-tools/adb')
+            self.adb_path = os.path.join(sdk_path, 'platform-tools/adb')
             build_tool_parent_dir = os.path.join(sdk_path, 'build-tools')
             dirs = os.listdir(build_tool_parent_dir)
             for dirName in dirs:
@@ -42,7 +47,7 @@ class ADB:
         Install apk
         """
         print('ADB: begin install ' + apk_path)
-        cmd = '%s install -r %s' % (self.adbPath, apk_path)
+        cmd = '%s install -r %s' % (self.adb_path, apk_path)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         out, error = p.communicate()
         lines = out.splitlines()
@@ -76,7 +81,7 @@ class ADB:
                 encode_param = base64.encodestring(params[k].encode('utf-8')).strip()
                 case_param += ' -e %s %s' % (k, encode_param)
         # print 'ADB: case_param = ' + case_param
-        cmd = '%s shell am instrument -w -r %s %s/%s ' % (self.adbPath, case_param, test_package_name, runner)
+        cmd = '%s shell am instrument -w -r %s %s/%s ' % (self.adb_path, case_param, test_package_name, runner)
         # print 'ADB:cmd before encode = ' + cmd
         # print 'ADB: Run cmd = ' + cmd
         if log_file is None:
@@ -96,7 +101,7 @@ class ADB:
         uninstall by package name
         """
         print('ADB: uninstall ' + package_name)
-        cmd = '%s uninstall %s' % (self.adbPath, package_name)
+        cmd = '%s uninstall %s' % (self.adb_path, package_name)
         p = subprocess.Popen(cmd, shell=True)
         p.communicate()
 
@@ -104,7 +109,7 @@ class ADB:
         """
         show devices
         """
-        cmd = '%s devices' % (self.adbPath,)
+        cmd = '%s devices' % (self.adb_path,)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         out, error = p.communicate()
         print(out)
@@ -128,11 +133,11 @@ class ADB:
         return lines[0][pkg_name_start_index:pkg_name_start_index + pkg_name_end_index]
 
     def logcat(self, log_file):
-        cmd = '%s logcat -c' % (self.adbPath,)
+        cmd = '%s logcat -c' % (self.adb_path,)
         p = subprocess.Popen(cmd, shell=True)
         p.communicate()
         self.__logcat_process = p = subprocess.Popen(
-            '%s logcat -v time' % (self.adbPath,), shell=True, stdout=subprocess.PIPE)
+            '%s logcat -v time' % (self.adb_path,), shell=True, stdout=subprocess.PIPE)
         thread = Thread(target=self.__handle_output, args=(p, log_file))
         thread.start()
 
@@ -142,12 +147,12 @@ class ADB:
             self.__logcat_process = None
 
     def pm_clear(self, packagename):
-        cmd = '%s shell pm clear %s' % (self.adbPath, packagename)
+        cmd = '%s shell pm clear %s' % (self.adb_path, packagename)
         p = subprocess.Popen(cmd, shell=True)
         p.communicate()
 
     def get_sys_prop(self, output_file):
-        cmd = '%s shell getprop' % (self.adbPath,)
+        cmd = '%s shell getprop' % (self.adb_path,)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         f = open(output_file, 'a')
         while p.poll() is None:
@@ -156,7 +161,7 @@ class ADB:
         f.close()
 
     def get_meminfo(self, package_name, output_file):
-        cmd = '%s shell dumpsys meminfo %s' % (self.adbPath, package_name)
+        cmd = '%s shell dumpsys meminfo %s' % (self.adb_path, package_name)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         f = open(output_file, 'a')
         while p.poll() is None:

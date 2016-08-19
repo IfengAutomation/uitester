@@ -3,7 +3,6 @@
 from threading import Thread
 
 from uitester import cache
-from uitester.json_rpc import rpc_server
 from uitester.remote_proxy.proxy import CommonProxy
 from uitester.config import Config
 from uitester.context import Context
@@ -23,7 +22,6 @@ class Tester:
     UI and CMD should use this class.
     """
     def __init__(self):
-        self.server = None
         self.conf = Config.read()
         self.context = Context()
         setattr(self.context, 'config', self.conf)
