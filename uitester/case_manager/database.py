@@ -12,6 +12,7 @@ from sqlalchemy.dialects.mysql import TEXT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, relationship
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql.elements import or_
 
 logger = logging.getLogger('UiTester')
 logger.setLevel(logging.DEBUG)
@@ -83,11 +84,11 @@ class DBCommandLineHelper:
             return session.query(Tag).filter(Tag.name == name).first()
 
     def query_tag_by_id(self, id):
-        '''根据标识名查看未删除tag'''
+        '''根据标识名查看tag'''
         return session.query(Tag).filter(Tag.id == id).first()
 
     def query_tag_all(self):
-        '''查看所有未删除tag'''
+        '''查看所有tag'''
         return session.query(Tag).all()
 
     def delete_tag(self, id):
@@ -96,31 +97,55 @@ class DBCommandLineHelper:
         session.delete(del_tag)
         session.commit()
 
-    def insert_case(self, name, content, tags):
+    def insert_case(self, name, content, tag_names_list, add_tag_names_list=None):
         '''插入case'''
         case = Case()
         case.name = name
         case.content = content
-        if tags is not None:
-            case.tags = tags
+        tags = []
+        if tag_names_list:
+            select = or_(*[Tag.name == tag_name for tag_name in tag_names_list])
+            tags = session.query(Tag).filter(select).all()
+        if add_tag_names_list:
+            for tag_name in add_tag_names_list:
+                tag = Tag(name=tag_name, description='')
+                tags.append(tag)
+        case.tags = tags
         session.add(case)
         session.commit()
         return case
+
+    def query_case_by_id(self, id):
+        return session.query(Case).filter(Case.id == id).first()
 
     def query_case_by_name(self, name):
         '''查看case'''
         return session.query(Case).filter(Case.name.like('%' + name + '%')).all()
 
-    def query_case_by_tag_name(self, tag_name):
+    def query_case_by_tag_names(self, tag_names_list):
         '''根据标识名查看case'''
-        tags = self.query_tag_by_name(True,tag_name)
-        return session.query(Case).filter(Case.tags.contains(tags)).all()
+        select = []
+        for tag_name in tag_names_list:
+            select.append(Case.tags.any(name=tag_name))
+        return session.query(Case).filter(*select).order_by(Case.last_modify_time.desc()).all()
 
     def query_case_all(self):
         '''查看case'''
-        return session.query(Case).all()
+        return session.query(Case).order_by(Case.last_modify_time.desc()).all()
 
-    def update_case(self):
+    def update_case(self, case_id, case_name, case_content, tag_names_list, add_tag_names_list=None):
+        case = session.query(Case).filter(Case.id == case_id).first()
+        case.name = case_name
+        case.content = case_content
+        tags = []
+        if tag_names_list:
+            select = or_(*[Tag.name == tag_name for tag_name in tag_names_list])
+            tags = session.query(Tag).filter(select).all()
+        if add_tag_names_list:
+            for tag_name in add_tag_names_list:
+                tag = Tag(name=tag_name, description='')
+                tags.append(tag)
+        case.tags = tags
         session.commit()
 
     def delete_case(self, id):
@@ -162,10 +187,10 @@ class DBCommandLineHelper:
         logger.debug("test update_case")
         case_list[0].name = "测试验证点播视频音频播放操作x"
         case_list[0].content = "测试验证点播视频音频播放操作x"
-        del case_list[0].tags[1]
+        # del case_list[0].tags[1]
         self.update_case()
         logger.debug("test delete")
-        self.delete_case(1)
+        # self.delete_case(1)
 
     def test_tag(self):
         # self.init()
@@ -186,7 +211,7 @@ class DBCommandLineHelper:
         tag_list_all[0].name = "主页-精选"
         self.update_tag()
         logger.debug("test del")
-        self.delete_tag(3)
+        # self.delete_tag(3)
         tag_list = self.query_tag_all()
         for tag in tag_list:
             logger.debug("tag name :", tag.name)
@@ -194,8 +219,12 @@ class DBCommandLineHelper:
 
 if __name__ == '__main__':
     dBCommandLineHelper = DBCommandLineHelper()
+    list = dBCommandLineHelper.query_case_by_tag_names(['主页-精选', '主页'])
+    print(list)
     # dBCommandLineHelper.delete_tag(1)
-    dBCommandLineHelper.init()
-    dBCommandLineHelper.test_tag()
-    dBCommandLineHelper.test_case()
-    dBCommandLineHelper.delete_tag(1)
+    # dBCommandLineHelper.init()
+    # dBCommandLineHelper.test_tag()
+    # dBCommandLineHelper.test_case()
+    # dBCommandLineHelper.delete_tag(1)
+    # var = dBCommandLineHelper.query_case_by_tag_name("点播")
+    # print(var)

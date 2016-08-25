@@ -6,7 +6,7 @@ import sys
 from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow, QApplication, QDesktopWidget
 
-from uitester.ui.case_manager.case_manager_ui import CaseManagerUi
+from uitester.ui.case_manager.case_manager import CaseManagerUi
 from uitester.ui.case_run.case_run import RunWidget
 
 

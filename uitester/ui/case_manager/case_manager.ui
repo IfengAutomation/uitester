@@ -45,7 +45,7 @@
          <item>
           <layout class="QHBoxLayout" name="query_conditions_layout">
            <item>
-            <widget class="QPushButton" name="pushButton_3">
+            <widget class="QPushButton" name="add_case_button">
              <property name="text">
               <string>添加</string>
              </property>
@@ -66,7 +66,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_4">
+            <widget class="QPushButton" name="query_cases_button">
              <property name="text">
               <string>标签查询</string>
              </property>
@@ -75,9 +75,6 @@
           </layout>
          </item>
         </layout>
-       </item>
-       <item>
-        <widget class="QTableWidget" name="table_widget"/>
        </item>
       </layout>
      </item>
