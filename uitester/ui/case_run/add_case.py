@@ -12,7 +12,7 @@ from uitester.ui.case_manager.tag_names_line_edit import TagLineEdit, TagComplet
 
 
 class AddCaseWidget(QWidget):
-    close_signal = pyqtSignal()
+    select_case_signal = pyqtSignal(list)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -38,9 +38,7 @@ class AddCaseWidget(QWidget):
 
         self.searchbtn.clicked.connect(self.search_event)
         self.selectcasebtn.clicked.connect(self.select_event)
-        self.selectcasebtn.clicked.connect(self.hide)    # 隐藏AddCase页
-        self.close_signal.connect(self.close)
-        self.casecancelbtn.clicked.connect(self.cancel_event)
+        self.casecancelbtn.clicked.connect(self.close)
 
     def search_event(self):
         # TODO 1、获取搜索框tag_lineedit text，根据text进行数据查询
@@ -49,17 +47,15 @@ class AddCaseWidget(QWidget):
 
     def select_event(self):
         # TODO 记录选择数据，返回run主页
-        pass
-
-    def cancel_event(self):
-        self.close()
+        # TODO 根据选择结果获得case id
+        self.close()     # 关闭AddCase页
 
     def tag_names_line_edit_adapter(self):
         """
         给tag_names_line_edit设置自动提示、默认显示提示文字等
         :return:
         """
-        self.tag_names_line_edit.setPlaceholderText("Type tag names")   # 设置提示文字
+        self.tag_names_line_edit.setPlaceholderText("Tag names")   # 设置提示文字
         self.search_layout.insertWidget(0, self.tag_names_line_edit)
 
         self.tag_list = self.dBCommandLineHelper.query_tag_all()  # 获取所有tag
