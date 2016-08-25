@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import *
 
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.ui.case_manager.case_edit import CaseEdit
+from uitester.ui.case_manager.case_editor import EditorWidget
 from uitester.ui.case_manager.table_layout import TableLayout
 from uitester.ui.case_manager.tag_names_line_edit import TagCompleter, TagLineEdit
 
@@ -29,10 +30,14 @@ class CaseManagerUi(QWidget):
         self.table_layout = TableLayout('')  # 显示数据表及相应操作
         self.data_message_layout.insertWidget(1, self.table_layout)
 
+        self.editor_widget = EditorWidget()
+
     def add_case(self):
-        self.add_case_window = CaseEdit(case_id=None)
-        self.add_case_window.setWindowModality(Qt.ApplicationModal)  # 设置QWidget为模态
-        self.add_case_window.show()
+        """
+        show editor
+        :return:
+        """
+        self.editor_widget.show()
     '''根据查询条件更新数据表'''
 
     def update_table_data(self):

@@ -20,11 +20,23 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QWidget" name="widget" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <widget class="QPushButton" name="runbtn">
+       <widget class="QPushButton" name="run_stop_btn">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -90,8 +102,8 @@
       </property>
       <property name="font">
        <font>
-        <family>Courier</family>
-        <pointsize>12</pointsize>
+        <family>Agency FB</family>
+        <pointsize>9</pointsize>
        </font>
       </property>
      </widget>
