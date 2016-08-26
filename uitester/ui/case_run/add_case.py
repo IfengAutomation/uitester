@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QWidget, QDesktopWidget
 
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.config import Config
-from uitester.ui.case_manager.tag_names_line_edit import TagLineEdit, TagCompleter
+from uitester.ui.case_manager.case_search_edit import TagLineEdit, TagCompleter, SearchButton
 
 
 class AddCaseWidget(QWidget):
@@ -26,7 +26,8 @@ class AddCaseWidget(QWidget):
         self.resize(screen.width() / 5 * 2, screen.height() / 5 * 2)
 
         # tag name 输入框
-        self.tag_names_line_edit = TagLineEdit("tag_names_line_edit")
+        self.search_button = SearchButton()
+        self.tag_names_line_edit = TagLineEdit("tag_names_line_edit",self.search_button)
         self.tag_names_line_edit_adapter()   # 设置自动提示
         self.tag_list = None
 

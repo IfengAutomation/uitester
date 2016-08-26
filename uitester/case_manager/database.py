@@ -1,28 +1,35 @@
 # 数据增删改查
 # 导出成 .sql 文件
 import datetime
+import logging
+import os
 
-from flask import logging
 from sqlalchemy import Column
 from sqlalchemy import DateTime
 from sqlalchemy import String, Integer, ForeignKey, Table, MetaData
 from sqlalchemy import create_engine
-from sqlalchemy import engine
 from sqlalchemy.dialects.mysql import TEXT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, relationship
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql.elements import or_
 
+from uitester import config
+
 logger = logging.getLogger('UiTester')
 logger.setLevel(logging.DEBUG)
 
-sql_uri = 'sqlite:///D:/DB/casetest.db'
-Base = declarative_base()
-engine = create_engine(sql_uri, echo=False)
-session = scoped_session(sessionmaker(bind=engine))
-conn = engine.connect()
-metadata = MetaData(conn)
+
+class DB:
+    Base = declarative_base()
+    db_path = os.path.abspath(os.path.join(config.app_dir, 'casetest.db'))
+    sql_uri = 'sqlite:///{}'.format(db_path)
+    db_file_exists = os.path.exists(db_path)
+    engine = create_engine(sql_uri, echo=False)
+    conn = engine.connect()
+    metadata = MetaData(conn)
+    session = scoped_session(sessionmaker(bind=engine))
+
 
 
 class Model:
@@ -34,13 +41,13 @@ class Model:
     last_modify_time = Column(DateTime(timezone=True), default=datetime.datetime.now)
 
 
-case_tag_table = Table('case_tag', Base.metadata,
+case_tag_table = Table('case_tag', DB.Base.metadata,
                        Column('case_id', Integer, ForeignKey('case.id')),
                        Column('tag_id', Integer, ForeignKey('tag.id'))
                        )
 
 
-class Case(Base, Model):
+class Case(DB.Base, Model):
     '''
     记录case信息
     '''
@@ -50,7 +57,7 @@ class Case(Base, Model):
     tags = relationship('Tag', secondary=case_tag_table, backref="case")
 
 
-class Tag(Base):
+class Tag(DB.Base):
     '''
     tag 信息
     '''
@@ -61,41 +68,42 @@ class Tag(Base):
 
 
 class DBCommandLineHelper:
-    def init(self):
-        Base.metadata.create_all(engine)
+    def __init__(self):
+        if not DB.db_file_exists:
+            DB.Base.metadata.create_all(DB.engine)
 
     def insert_tag(self, name, description):
         tag = Tag()
         tag.name = name
         tag.description = description
-        session.add(tag)
-        session.commit()
+        DB.session.add(tag)
+        DB.session.commit()
         return tag
 
     def update_tag(self):
-        session.commit()
+        DB.session.commit()
 
     def query_tag_by_name(self, is_accurate, name):
         '''根据标识名查看未删除tag'''
         if is_accurate == False:
             name = '%' + name + '%'
-            return session.query(Tag).filter(Tag.name.like(name)).all()
+            return DB.session.query(Tag).filter(Tag.name.like(name)).all()
         else:
-            return session.query(Tag).filter(Tag.name == name).first()
+            return DB.session.query(Tag).filter(Tag.name == name).first()
 
     def query_tag_by_id(self, id):
         '''根据标识名查看tag'''
-        return session.query(Tag).filter(Tag.id == id).first()
+        return DB.session.query(Tag).filter(Tag.id == id).first()
 
     def query_tag_all(self):
         '''查看所有tag'''
-        return session.query(Tag).all()
+        return DB.session.query(Tag).all()
 
     def delete_tag(self, id):
         '''删除tag'''
-        del_tag = session.query(Tag).filter(Tag.id == id).first()
-        session.delete(del_tag)
-        session.commit()
+        del_tag = DB.session.query(Tag).filter(Tag.id == id).first()
+        DB.session.delete(del_tag)
+        DB.session.commit()
 
     def insert_case(self, name, content, tag_names_list, add_tag_names_list=None):
         '''插入case'''
@@ -105,58 +113,58 @@ class DBCommandLineHelper:
         tags = []
         if tag_names_list:
             select = or_(*[Tag.name == tag_name for tag_name in tag_names_list])
-            tags = session.query(Tag).filter(select).all()
+            tags = DB.session.query(Tag).filter(select).all()
         if add_tag_names_list:
             for tag_name in add_tag_names_list:
                 tag = Tag(name=tag_name, description='')
                 tags.append(tag)
         case.tags = tags
-        session.add(case)
-        session.commit()
+        DB.session.add(case)
+        DB.session.commit()
         return case
 
     def query_case_by_id(self, id):
-        return session.query(Case).filter(Case.id == id).first()
+        return DB.session.query(Case).filter(Case.id == id).first()
 
     def query_case_by_name(self, name):
         '''查看case'''
-        return session.query(Case).filter(Case.name.like('%' + name + '%')).all()
+        return DB.session.query(Case).filter(Case.name.like('%' + name + '%')).all()
 
     def query_case_by_tag_names(self, tag_names_list):
         '''根据标识名查看case'''
         select = []
         for tag_name in tag_names_list:
             select.append(Case.tags.any(name=tag_name))
-        return session.query(Case).filter(*select).order_by(Case.last_modify_time.desc()).all()
+        return DB.session.query(Case).filter(*select).order_by(Case.last_modify_time.desc()).all()
 
     def query_case_all(self):
         '''查看case'''
-        return session.query(Case).order_by(Case.last_modify_time.desc()).all()
+        return DB.session.query(Case).order_by(Case.last_modify_time.desc()).all()
 
     def update_case(self, case_id, case_name, case_content, tag_names_list, add_tag_names_list=None):
-        case = session.query(Case).filter(Case.id == case_id).first()
+        case = DB.session.query(Case).filter(Case.id == case_id).first()
         case.name = case_name
         case.content = case_content
         tags = []
         if tag_names_list:
             select = or_(*[Tag.name == tag_name for tag_name in tag_names_list])
-            tags = session.query(Tag).filter(select).all()
+            tags = DB.session.query(Tag).filter(select).all()
         if add_tag_names_list:
             for tag_name in add_tag_names_list:
                 tag = Tag(name=tag_name, description='')
                 tags.append(tag)
         case.tags = tags
-        session.commit()
+        DB.session.commit()
 
     def delete_case(self, id):
-        case = session.query(Case).filter(Case.id == id).first()
-        session.delete(case)
-        session.commit()
+        case = DB.session.query(Case).filter(Case.id == id).first()
+        DB.session.delete(case)
+        DB.session.commit()
 
     def get_table_data(self, table_name):
-        tbl = Table(table_name, metadata, autoload=True, schema="main")
+        tbl = Table(table_name, DB.metadata, autoload=True, schema="main")
         sql = tbl.select()
-        result = conn.execute(sql)
+        result = DB.conn.execute(sql)
         return result
 
     def insert_case_tag(self, case_id, tag_id):
@@ -164,8 +172,8 @@ class DBCommandLineHelper:
         case_tag = case_tag_table
         case_tag.case_id = case_id
         case_tag.tag_id = tag_id
-        session.add(case_tag)
-        session.commit()
+        DB.session.add(case_tag)
+        DB.session.commit()
         return case_tag
 
     def test_case(self):

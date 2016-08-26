@@ -41,38 +41,41 @@
      <item>
       <layout class="QVBoxLayout" name="data_message_layout">
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <layout class="QHBoxLayout" name="query_conditions_layout">
          <item>
-          <layout class="QHBoxLayout" name="query_conditions_layout">
-           <item>
-            <widget class="QPushButton" name="add_case_button">
-             <property name="text">
-              <string>添加</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton">
-             <property name="text">
-              <string>导入</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton_2">
-             <property name="text">
-              <string>导出</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="query_cases_button">
-             <property name="text">
-              <string>标签查询</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <widget class="QPushButton" name="check_button">
+           <property name="text">
+            <string>PushButton</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="delete_case_button">
+           <property name="text">
+            <string>delete</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="add_case_button">
+           <property name="text">
+            <string>add</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="import_button">
+           <property name="text">
+            <string>import</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="export_button">
+           <property name="text">
+            <string>export</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>

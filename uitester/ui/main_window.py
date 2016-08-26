@@ -6,7 +6,7 @@ import sys
 from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow, QApplication, QDesktopWidget
 
-from uitester.ui.case_manager.case_manager import CaseManagerUi
+from uitester.ui.case_manager.case_manager import CaseManagerUi, QTabBar
 from uitester.ui.case_run.case_run import RunWidget
 
 
@@ -19,9 +19,10 @@ class MainWindow(QMainWindow):
         # todo 更改窗体大小
         screen = QDesktopWidget().screenGeometry()
         self.resize(screen.width() / 2, screen.height() / 2)
-        self.setWindowTitle("test-manager")
+        self.setWindowTitle("uitest")
+
         case_manager_widget = CaseManagerUi()
-        self.tabWidget.addTab(case_manager_widget, "case_manager")
+        self.tabWidget.addTab(case_manager_widget, "Case")
 
         # Add tab "Run"
         case_run_widget = RunWidget()
