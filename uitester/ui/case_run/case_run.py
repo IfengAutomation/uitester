@@ -2,8 +2,8 @@
 import os
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QPixmap, QBrush, QTextCharFormat
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtGui import QIcon, QPixmap, QBrush, QTextCharFormat, QPalette
+from PyQt5.QtWidgets import QWidget, QLabel
 
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.config import Config
@@ -23,6 +23,8 @@ class RunWidget(QWidget):
         ui_file_path = os.path.join(ui_dir_path, 'case_run.ui')
         uic.loadUi(ui_file_path, self)
 
+        self.case_labels = []
+
         # set icon
         run_icon = QIcon()
         self.config = Config()
@@ -40,6 +42,7 @@ class RunWidget(QWidget):
 
         self.add_case_widget = AddCaseWidget()
         self.add_device_widget = AddDeviceWidget()
+        self.add_device_widget.setWindowModality(Qt.ApplicationModal)
 
         # add log 连接
         self.add_device_widget.add_log_signal.connect(self.add_log, Qt.QueuedConnection)
@@ -55,11 +58,8 @@ class RunWidget(QWidget):
         if self.running:
             self.stop_case()
             return
-        self.add_device_widget.setWindowModality(Qt.ApplicationModal)
-        self.device_list_signal.disconnect(self.add_device_widget.add_radio_to_widget)
-        self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.add_device_widget.show()
-        self.device_list_signal.emit(self.add_device_widget.list_devices())
+        self.device_list_signal.emit(self.list_devices())
 
     def list_devices(self):
         """
@@ -89,9 +89,14 @@ class RunWidget(QWidget):
 
     def update_case_color(self, case_name):
         # TODO 根据执行结果对case name着色 pass: green; fail: red
-        keyword = QTextCharFormat()
-        brush = QBrush(Qt.darkGreen, Qt.SolidPattern)
-        case_name.setForeground(brush)
+
+        label = QLabel()
+        label.setText("There is no device.")
+        pe = QPalette()
+        pe.setColor(QPalette.WindowText, Qt.red)  # 设置字体颜色
+        label.setAutoFillBackground(True)  # 设置背景充满，为设置背景颜色的必要条件
+        pe.setColor(QPalette.Window, Qt.blue)  # 设置背景颜色
+        label.setPalette(pe)
 
     def run_case(self):
         # 图标变为stop
@@ -114,10 +119,8 @@ class RunWidget(QWidget):
 
     def show_cases(self, id_list):
         # TODO 根据id去数据库中拿到Case对象，展示Case对象的casename
-        case_list = []
         for case_id in id_list:
             case = self.dBCommandLineHelper.query_case_by_id(case_id)
-            case_list.append(case)
+            self.case_labels.append(case)
             self.casearea.append(case.name)
-        return case_list
 

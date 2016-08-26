@@ -27,17 +27,11 @@ class AddCaseWidget(QWidget):
 
         # tag name 输入框
         self.search_button = SearchButton()
-        self.tag_names_line_edit = TagLineEdit("tag_names_line_edit",self.search_button)
+        self.tag_names_line_edit = TagLineEdit("tag_names_line_edit", self.search_button)
         self.tag_names_line_edit_adapter()   # 设置自动提示
         self.tag_list = None
 
-        # set icon
-        search_icon = QIcon()
-        config = Config()
-        search_icon.addPixmap(QPixmap(config.images + '/search.png'), QIcon.Normal, QIcon.Off)
-        self.searchbtn.setIcon(search_icon)
-
-        self.searchbtn.clicked.connect(self.search_event)
+        self.search_button.clicked.connect(self.search_event)
         self.selectcasebtn.clicked.connect(self.select_event)
         self.casecancelbtn.clicked.connect(self.close)
 

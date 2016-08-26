@@ -15,19 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="search_layout">
-     <item>
-      <widget class="QPushButton" name="searchbtn">
-       <property name="text">
-        <string>Search</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>C:/Users/lr/Desktop/search.png</normaloff>C:/Users/lr/Desktop/search.png</iconset>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <layout class="QHBoxLayout" name="search_layout"/>
    </item>
    <item>
     <widget class="QTextBrowser" name="cases_to_choose"/>
