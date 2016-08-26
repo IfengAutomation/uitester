@@ -7,9 +7,10 @@ from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox
 
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.config import Config
+from uitester.ui.case_manager.case_search_edit import TagLineEdit, TagCompleter, SearchButton
 from uitester.ui.case_manager.case_text_edit import TextEdit, Completer
 from uitester.ui.case_manager.highlighter import MyHighlighter
-from uitester.ui.case_manager.tag_names_line_edit import TagLineEdit, TagCompleter
+# from uitester.ui.case_manager.tag_names_line_edit import TagLineEdit, TagCompleter
 
 
 class EditorWidget(QWidget):
@@ -44,7 +45,7 @@ class EditorWidget(QWidget):
         self.case_name_line_edit.setPlaceholderText("Case Name")   # 设置提示文字
 
         # tag name 输入框
-        self.tag_names_line_edit = TagLineEdit("tag_names_line_edit")
+        self.tag_names_line_edit = TagLineEdit("tag_names_line_edit",SearchButton())
         self.tag_list = None
         self.tag_names_line_edit_adapter()
 
