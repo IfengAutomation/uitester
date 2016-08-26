@@ -1,5 +1,6 @@
 # auto created config file
 config
+casetest.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
