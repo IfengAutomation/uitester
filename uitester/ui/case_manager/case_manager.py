@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import *
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.config import Config
 from uitester.ui.case_manager.case_edit import CaseEdit
+from uitester.ui.case_manager.case_editor import EditorWidget
 from uitester.ui.case_manager.table_layout import TableLayout
 from uitester.ui.case_manager.case_search_edit import TagCompleter, TagLineEdit, SearchButton
 
@@ -44,8 +45,7 @@ class CaseManagerUi(QWidget):
         self.set_tag_list_widget()  # 显示所有标签
         self.set_tag_search_line()  # 设置输入框自动补全
         self.data_message_layout.insertWidget(1, self.table_layout)
-
-
+        self.editor_widget = EditorWidget()
     def button_style(self,button,image_path,text):
         icon = QIcon()
         config = Config()
@@ -82,11 +82,17 @@ class CaseManagerUi(QWidget):
         else:
             QMessageBox.warning(self, "删除错误", "请选择要删除的case")
 
-    def add_case(self):
-        self.add_case_window = CaseEdit(case_id=None)
-        self.add_case_window.setWindowModality(Qt.ApplicationModal)  # 设置QWidget为模态
-        self.add_case_window.show()
+    # def add_case(self):
+    #     self.add_case_window = CaseEdit(case_id=None)
+    #     self.add_case_window.setWindowModality(Qt.ApplicationModal)  # 设置QWidget为模态
+    #     self.add_case_window.show()
 
+    def add_case(self):
+        """
+        show editor
+        :return:
+        """
+        self.editor_widget.show()
     '''根据查询条件更新数据表'''
 
     def update_table_data(self):

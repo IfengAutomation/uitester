@@ -6,19 +6,43 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>861</width>
-    <height>525</height>
+    <width>809</width>
+    <height>455</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Add Devices</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <widget class="QTextBrowser" name="devices"/>
+    <widget class="QWidget" name="device_show_area" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QVBoxLayout" name="devices_layout"/>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
     <widget class="QWidget" name="widget" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <spacer name="seelct_btn_Spacer">
@@ -51,6 +75,9 @@
     </widget>
    </item>
   </layout>
+  <zorder>widget</zorder>
+  <zorder>device_show_area</zorder>
+  <zorder>layoutWidget</zorder>
  </widget>
  <resources/>
  <connections/>
