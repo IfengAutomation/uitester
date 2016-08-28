@@ -3,11 +3,9 @@ import os
 
 from PyQt5 import uic
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QDesktopWidget
 
 from uitester.case_manager.database import DBCommandLineHelper
-from uitester.config import Config
 from uitester.ui.case_manager.case_search_edit import TagLineEdit, TagCompleter, SearchButton
 
 

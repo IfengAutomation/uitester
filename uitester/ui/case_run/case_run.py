@@ -1,9 +1,10 @@
 # -*- encoding: UTF-8 -*-
 import os
+
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QPixmap, QBrush, QTextCharFormat, QPalette
-from PyQt5.QtWidgets import QWidget, QLabel
+from PyQt5.QtGui import QIcon, QPixmap, QBrush, QColor, QStandardItemModel, QStandardItem
+from PyQt5.QtWidgets import QWidget
 
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.config import Config
@@ -22,8 +23,6 @@ class RunWidget(QWidget):
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, 'case_run.ui')
         uic.loadUi(ui_file_path, self)
-
-        self.case_labels = []
 
         # set icon
         run_icon = QIcon()
@@ -87,16 +86,23 @@ class RunWidget(QWidget):
             return
         self.logarea.append(log_info)
 
-    def update_case_color(self, case_name):
-        # TODO 根据执行结果对case name着色 pass: green; fail: red
-
-        label = QLabel()
-        label.setText("There is no device.")
-        pe = QPalette()
-        pe.setColor(QPalette.WindowText, Qt.red)  # 设置字体颜色
-        label.setAutoFillBackground(True)  # 设置背景充满，为设置背景颜色的必要条件
-        pe.setColor(QPalette.Window, Qt.blue)  # 设置背景颜色
-        label.setPalette(pe)
+    def update_case_name_color(self, case_id, result):
+        """
+        根据执行结果对case name着色 pass: green; fail: red
+        :param case_id:
+        :param result:
+        :return:
+        """
+        model = self.case_table_view.model()
+        for column_index in range(model.rowCount()):
+            index = model.index(column_index, 0)
+            data = model.data(index)
+            if str(case_id) == str(data):
+                if result == 1:  # case pass
+                    model.item(column_index, 1).setForeground(QBrush(QColor(0, 255, 0)))  # 设置字体颜色 绿色
+                else:   # case fail
+                    model.item(column_index, 1).setForeground(QBrush(QColor(255, 0, 0)))  # 设置字体颜色 红色
+                return
 
     def run_case(self):
         # 图标变为stop
@@ -118,9 +124,26 @@ class RunWidget(QWidget):
         # TODO 停止执行
 
     def show_cases(self, id_list):
-        # TODO 根据id去数据库中拿到Case对象，展示Case对象的casename
+        """
+        根据id去数据库中拿到Case对象，展示Case对象的casename
+        :param id_list:
+        :return:
+        """
+        # TableView 实现
+        case_name_model = QStandardItemModel()
         for case_id in id_list:
             case = self.dBCommandLineHelper.query_case_by_id(case_id)
-            self.case_labels.append(case)
-            self.casearea.append(case.name)
+            case_name_model.setItem(id_list.index(case_id), 0, QStandardItem(str(case.id)))  # 每行第一列为id
+            case_name_model.setItem(id_list.index(case_id), 1, QStandardItem(case.name))  # 每行第二列为case name
+
+        # 隐藏表头
+        self.case_table_view.verticalHeader().hide()
+        self.case_table_view.horizontalHeader().hide()
+
+        self.case_table_view.setModel(case_name_model)
+
+        self.case_table_view.resizeColumnsToContents()  # 根据content设置size
+        self.case_table_view.setShowGrid(False)   # 不显示网格
+        self.case_table_view.setColumnHidden(0, True)  # 隐藏id列
+
 
