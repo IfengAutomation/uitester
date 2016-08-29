@@ -1,9 +1,26 @@
 #!/usr/bin/env bash
 
-echo $1
 
-
-if [ $1 == devices ];
-then echo "TA09004MPY	device";
+if [ $1 == devices ];then
+echo "List of devices attached";
+echo "TA09004MPY	device";
+echo "TA09004MPA	device";
 fi
 
+if [ $1 == install ];then
+    if [ $# -lt 2 ];then
+        echo "ADB help:"
+        echo "---------"
+    elif [ $2 == fail ]||[ $3 == fail ];then
+        echo "Failed adb install test"
+        echo "---------"
+    else
+        echo "[100%] $2"
+        echo "       pkg: $2"
+        echo "Success"
+    fi
+fi
+
+if [ $# -ge 3 ] && [ $1 == shell ] && [ $2 == am ] && [ $3 == instrument ]; then
+    echo "instrument"
+fi

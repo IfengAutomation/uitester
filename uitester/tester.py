@@ -7,6 +7,7 @@ from uitester.remote_proxy.proxy import CommonProxy
 from uitester.config import Config
 from uitester.context import Context
 from uitester.error_handler import handle_error, error_handlers
+from uitester.device_manager.device_manager import DeviceManager
 
 import logging
 
@@ -26,6 +27,8 @@ class Tester:
         self.context = Context()
         setattr(self.context, 'config', self.conf)
         error_handlers.append(DefaultErrorHandler())
+        self.dm = DeviceManager(self.context)
+        self.selected_device = None
 
     @handle_error
     def devices(self):
@@ -33,16 +36,16 @@ class Tester:
         show registered devices
         :return:
         """
-        return cache.devices
+        return self.dm.devices
 
     @handle_error
-    def select_devices(self, select_devices):
+    def select_devices(self, device):
         """
         select devices for test
-        :param select_devices:
+        :param device:
         :return:
         """
-        pass
+        self.selected_device = device
 
     @handle_error
     def execute_script(self, file_name):

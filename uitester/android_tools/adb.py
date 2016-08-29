@@ -6,6 +6,10 @@ import subprocess
 from threading import Thread
 
 
+class ADBError(ValueError):
+    pass
+
+
 class ADB:
 
     """ADB"""
@@ -48,7 +52,7 @@ class ADB:
         """
         print('ADB: begin install ' + apk_path)
         cmd = '%s install -r %s' % (self.adb_path, apk_path)
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
         out, error = p.communicate()
         lines = out.splitlines()
         for line in lines:
@@ -58,9 +62,10 @@ class ADB:
             if 'Failure' in line:
                 print('ADB: install failed. ' + line[len('False'):])
                 return False, line
+        return False, None
 
     def instrument(self, test_package_name, runner='android.support.test.runner.AndroidJUnitRunner',
-                   case_classes=None, params=None, log_file=None):
+                   case_classes=None, params=None):
         """
         run instrument test, and write junit log into log_file.
         """
@@ -78,22 +83,13 @@ class ADB:
                 case_param += case
         if len(params) > 0:
             for k in params:
-                encode_param = base64.encodestring(params[k].encode('utf-8')).strip()
-                case_param += ' -e %s %s' % (k, encode_param)
+                case_param += ' -e {} {}'.format(k, params[k])
         # print 'ADB: case_param = ' + case_param
         cmd = '%s shell am instrument -w -r %s %s/%s ' % (self.adb_path, case_param, test_package_name, runner)
         # print 'ADB:cmd before encode = ' + cmd
         # print 'ADB: Run cmd = ' + cmd
-        if log_file is None:
-            p = subprocess.Popen(cmd, shell=True)
-            p.communicate()
-        else:
-            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-            f = open(log_file, 'a')
-            while p.poll() is None:
-                line = p.stdout.readline()
-                f.write(line)
-            f.close()
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
+        out, err = p.communicate()
         print('ADB: instrument stop')
 
     def uninstall(self, package_name):
@@ -108,12 +104,24 @@ class ADB:
     def devices(self):
         """
         show devices
+        :return [['id', 'status']...]
         """
         cmd = '%s devices' % (self.adb_path,)
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
         out, error = p.communicate()
-        print(out)
-        print(self.appt_path)
+        device_lines = out.splitlines()
+        if len(device_lines) <= 0:
+            raise ADBError(error)
+        if not device_lines[0].startswith('List'):
+            raise ADBError('device list error\n{}'.format(device_lines[0]))
+
+        devices = []
+        if len(device_lines) > 1:
+            for line in device_lines:
+                device = line.split('\t')
+                if len(device) == 2:
+                    devices.append(device)
+        return devices
 
     def package_name(self, apk_path):
         """
