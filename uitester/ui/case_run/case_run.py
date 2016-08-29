@@ -147,5 +147,3 @@ class RunWidget(QWidget):
         self.case_table_view.setShowGrid(False)   # 不显示网格
         self.case_table_view.setColumnHidden(0, True)  # 隐藏id列
 
-        self.update_case_name_color(2, 0)
-        self.update_case_name_color(13, 1)
