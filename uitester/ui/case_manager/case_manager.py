@@ -92,6 +92,9 @@ class CaseManagerUi(QWidget):
         show editor
         :return:
         """
+        self.editor_widget.case_name_line_edit.setText("")
+        self.editor_widget.tag_names_line_edit.setText("")
+        self.editor_widget.editor_text_edit.setPlainText("")
         self.editor_widget.show()
     '''根据查询条件更新数据表'''
 

@@ -1,16 +1,12 @@
 # @Time    : 2016/8/22 13:46
 # @Author  : lixintong
-import math
-import os
 import sys
 
-from PyQt5 import uic
 from PyQt5.QtCore import *
-from PyQt5.QtGui import QFont,QColor,QBrush
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import *
 
-from uitester.case_manager.database import DBCommandLineHelper
-from uitester.ui.case_manager.case_edit import CaseEdit
+from uitester.ui.case_manager.case_editor import EditorWidget
 
 
 class TableLayout(QWidget):
@@ -47,17 +43,13 @@ class DataTableWidget(QTableWidget):
         self.setColumnCount(self.column_count)
         self.set_table_data()
 
-
-
-
     def item_clicked(self, item):
         if item.column() == 2:
             self.edit_case(item)
 
     def edit_case(self, item):
         id_item = self.item(item.row(), 1)
-        self.case_edit_window = CaseEdit(id_item.text())
-        self.case_edit_window.setWindowModality(Qt.ApplicationModal)  # 设置QWidget为模态
+        self.case_edit_window = EditorWidget(id_item.text())
         self.case_edit_window.show()
 
     def set_checkbox_item(self, row, column):
@@ -74,7 +66,6 @@ class DataTableWidget(QTableWidget):
             self.setHorizontalHeaderItem(column, table_header_item)
         self.horizontalHeader().setStyleSheet("QHeaderView::section{background:	#ECF5FF;}")
         # self.horizontalHeader().sectionClicked.connect(self.hor_sction_clicked)  # 表头单击信号
-
 
     def set_table_data(self):
         # self.case_list = case_list
