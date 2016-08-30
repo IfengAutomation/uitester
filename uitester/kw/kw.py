@@ -41,8 +41,10 @@ class KWCore:
             self.user_var[kw_line.var] = res
 
     def parse_line(self, line):
+        # set line number
+        self.line_count += 1
         # parse line to kw line
-        kw_line = self._parse_line(line)
+        kw_line = self._parse_line(line, line_number=self.line_count)
 
         func = kw_line.items[0]
 
@@ -51,14 +53,11 @@ class KWCore:
             self.default_func['import'](*kw_line.items[1:])
 
         if func not in self.user_func and func not in self.user_var:
-            raise ValueError('Define not found {}'.format(func))
+            raise ValueError('Define not found {}'.format(func), kw_line.line_number)
 
         if kw_line.var:
             self.user_var[kw_line.var] = None
 
-        # set line number
-        self.line_count += 1
-        kw_line.line_number = self.line_count
         # add kw line to cache
         self.parsed_line.append(kw_line)
 
@@ -99,14 +98,14 @@ class KWCore:
             kw_items.append(cache)
 
         if in_quotation:
-            raise ValueError('Missing quote. {}'.format(kw_line))
+            raise ValueError('Missing quote. {}'.format(kw_line), line_number)
 
         if self.AS in kw_items:
             as_index = kw_items.index(self.AS)
             if as_index < (len(kw_items) - 2):
-                raise ValueError('Keywords "as" should only set one variable')
+                raise ValueError('Keywords "as" should only set one variable', line_number)
             elif as_index == (len(kw_items) - 1):
-                raise ValueError('Keywords "as" need one variable after it')
+                raise ValueError('Keywords "as" need one variable after it', line_number)
             else:
                 var = kw_items[as_index + 1]
                 kw_items = kw_items[:as_index]

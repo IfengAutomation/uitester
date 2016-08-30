@@ -91,6 +91,7 @@ class ADB:
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
         out, err = p.communicate()
         print('ADB: instrument stop')
+        return True, out
 
     def uninstall(self, package_name):
         """

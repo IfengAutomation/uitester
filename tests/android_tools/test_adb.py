@@ -36,6 +36,6 @@ class AdbTestCase(TestCase):
         adb = ADB(self.context)
         adb.update()
         res, line = adb.instrument('com.ifeng.at.testagent.test',
-                                   case_classes='Agent#start',
+                                   case_classes=['com.ifeng.at.testagent.test.Agent#start'],
                                    params={'ip': '172.0.0.1', 'port': 11800, 'id': 'TA09004MPY'})
         self.assertTrue(res)
