@@ -2,12 +2,11 @@
 
 from threading import Thread
 
-from uitester import cache
-from uitester.remote_proxy.proxy import CommonProxy
 from uitester.config import Config
 from uitester.context import Context
 from uitester.error_handler import handle_error, error_handlers
 from uitester.device_manager.device_manager import DeviceManager
+from uitester.kw import kw, kw_runner
 
 import logging
 
@@ -29,6 +28,7 @@ class Tester:
         error_handlers.append(DefaultErrorHandler())
         self.dm = DeviceManager(self.context)
         self.selected_device = None
+        self.runner = kw_runner.KWRunner()
 
     @handle_error
     def devices(self):
@@ -48,63 +48,16 @@ class Tester:
         self.selected_device = device
 
     @handle_error
-    def execute_script(self, file_name):
-        """
-        Execute kw script.
-        :return:
-        """
-        proxy = CommonProxy()
-        file = open(file_name, encoding='utf-8')
-        for line in file:
-            name_and_agr_split_index = line.find(' ')  # 方法与参数之间分隔符：空格
-            if name_and_agr_split_index == -1:
-                kw_name = line.strip()
-                kw_args = []
-            else:
-                kw_name = line[0:name_and_agr_split_index].strip()
-                kw_args = line[name_and_agr_split_index:].strip().split('#')  # 多个参数时，参数之间分隔符：#
-                kw_args = list(filter(lambda x: x != '', kw_args))
-            print("kw_name:{}, args:{}".format(kw_name, kw_args))
-            devices = self.devices()
-            proxy.proxy_manager(devices, kw_name.lower(), *kw_args)
-        proxy.manage_device()
+    def add_run_status_listener(self, status_listener):
+        self.runner.running_status_listeners.append(status_listener)
 
     @handle_error
-    def execute_line(self, kw_name, *args):
-        """
-        Execute kw line
-        :return:
-        """
-        proxy = CommonProxy()
-        devices = self.devices()
-        proxy.proxy_manager(devices, kw_name.lower(), *args)
-        proxy.manage_device()
+    def run(self, cases):
+        self.runner.run(cases)
 
     @handle_error
-    def load_library(self):
-        """
-        Load kw library write by py
-        :return:
-        """
-        pass
-
-    @handle_error
-    def get_kw_info(self, name=None, name_startswith=None):
-        """
-        get kw help
-        :param name: kw name
-        :param name_startswith: find kw name by str
-        :return:
-        """
-        pass
-
-    @handle_error
-    def get_registered_devices(self):
-        """
-        get all registered devices
-        :return:
-        """
-        pass
+    def get_kw_runner(self):
+        return kw.KWCore()
 
     @handle_error
     def start(self):
@@ -112,14 +65,11 @@ class Tester:
         Start RPC-Server in new thread
         :return:
         """
-        self.server = rpc_server.get_server('0.0.0.0', 11800)
-        Thread(target=self.server.serve_forever, daemon=True).start()
+        self.dm.start_rpc_server()
 
     @handle_error
     def stop(self):
-        if self.server:
-            self.server.shutdown()
-
+        pass
 
 
 class DefaultErrorHandler:

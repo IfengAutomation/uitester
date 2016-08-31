@@ -135,6 +135,21 @@ class KWCore:
             return word
 
     def kw_import(self, *args, **kwargs):
+        """
+        Import python lib from .libs dir
+        After import, you can use functions in py lib by write function name.
+        ------------
+        e.g.:
+        import custom_lib
+        test_str
+        ------------
+        line 1. Import python lib witch named custom_lib in libs dir.
+        line 2. call function test_str() in custom_lib.
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
         logger.debug('Import kw lib {}'.format(args))
         for lib_name in args:
             module = __import__(lib_name)
@@ -146,6 +161,14 @@ class KWCore:
                     self.user_func[attr_name] = attr
 
     def kw_check(self, *args, **kwargs):
+        """
+        Assert if arg1 equals arg2
+        e.g. :
+        check some_view.text some_text
+        if this view's text is not some_text, then this case will be record as failed
+        :param args:
+        :return:
+        """
         logger.debug('Check {}'.format(args))
         if len(args) < 2:
             raise ValueError('Check need 2 arguments. but {} given'.format(len(args)))
@@ -153,6 +176,11 @@ class KWCore:
         assert self.get_value(args[0]) == self.get_value(args[1])
 
     def kw_print(self, *args, **kwargs):
+        """
+        Print var
+        :param args:
+        :return:
+        """
         output = []
         for arg in args:
             if arg in self.user_func:
@@ -173,6 +201,7 @@ class KWCore:
             else:
                 output.append(arg)
         print(*output)
+        return output
 
 
 class KWLine:
