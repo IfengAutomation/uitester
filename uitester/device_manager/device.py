@@ -11,14 +11,4 @@ class Device:
         self.status = self.BLANK
         self.id = device_id
 
-    def prepare(self):
-        pass
-
-class BaseResponseHandler:
-    """
-    Response handler base class.
-    ResponseHandler.handle will be call when receive a RPC-response from client
-    """
-    def handle(self, device, response):
-        pass
 
