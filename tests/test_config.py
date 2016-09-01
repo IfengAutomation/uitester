@@ -39,3 +39,9 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(conf_json['sdk'], 'sdk_path')
         self.assertEqual(conf_json['libs'], 'libs')
         self.assertEqual(conf_json['port'], 1234)
+
+    def test_read(self):
+        config.Config.clear_config()
+        config.Config.make_default_config()
+        conf = config.Config.read()
+        self.assertIsNotNone(conf)

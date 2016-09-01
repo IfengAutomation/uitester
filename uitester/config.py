@@ -22,11 +22,11 @@ class Config:
     def read(cls):
         if not os.path.exists(config_file):
             return Config.make_default_config()
-        with json.loads(open(config_file, 'r').read()) as conf_json:
-            conf = cls()
-            for k in conf_json:
-                setattr(conf, k, conf_json[k])
-            return conf
+        conf_json = json.loads(open(config_file, 'r').read())
+        conf = cls()
+        for k in conf_json:
+            setattr(conf, k, conf_json[k])
+        return conf
 
     @staticmethod
     def make_default_config():
