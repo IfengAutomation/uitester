@@ -22,7 +22,7 @@ class Config:
     def read(cls):
         if not os.path.exists(config_file):
             return Config.make_default_config()
-        with json.loads(open(config_file, 'r')) as conf_json:
+        with json.loads(open(config_file, 'r').read()) as conf_json:
             conf = cls()
             for k in conf_json:
                 setattr(conf, k, conf_json[k])

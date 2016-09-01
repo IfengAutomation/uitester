@@ -31,6 +31,10 @@ class Tester:
         self.runner = kw_runner.KWRunner()
 
     @handle_error
+    def get_config(self):
+        return self.context.conf
+
+    @handle_error
     def devices(self):
         """
         show registered devices
