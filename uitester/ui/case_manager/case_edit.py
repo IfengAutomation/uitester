@@ -66,6 +66,6 @@ class CaseEdit(QMainWindow):
             self.db_help.update_case(case_id, case_name, case_content, tag_names_list, add_tag_names)
             QMessageBox.information(self, "修改操作", "修改成功")
         else:
-            case = self.db_help.insert_case(case_name, case_content, tag_names_list, add_tag_names)
+            case = self.db_help.insert_case_with_tagnames(case_name, case_content, tag_names_list, add_tag_names)
             self.id_line_edit.setText(str(case.id))
             QMessageBox.information(self, "添加操作", "添加成功")  # todo 添加定时器 QTimer

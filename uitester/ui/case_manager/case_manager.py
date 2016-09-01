@@ -4,49 +4,87 @@ import os
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon,QPixmap
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import *
 
+from uitester.case_manager.case_data_manager import CaseDataManager
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.config import Config
-from uitester.ui.case_manager.case_edit import CaseEdit
 from uitester.ui.case_manager.case_editor import EditorWidget
-from uitester.ui.case_manager.table_layout import TableLayout
 from uitester.ui.case_manager.case_search_edit import TagCompleter, TagLineEdit, SearchButton
+from uitester.ui.case_manager.conflict_tag import ConflictTagsWidget
+from uitester.ui.case_manager.table_layout import TableLayout
 
 
-class CaseManagerUi(QWidget):
+class CaseManagerWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db_helper = DBCommandLineHelper()
+        self.case_data_manager = CaseDataManager()
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, 'case_manager.ui')
         uic.loadUi(ui_file_path, self)
-        screen = QDesktopWidget().screenGeometry()
-        self.resize(screen.width() / 2, screen.height() / 2)
-        self.add_case_button.clicked.connect(self.add_case)  # 添加case 事件
+        self.add_case_button.clicked.connect(self.add_case)  # add case event
         # case 搜索
         self.search_button = SearchButton()
         self.search_button.clicked.connect(self.update_table_data)
         self.tag_names_line_edit = TagLineEdit("tag_names_line_edit", self.search_button)
         self.query_conditions_layout.insertWidget(5, self.tag_names_line_edit)
-        # 表格数据初始化
+        # init table data
         case_list = self.db_helper.query_case_all()
-        self.table_layout = TableLayout(case_list)  # 显示数据表及相应操作
+        self.table_layout = TableLayout(case_list)  # init ui table
         self.delete_case_button.clicked.connect(self.delete_case)
         self.check_button.clicked.connect(self.check_or_cancel_all)
-        self.button_style( self.delete_case_button, '/delete.png', "Delete")
+        self.export_button.clicked.connect(self.export_data)
+        self.import_button.clicked.connect(self.import_data)
+        self.button_style(self.delete_case_button, '/delete.png', "Delete")
         self.button_style(self.add_case_button, '/add.png', "Add")
         self.button_style(self.import_button, '/import.png', "Import")
         self.button_style(self.export_button, '/export.png', "Export")
         self.button_style(self.check_button, '/check_all.png', "Check All")
 
         self.tag_list = self.db_helper.query_tag_all()
-        self.set_tag_list_widget()  # 显示所有标签
-        self.set_tag_search_line()  # 设置输入框自动补全
+        self.set_tag_list_widget()  # show all tags
+        self.set_tag_search_line()  # Set the tag input line automatic completion
         self.data_message_layout.insertWidget(1, self.table_layout)
         self.editor_widget = EditorWidget()
-    def button_style(self,button,image_path,text):
+        self.button_style(self.check_button, '/check_all.png', "Check All")
+
+    def import_data(self):
+        """
+        import data
+        :return:
+        """
+        file_name = QFileDialog.getOpenFileName(caption="Open File", directory="/",
+                                                filter="dcm files(*.dpk)")
+        if file_name[0] and '.dpk' in file_name[0]:
+            conflict_tags_message_dict = self.case_data_manager.import_data(file_name[0])
+            if conflict_tags_message_dict:
+                self.conflict_tags_widget = ConflictTagsWidget(conflict_tags_message_dict, self.case_data_manager)
+                self.conflict_tags_widget.setWindowModality(Qt.ApplicationModal)
+                self.conflict_tags_widget.show()
+            else:
+                QMessageBox.information(self, "导入操作", "导入成功")
+
+    def export_data(self):
+        """
+        export data
+        :return:
+        """
+        self.table_layout.get_checked_data()  # todo  尝试能否直接获取到checkboxs 的状态
+        if len(self.table_layout.checked_cases_message) > 0:
+            path = QFileDialog.getExistingDirectory(caption="Open Directory", directory="/",
+                                                    options=QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks)
+            if path:
+                case_id_list = []
+                for case_message in self.table_layout.checked_cases_message:
+                    case_id_list.append(case_message['case_id'])
+                self.case_data_manager.export_data(path, case_id_list)
+                QMessageBox.information(self, "导出操作", "导出成功")
+        else:
+            QMessageBox.warning(self, "导出错误", "请选择要导出的case")
+
+    def button_style(self, button, image_path, text):
         icon = QIcon()
         config = Config()
         icon.addPixmap(QPixmap(config.images + image_path), QIcon.Normal, QIcon.Off)
@@ -68,24 +106,18 @@ class CaseManagerUi(QWidget):
             check_box_item.setCheckState(check_status)
 
     def delete_case(self):
-        self.table_layout.get_checked_data()
+        self.table_layout.get_checked_data()  # todo  尝试能否直接获取到checkboxs 的状态
         if len(self.table_layout.checked_cases_message) > 0:
             infor_message = "确认删除" + str(len(self.table_layout.checked_cases_message)) + "条case"
             reply = QMessageBox.information(self, "删除提示", infor_message, QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
                 for i in range(0, len(self.table_layout.checked_cases_message)):
                     case_message = self.table_layout.checked_cases_message[i]
-                    print(int(case_message['case_id']))
                     self.db_helper.delete_case(int(case_message['case_id']))
                     self.table_layout.dataTableWidget.removeRow(int(case_message['row_num']) - i)  # 删除行后 行数会变 所以-i
                 del self.table_layout.checked_cases_message[:]  # todo statusbar 应该提示
         else:
             QMessageBox.warning(self, "删除错误", "请选择要删除的case")
-
-    # def add_case(self):
-    #     self.add_case_window = CaseEdit(case_id=None)
-    #     self.add_case_window.setWindowModality(Qt.ApplicationModal)  # 设置QWidget为模态
-    #     self.add_case_window.show()
 
     def add_case(self):
         """
@@ -93,36 +125,46 @@ class CaseManagerUi(QWidget):
         :return:
         """
         self.editor_widget.show()
-    '''根据查询条件更新数据表'''
 
     def update_table_data(self):
+        """
+        update ui table data
+        :return:
+        """
         self.table_layout.setParent(None)
         self.data_message_layout.removeWidget(self.table_layout)
         tag_names = self.tag_names_line_edit.text()
         tag_names = tag_names[0: len(tag_names) - 1]
         case_list = []
         if tag_names != '':
-            tag_names = tag_names[:len(tag_names)].split(';')
-            case_list = self.db_helper.query_case_by_tag_names(tag_names)
+            if '全部' in tag_names:
+                case_list = self.db_helper.query_case_all()
+            else:
+                tag_names = tag_names[:len(tag_names)].split(';')
+                case_list = self.db_helper.query_case_by_tag_names(tag_names)
         self.table_layout = TableLayout(case_list)
         self.data_message_layout.insertWidget(1, self.table_layout)
 
-    '''设置tag listWidget数据及触发事件
-    '''
-
     def set_tag_list_widget(self):
+        """
+        init ui table data and onclick event
+        :return:
+        """
         self.tag_list_widget.setFixedWidth(150)
+        self.tag_list_widget.addItem('全部')
         for tag in self.tag_list:
             self.tag_list_widget.addItem(tag.name)
         self.tag_list_widget.itemClicked.connect(
             lambda: self.list_widget_item_clicked(self.tag_list_widget.currentItem()))
 
-    '''
-        设置tag 搜索栏
-    '''
-
     def set_tag_search_line(self):
-        tag_completer = TagCompleter(self.get_tag_names())
+        """
+        set tag search line
+        :return:
+        """
+        string_list = ['全部']
+        tag_names_list = string_list+self.get_tag_names()
+        tag_completer = TagCompleter(tag_names_list)
         self.tag_names_line_edit.setCompleter(tag_completer)
 
     def get_tag_names(self):
@@ -137,5 +179,3 @@ class CaseManagerUi(QWidget):
         self.tag_names_line_edit.setText(tag_list_widget_item.text() + ";")
         self.update_table_data()
         self.tag_names_line_edit.is_completer = True
-        self.button_style(self.check_button, '/check_all.png', "Check All")
-

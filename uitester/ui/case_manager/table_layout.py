@@ -1,30 +1,24 @@
 # @Time    : 2016/8/22 13:46
 # @Author  : lixintong
-import math
-import os
 import sys
 
-from PyQt5 import uic
 from PyQt5.QtCore import *
-from PyQt5.QtGui import QFont,QColor,QBrush
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import *
 
-from uitester.case_manager.database import DBCommandLineHelper
 from uitester.ui.case_manager.case_edit import CaseEdit
 
 
 class TableLayout(QWidget):
     def __init__(self, case_list, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        screen = QDesktopWidget().screenGeometry()
-        self.resize(screen.width() / 4, screen.height() / 4)
-        self.dataTableWidget = DataTableWidget(case_list)  # 根据查询条件获取table data
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.dataTableWidget = DataTableWidget(case_list)  #init ui table
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.dataTableWidget)
         self.setLayout(layout)
-        self.checked_cases_message = []  # 待删除Id
-
-
+        self.checked_cases_message = []
 
     def get_checked_data(self):
         del self.checked_cases_message[:]
@@ -47,9 +41,6 @@ class DataTableWidget(QTableWidget):
         self.setColumnCount(self.column_count)
         self.set_table_data()
 
-
-
-
     def item_clicked(self, item):
         if item.column() == 2:
             self.edit_case(item)
@@ -57,7 +48,7 @@ class DataTableWidget(QTableWidget):
     def edit_case(self, item):
         id_item = self.item(item.row(), 1)
         self.case_edit_window = CaseEdit(id_item.text())
-        self.case_edit_window.setWindowModality(Qt.ApplicationModal)  # 设置QWidget为模态
+        self.case_edit_window.setWindowModality(Qt.ApplicationModal)
         self.case_edit_window.show()
 
     def set_checkbox_item(self, row, column):
@@ -73,13 +64,8 @@ class DataTableWidget(QTableWidget):
             table_header_item.setFont(QFont("Roman times", 12, QFont.Bold))
             self.setHorizontalHeaderItem(column, table_header_item)
         self.horizontalHeader().setStyleSheet("QHeaderView::section{background:	#ECF5FF;}")
-        # self.horizontalHeader().sectionClicked.connect(self.hor_sction_clicked)  # 表头单击信号
-
 
     def set_table_data(self):
-        # self.case_list = case_list
-        # self.setRowCount(len(self.case_list))
-        # self.setColumnCount(self.column_count)
         self.itemClicked.connect(self.item_clicked)
         self.set_table_header()
         for row in range(0, self.rowCount()):
@@ -92,30 +78,10 @@ class DataTableWidget(QTableWidget):
             for tag in case.tags:
                 tag_names = tag_names + ',' + tag.name
             self.setItem(row, 4, QTableWidgetItem(tag_names[1:]))
-        self.resizeColumnsToContents()  # 根据内容调整行的宽度
+        self.resizeColumnsToContents()  # Adjust the width according to the content
         self.setStyleSheet("selection-background-color:#0066CC;")
         self.horizontalHeader().setStretchLastSection(True)
-        # self.resizeRowToContents(0)  # 根据内容调整列的宽度度
 
-    # def hor_sction_clicked(self,index):
-    #     print(index)
-    #     if index == 0:
-    #         self.check_or_cancel_all()
-    #
-    # def check_or_cancel_all(self):
-    #     header_item = self.horizontalHeaderItem(0)
-    #     check_status = Qt.Checked
-    #     if header_item.text()=='全选':
-    #         header_item.setText("取消")
-    #     else:
-    #         header_item.setText("全选")
-    #         check_status = Qt.Unchecked
-    #     for row in range(0, self.rowCount()):
-    #         check_box_item = self.item(row, 0)
-    #         check_box_item.setCheckState(check_status)
-        # self.resizeColumnsToContents()
-        # self.set_table_header()
-        # self.horizontalHeader().setStretchLastSection(True)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

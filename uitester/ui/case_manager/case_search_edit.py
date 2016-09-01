@@ -39,7 +39,7 @@ class SearchButton(QPushButton):
 
 
 class TagLineEdit(QLineEdit):
-    def __init__(self, name,search_button, parent=None):
+    def __init__(self, name, search_button, parent=None):
         super(QLineEdit, self).__init__(parent)
         self.setObjectName(name)
         self.cmp = None
@@ -48,21 +48,12 @@ class TagLineEdit(QLineEdit):
         self.tag_edit_layout = QHBoxLayout()
         self.tag_edit_layout.setSpacing(0)
         self.tag_edit_layout.setContentsMargins(0, 0, 0, 0)
-        self.tag_edit_layout.setContentsMargins(0, 0, 0, 0)
         self.tag_edit_layout.addStretch()
         self.tag_edit_layout.addWidget(search_button)
         margins = self.textMargins()
-        self.setTextMargins(margins.left(), margins.top(),search_button.width(),
-                                                margins.bottom())
+        self.setTextMargins(margins.left(), margins.top(), search_button.width(),
+                            margins.bottom())
         self.setLayout(self.tag_edit_layout)
-
-        # Margins
-        # self.setMa
-
-    # def set_search_button(self):
-    #     margins = self.textMargins()
-    #     self.setTextMargins(margins.left(), margins.top(), self.search_button.width(), margins.bottom())
-    #     self.setPlaceholderText("tag names")
 
     def setCompleter(self, completer):
         self.cmp = completer
@@ -106,15 +97,15 @@ class TagLineEdit(QLineEdit):
 
 
 class TagCompleter(QCompleter):
-    def __init__(self, stringlist, parent=None):
+    def __init__(self, string_list, parent=None):
         super(TagCompleter, self).__init__(parent)
-        self.stringlist = stringlist
+        self.string_list = string_list
         self.setModel(QStringListModel())
 
-    def update(self, completionText):
+    def update(self, completion_text):
         filtered = []
-        for str in self.stringlist:
-            if completionText in str:
+        for str in self.string_list:
+            if completion_text in str:
                 filtered.append(str)
         self.model().setStringList(filtered)
         self.popup().setCurrentIndex(self.model().index(0, 0))

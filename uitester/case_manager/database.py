@@ -31,7 +31,6 @@ class DB:
     session = scoped_session(sessionmaker(bind=engine))
 
 
-
 class Model:
     '''
     所有表通用：记录数据创建时间，id主键
@@ -105,7 +104,17 @@ class DBCommandLineHelper:
         DB.session.delete(del_tag)
         DB.session.commit()
 
-    def insert_case(self, name, content, tag_names_list, add_tag_names_list=None):
+    def insert_case_with_tags(self, name, content, tags):
+        '''插入case'''
+        case = Case()
+        case.name = name
+        case.content = content
+        case.tags = tags
+        DB.session.add(case)
+        DB.session.commit()
+        return case
+
+    def insert_case_with_tagnames(self, name, content, tag_names_list, add_tag_names_list=None):
         '''插入case'''
         case = Case()
         case.name = name
@@ -118,6 +127,7 @@ class DBCommandLineHelper:
             for tag_name in add_tag_names_list:
                 tag = Tag(name=tag_name, description='')
                 tags.append(tag)
+        self.insert_case_with_tags(name, content, tags)
         case.tags = tags
         DB.session.add(case)
         DB.session.commit()
@@ -167,6 +177,21 @@ class DBCommandLineHelper:
         result = DB.conn.execute(sql)
         return result
 
+    def get_table_data_by_cases_id(self, cases_id):
+        result = {}
+        case_sql = 'SELECT * FROM main."case" where id in (#cases_id#)'.replace('#cases_id#', cases_id)
+        case_result = DB.conn.execute(case_sql)
+        result['case'] = case_result
+        case_tag_sql = 'SELECT * FROM main.case_tag where case_id in (#cases_id#)'.replace(
+            '#cases_id#', cases_id)
+        case_tag_result = DB.conn.execute(case_tag_sql)
+        result['case_tag'] = case_tag_result
+        tag_sql = 'SELECT DISTINCT tag.id,tag.name,tag.description from main.tag ,main.case_tag' \
+                  ' where  tag.id = case_tag.tag_id and case_id in (#cases_id#)'.replace('#cases_id#', cases_id)
+        tag_result = DB.conn.execute(tag_sql)
+        result['tag'] = tag_result
+        return result
+
     def insert_case_tag(self, case_id, tag_id):
         '''插入case'''
         case_tag = case_tag_table
@@ -180,10 +205,10 @@ class DBCommandLineHelper:
         logger.debug("case insert")
         tags_list = self.query_tag_all()
         tags = [tags_list[0], tags_list[1]]
-        self.insert_case("测试验证点播视频音频播放操作", "测试验证点播视频音频播放操作", tags)
-        self.insert_case("测试点播视频已缓存标记", "测试点播视频已缓存标记", tags)
-        self.insert_case("测试点播视频缓存多选", "测试点播视频缓存多选", tags)
-        self.insert_case("测试验证点播视频播放相关页面内容视频跳转的时候", "测试验证点播视频播放相关页面内容视频跳转的时候", tags)
+        self.insert_case_with_tagnames("测试验证点播视频音频播放操作", "测试验证点播视频音频播放操作", tags)
+        self.insert_case_with_tagnames("测试点播视频已缓存标记", "测试点播视频已缓存标记", tags)
+        self.insert_case_with_tagnames("测试点播视频缓存多选", "测试点播视频缓存多选", tags)
+        self.insert_case_with_tagnames("测试验证点播视频播放相关页面内容视频跳转的时候", "测试验证点播视频播放相关页面内容视频跳转的时候", tags)
         logger.debug("test query_case_by_name")
         case_list = self.query_case_by_name("测试验证点播")
         for case in case_list:
@@ -227,8 +252,6 @@ class DBCommandLineHelper:
 
 if __name__ == '__main__':
     dBCommandLineHelper = DBCommandLineHelper()
-    list = dBCommandLineHelper.query_case_by_tag_names(['主页-精选', '主页'])
-    print(list)
     # dBCommandLineHelper.delete_tag(1)
     # dBCommandLineHelper.init()
     # dBCommandLineHelper.test_tag()
