@@ -1,14 +1,12 @@
 # coding=utf-8
 
-from threading import Thread
+import logging
 
 from uitester.config import Config
 from uitester.context import Context
-from uitester.error_handler import handle_error, error_handlers
 from uitester.device_manager.device_manager import DeviceManager
+from uitester.error_handler import handle_error, error_handlers
 from uitester.kw import kw, kw_runner
-
-import logging
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('Tester')
@@ -32,7 +30,7 @@ class Tester:
 
     @handle_error
     def get_config(self):
-        return self.context.conf
+        return self.conf
 
     @handle_error
     def devices(self):
