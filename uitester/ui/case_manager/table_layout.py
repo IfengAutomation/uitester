@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import *
 from uitester.ui.case_manager.case_edit import CaseEdit
 
 
+
 class TableLayout(QWidget):
     def __init__(self, case_list, *args, **kwargs):
         super().__init__(*args, **kwargs)

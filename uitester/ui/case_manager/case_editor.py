@@ -27,9 +27,6 @@ class EditorWidget(QWidget):
 
         self.id_line_edit.hide()   # 隐藏line_edit
 
-        if case_id:
-            self.case_id = case_id
-
         # set icon
         save_icon = QIcon()
         config = Config()
@@ -54,6 +51,24 @@ class EditorWidget(QWidget):
 
         self.save_btn.clicked.connect(self.save_event)
 
+        self.case_id = case_id
+        self.set_case_edit_data()
+
+    def set_case_edit_data(self):
+        """
+        编辑case，设置原始数据
+        :return:
+        """
+        if self.case_id:
+            case = self.dBCommandLineHelper.query_case_by_id(self.case_id)
+            self.id_line_edit.setText(self.case_id)
+            self.case_name_line_edit.setText(case.name)
+            tags = ''
+            for tag in case.tags:
+                tags = tags + tag.name + ";"
+            self.tag_names_line_edit.setText(tags)
+            self.editor_text_edit.setPlainText(case.content)
+
     def save_event(self):
         case_name = self.case_name_line_edit.text().strip()
         content = self.editor_text_edit.toPlainText().strip()
@@ -66,6 +81,13 @@ class EditorWidget(QWidget):
             if not tag:
                 tag_names.remove(tag)
         # TODO 存入库
+        if self.case_id:
+            self.dBCommandLineHelper.update_case(self.case_id, case_name, content, tag_names)
+            QMessageBox.information(self, "修改操作", "修改成功")
+        else:
+            case = self.dBCommandLineHelper.insert_case(case_name, content, tag_names)
+            self.id_line_edit.setText(str(case.id))
+            QMessageBox.information(self, "添加操作", "添加成功")
         # DBCommandLineHelper.insert_case(case_name, content, tag_names)
         self.close()
 

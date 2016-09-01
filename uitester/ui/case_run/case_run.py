@@ -99,7 +99,8 @@ class RunWidget(QWidget):
             data = model.data(index)
             if str(case_id) == str(data):
                 if result == 1:  # case pass
-                    model.item(column_index, 1).setForeground(QBrush(QColor(0, 255, 0)))  # 设置字体颜色 绿色
+                    model.item(column_index, 1).setForeground(QBrush(QColor(55, 177, 88)))  # 设置字体颜色 绿色
+                    self.case_table_view.selectRow(column_index)
                 else:   # case fail
                     model.item(column_index, 1).setForeground(QBrush(QColor(255, 0, 0)))  # 设置字体颜色 红色
                 return
@@ -145,5 +146,4 @@ class RunWidget(QWidget):
         self.case_table_view.resizeColumnsToContents()  # 根据content设置size
         self.case_table_view.setShowGrid(False)   # 不显示网格
         self.case_table_view.setColumnHidden(0, True)  # 隐藏id列
-
 

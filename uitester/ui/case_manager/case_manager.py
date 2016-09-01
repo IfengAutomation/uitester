@@ -124,6 +124,9 @@ class CaseManagerWidget(QWidget):
         show editor
         :return:
         """
+        self.editor_widget.case_name_line_edit.setText("")
+        self.editor_widget.tag_names_line_edit.setText("")
+        self.editor_widget.editor_text_edit.setPlainText("")
         self.editor_widget.show()
 
     def update_table_data(self):
