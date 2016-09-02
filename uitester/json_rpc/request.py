@@ -1,15 +1,9 @@
 
 class Request:
-    id = 0
-    version = 1
-    method = ''
-    args = []
-    var = ''
 
-    # def __init__(self, id, version, method, args, var=None):
-    #     self.id = id
-    #
-    #     self.method = method
-    #     self.args = args
-    #     if var:
-    #         self.var = var
+    def __init__(self):
+        self.id = 0
+        self.version = 1
+        self.method = ''
+        self.args = []
+        self.var = ''
