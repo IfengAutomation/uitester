@@ -1,12 +1,13 @@
 # @Time    : 2016/8/3 13:53
 # @Author  : lixintong
+import datetime
 import os
 import time
 import zipfile
 
 import pandas as pd
 
-from uitester.case_manager.database import DBCommandLineHelper
+from uitester.case_manager.database import DBCommandLineHelper, Case
 
 
 class CaseDataManager:
@@ -43,6 +44,7 @@ class CaseDataManager:
         f.write(self.CASE_TAG_TABLE_NAME_FILE)
         f.close()
         self.remove_data_file()
+        return name
 
     def remove_data_file(self):
         os.remove(os.path.join(os.getcwd(), self.CASE_TABLE_NAME_FILE))
@@ -53,8 +55,8 @@ class CaseDataManager:
         cases_id = ','.join(case_id_list)
         result = self.db_command_line_helper.get_table_data_by_cases_id(cases_id)
         self.trans_to_csv(result)
-        self.addzip(path)
-        return True
+        package_name = self.addzip(path)
+        return package_name
 
     def trans_to_csv(self, result):
         case_data_frame = pd.DataFrame(data=list(result[self.CASE_TABLE_NAME]),
@@ -70,17 +72,17 @@ class CaseDataManager:
         case_tag_data_frame.to_csv(os.path.join(os.getcwd(), self.CASE_TAG_TABLE_NAME_FILE), encoding="utf-8",
                                    index=False)
 
-    # 导出数据
-    def export_all_data(self, path):
-        self.export_data_by_name(self.CASE_TABLE_NAME, self.CASE_TABLE_NAME_FILE)
-        self.export_data_by_name(self.TAG_TABLE_NAME, self.TAG_TABLE_NAME_FILE)
-        self.export_data_by_name(self.CASE_TAG_TABLE_NAME, self.CASE_TAG_TABLE_NAME_FILE)
-        self.addzip(path)
+    # 导出所有数据
+    # def export_all_data(self, path):
+    #     self.export_data_by_name(self.CASE_TABLE_NAME, self.CASE_TABLE_NAME_FILE)
+    #     self.export_data_by_name(self.TAG_TABLE_NAME, self.TAG_TABLE_NAME_FILE)
+    #     self.export_data_by_name(self.CASE_TAG_TABLE_NAME, self.CASE_TAG_TABLE_NAME_FILE)
+    #     self.addzip(path)
 
-    def export_data_by_name(self, table_name, table_file_name):
-        case_data = self.db_command_line_helper.get_table_data(table_name)
-        case_data_frame = pd.DataFrame(data=list(case_data), columns=case_data.keys())
-        case_data_frame.to_csv(os.path.join(os.getcwd(), table_file_name), encoding="utf-8", index=False)
+    # def export_data_by_name(self, table_name, table_file_name):
+    #     case_data = self.db_command_line_helper.get_table_data(table_name)
+    #     case_data_frame = pd.DataFrame(data=list(case_data), columns=case_data.keys())
+    #     case_data_frame.to_csv(os.path.join(os.getcwd(), table_file_name), encoding="utf-8", index=False)
 
     # 导入数据
     def import_data(self, path):
@@ -103,6 +105,7 @@ class CaseDataManager:
             self.tag_file_data.loc[self.tag_file_data["id"] == tag_message['id'], 'description'] = tag_message[
                 'description']
         self.merge_data()
+        return True
 
     def check_data(self):
         tag_data = self.db_command_line_helper.get_table_data(self.TAG_TABLE_NAME)
@@ -114,9 +117,9 @@ class CaseDataManager:
         if len(self.conflict_tag_name) > 0:  # 获取tag冲突详细信息
             conflict_message_frame = tag_db_data[tag_db_data["name"].isin(self.conflict_tag_name)]
             src_tag_message_frame = self.tag_file_data[self.tag_file_data["name"].isin(self.conflict_tag_name)]
-            conflict_message_frame['src_id'] = src_tag_message_frame["id"].values
-            conflict_message_frame['src_name'] = src_tag_message_frame["name"].values
-            conflict_message_frame['src_description'] = src_tag_message_frame[
+            conflict_message_frame.loc[:, 'src_id'] = src_tag_message_frame["id"].values
+            conflict_message_frame.loc[:, 'src_name'] = src_tag_message_frame["name"].values
+            conflict_message_frame.loc[:, 'src_description'] = src_tag_message_frame[
                 "description"].values
             self.conflict_tag_message_dict = conflict_message_frame.T.to_dict()
         return self.conflict_tag_message_dict
@@ -134,6 +137,7 @@ class CaseDataManager:
             new_tag_id = tag.id
             self.case_tag_file_data.loc[self.case_tag_file_data['tag_id'] == old_tag_id, 'tag_id'] = new_tag_id
         # 插入case 插入case_tag
+        case_list = []
         for i in range(len(self.case_file_data)):
             old_case_id = self.case_file_data["id"][i]
             tag_ids = self.case_tag_file_data[self.case_tag_file_data["case_id"] == old_case_id]["tag_id"].values
@@ -141,12 +145,12 @@ class CaseDataManager:
             for tag_id in tag_ids:
                 tag = self.db_command_line_helper.query_tag_by_id(int(tag_id))
                 tags.append(tag)
-            case = self.db_command_line_helper.insert_case_with_tags(self.case_file_data["name"][i],
-                                                                     self.case_file_data["content"][i],
-                                                                     tags)
-            new_case_id = case.id
-            self.case_tag_file_data.loc[self.case_tag_file_data['case_id'] == old_case_id, 'case_id'] = new_case_id
-            # self.remove_data_file()
+            case = Case()
+            case.name = self.case_file_data["name"][i]
+            case.content = self.case_file_data["content"][i]
+            case.tags = tags
+            case_list.append(case)
+        self.db_command_line_helper.batch_insert_case_with_tags(case_list)
 
     def test_export_data(self):
         path = 'C:/Users/Fredric/Desktop/新建文件夹'

@@ -3,11 +3,13 @@
 import math
 import os
 import sys
+import time
+from multiprocessing import Pool
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QFont, QImage, QPixmap
-from PyQt5.QtWidgets import QWidget, QTableWidgetItem, QApplication, QMessageBox
+from PyQt5.QtGui import QFont, QImage, QPixmap, QMovie
+from PyQt5.QtWidgets import QWidget, QTableWidgetItem, QApplication, QMessageBox, QLabel
 
 from uitester.config import Config
 
@@ -15,7 +17,6 @@ from uitester.config import Config
 class ConflictTagsWidget(QWidget):
     def __init__(self, conflict_tags_message_dict, case_data_manager, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.case_data_manager = case_data_manager
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, "conflict_tag.ui")
@@ -91,8 +92,10 @@ class ConflictTagsWidget(QWidget):
         self.conflict_tag_table_widget.setColumnHidden(3, True)
         self.conflict_tag_table_widget.setColumnHidden(4, True)
 
-    # def table_item_style(self):
-    #     setStyleSheet
+    def callback(self, result):
+        if result:
+            self.wait_dialog.close()
+            self.close()
     def conflict_tags_submit(self):
         """
         submit conflict tags
@@ -100,17 +103,19 @@ class ConflictTagsWidget(QWidget):
         """
         updata_tag_message_list = self.get_table_data()
         again_conflict_data = self.get_conflict_data(updata_tag_message_list)
+        self.wait_dialog = WaitDialog(self)
+        self.wait_dialog.setWindowModality(Qt.ApplicationModal)
+        pool = Pool(processes=1)
         if again_conflict_data:
             message = str(again_conflict_data) + " 已存在，是否继续提交"
             reply = QMessageBox.information(self, "合并冲突", message, QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
-                self.case_data_manager.merge_conflict_data(updata_tag_message_list)
-                if QMessageBox.information(self, "合并冲突", "合并成功"):
-                    self.close()
+                pool.apply_async(func=self.case_data_manager.merge_conflict_data, args=(updata_tag_message_list,),
+                                 callback=self.callback)
         else:
-            self.case_data_manager.merge_conflict_data(updata_tag_message_list)
-            if QMessageBox.information(self, "合并冲突", "合并成功"):
-                self.close()
+            self.wait_dialog.show()
+            pool.apply_async(func=self.case_data_manager.merge_conflict_data, args=(updata_tag_message_list,),
+                                      callback=self.callback)
 
     def get_table_data(self):
         table_data = []
@@ -133,8 +138,17 @@ class ConflictTagsWidget(QWidget):
         return again_conflict_data
 
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    widget = ConflictTagsWidget([])
-    widget.show()
-    sys.exit(app.exec_())
+class WaitDialog(QWidget):
+    def __init__(self, parent=None, *args, **kwargs):
+        super(WaitDialog, self).__init__(parent)
+        self.label = QLabel(self)
+        self.label.setAlignment(Qt.AlignCenter)
+        self.setFixedSize(181, 181)
+        self.setWindowOpacity(0.5)  # set transparent
+        self.setWindowFlags(Qt.Dialog | Qt.CustomizeWindowHint | Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)  # background transparent
+        self.setContentsMargins(0, 0, 0, 0)
+        config = Config()
+        self.movie = QMovie(os.path.join(config.images, 'wait.gif'))
+        self.label.setMovie(self.movie)
+        self.movie.start()
