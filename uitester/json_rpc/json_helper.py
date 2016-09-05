@@ -1,11 +1,8 @@
 
 import json
 
-from uitester.json_rpc.request import Request
-from uitester.json_rpc.response import Response
 
-
-def encode_obj_to_json(obj):
+def obj_to_json(obj):
     """
     把对象(支持单个对象、list、set)转换成字典
     :param obj:
@@ -28,44 +25,20 @@ def encode_obj_to_json(obj):
         json_dict = {}
         json_dict.update(obj.__dict__)
         result_str = json.dumps(json_dict)
-    result_str = encode(result_str) + "\n"
-    result_bytes = result_str.encode(encoding="utf-8")
-    return result_bytes
+    result_str = encode(result_str) + end_sign
+    return result_str
 
 
-def decoded_json_to_response(encoded_json):
-    return json_to_response_obj(decode(encoded_json))
-
-
-def json_to_response_obj(json_str):
+def json_to_obj(json_str):
     """
     将json串转换为Response对象
     :param json_str:
     :return:
     """
-    json_dict = json.loads(json_str)  # 将json转化为字典
-
-    res_obj1 = Response(0, "",)
-    res_obj1.__dict__ = json_dict  # 将字典转化为ResponseObj对象
-    return res_obj1
-
-
-def decoded_json_to_request(encoded_json):
-    return json_to_request_obj(decode(encoded_json))
-
-
-def json_to_request_obj(json_str):
-    """
-    将json串转换为Request对象
-    :param json_str:
-    :return:
-    """
-    json_dict = json.loads(json_str)  # 将json转化为字典
-
-    # res_obj1 = Request(0, 1, '', '', [])
-    res_obj1 = Request()
-    res_obj1.__dict__ = json_dict  # 将字典转化为ResponseObj对象
-    return res_obj1
+    decoded_str = decode(json_str)
+    obj = type('RPCMessage', (), {})()
+    obj.__dict__ = json.loads(decoded_str)
+    return obj
 
 
 def encode(msg):
@@ -86,4 +59,3 @@ def decode(msg):
     msg = msg.replace("%n", "\n")
     msg = msg.replace("%e", "%")
     return msg
-

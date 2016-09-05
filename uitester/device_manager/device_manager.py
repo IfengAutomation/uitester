@@ -2,6 +2,7 @@ from uitester.android_tools.adb import ADB
 from uitester.json_rpc import rpc_server
 from threading import Thread
 from .device import Device
+from queue import Queue
 
 
 class DeviceManager:
@@ -16,6 +17,7 @@ class DeviceManager:
         self.server = None
         self.server_thread = None
         self.adb = ADB(context)
+        self.msg_queue = Queue()
 
     @property
     def devices(self):
@@ -74,6 +76,4 @@ class DeviceManager:
         if self.server_thread:
             self.server_thread = None
         self.start_rpc_server()
-
-
 
