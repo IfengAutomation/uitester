@@ -7,18 +7,17 @@ from PyQt5.QtGui import QIcon, QPixmap, QBrush, QColor, QStandardItemModel, QSta
 from PyQt5.QtWidgets import QWidget
 
 from uitester.case_manager.database import DBCommandLineHelper
-from uitester.config import Config
+from uitester.tester import Tester
 from uitester.ui.case_run.add_case import AddCaseWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
-
-cases = []
 
 
 class RunWidget(QWidget):
     running = False
-    device_list_signal = pyqtSignal(list)
+    device_list_signal = pyqtSignal(list, list)
+    cases = []
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, tester, *args, **kwargs):
         super().__init__(*args, **kwargs)
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, 'case_run.ui')
@@ -26,7 +25,9 @@ class RunWidget(QWidget):
 
         # set icon
         run_icon = QIcon()
-        self.config = Config()
+        self.tester = tester
+        self.config = self.tester.get_config()
+
         run_icon.addPixmap(QPixmap(self.config.images + '/run.png'), QIcon.Normal, QIcon.Off)
         self.run_stop_btn.setIcon(run_icon)
 
@@ -58,24 +59,7 @@ class RunWidget(QWidget):
             self.stop_case()
             return
         self.add_device_widget.show()
-        self.device_list_signal.emit(self.list_devices())
-
-    def list_devices(self):
-        """
-        通过adb命令获取当前连接的device
-        :return:
-        """
-        # TODO 暂时用此方法调试，最终会用tester中提供的方法
-        cmd_adb_devices = 'adb devices'
-        r = os.popen(cmd_adb_devices)
-        info = r.readlines()
-        devices = []
-        for line in info:
-            line = line.strip('\r\n')
-            if line != 'List of devices attached' and line:
-                device_id = line.split("	")[0]
-                devices.append(device_id)
-        return devices
+        self.device_list_signal.emit(self.tester.devices(), self.cases)
 
     def add_log(self, log_info):
         """
@@ -96,8 +80,8 @@ class RunWidget(QWidget):
         model = self.case_table_view.model()
         for column_index in range(model.rowCount()):
             index = model.index(column_index, 0)
-            data = model.data(index)
-            if str(case_id) == str(data):
+            cell_content = model.data(index)
+            if str(case_id) == str(cell_content):
                 if result == 1:  # case pass
                     model.item(column_index, 1).setForeground(QBrush(QColor(55, 177, 88)))  # 设置字体颜色 绿色
                     self.case_table_view.selectRow(column_index)
@@ -132,6 +116,7 @@ class RunWidget(QWidget):
         """
         # TableView 实现
         case_name_model = QStandardItemModel()
+        self.cases = id_list
         for case_id in id_list:
             case = self.dBCommandLineHelper.query_case_by_id(case_id)
             case_name_model.setItem(id_list.index(case_id), 0, QStandardItem(str(case.id)))  # 每行第一列为id

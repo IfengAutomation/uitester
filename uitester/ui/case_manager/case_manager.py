@@ -17,7 +17,7 @@ from uitester.ui.case_manager.table_layout import TableLayout
 
 
 class CaseManagerWidget(QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, tester, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db_helper = DBCommandLineHelper()
         self.case_data_manager = CaseDataManager()
@@ -25,6 +25,7 @@ class CaseManagerWidget(QWidget):
         ui_file_path = os.path.join(ui_dir_path, 'case_manager.ui')
         uic.loadUi(ui_file_path, self)
         self.add_case_button.clicked.connect(self.add_case)  # add case event
+        self.tester = tester  # 从上级窗体获得Tester()
         # case 搜索
         self.search_button = SearchButton()
         self.search_button.clicked.connect(self.update_table_data)
@@ -32,7 +33,7 @@ class CaseManagerWidget(QWidget):
         self.query_conditions_layout.insertWidget(5, self.tag_names_line_edit)
         # init table data
         case_list = self.db_helper.query_case_all()
-        self.table_layout = TableLayout(case_list)  # init ui table
+        self.table_layout = TableLayout(self.tester, case_list)  # init ui table
         self.delete_case_button.clicked.connect(self.delete_case)
         self.check_button.clicked.connect(self.check_or_cancel_all)
         self.export_button.clicked.connect(self.export_data)
@@ -47,7 +48,7 @@ class CaseManagerWidget(QWidget):
         self.set_tag_list_widget()  # show all tags
         self.set_tag_search_line()  # Set the tag input line automatic completion
         self.data_message_layout.insertWidget(1, self.table_layout)
-        self.editor_widget = EditorWidget()
+        self.editor_widget = EditorWidget(self.tester)
         self.button_style(self.check_button, '/check_all.png', "Check All")
 
     def import_data(self):
@@ -145,7 +146,7 @@ class CaseManagerWidget(QWidget):
             else:
                 tag_names = tag_names[:len(tag_names)].split(';')
                 case_list = self.db_helper.query_case_by_tag_names(tag_names)
-        self.table_layout = TableLayout(case_list)
+        self.table_layout = TableLayout(self.tester, case_list)
         self.data_message_layout.insertWidget(1, self.table_layout)
 
     def set_tag_list_widget(self):

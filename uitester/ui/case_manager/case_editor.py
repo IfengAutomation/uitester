@@ -2,6 +2,7 @@
 import os
 
 from PyQt5 import uic
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox
 
@@ -9,12 +10,14 @@ from uitester.case_manager.database import DBCommandLineHelper
 from uitester.config import Config
 from uitester.ui.case_manager.case_text_edit import TextEdit, Completer
 from uitester.ui.case_manager.highlighter import MyHighlighter
+from uitester.ui.case_run.add_device import AddDeviceWidget
 from uitester.ui.case_run.tag_names_line_edit import TagLineEdit, TagCompleter
 
 
 class EditorWidget(QWidget):
+    device_list_signal = pyqtSignal(list, list)
 
-    def __init__(self, case_id=None, *args, **kwargs):
+    def __init__(self, tester, case_id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.dBCommandLineHelper = DBCommandLineHelper()
         ui_dir_path = os.path.dirname(__file__)
@@ -45,11 +48,21 @@ class EditorWidget(QWidget):
         self.tag_list = None
         self.tag_names_line_edit_adapter()
 
-        self.editor_text_edit = TextEdit()
+        self.tester = tester   # 从上级窗体拿到tester()
+        self._kw_core = self.tester.get_kw_runner()
+
+        self.editor_text_edit = TextEdit(self.tester)  # case content编辑框
         self.editor_layout.insertWidget(0, self.editor_text_edit)
         self.editor_adapter()
 
+        self.add_devices_widget = AddDeviceWidget()  # add device
+        self.add_devices_widget.setWindowModality(Qt.WindowModal)  # 设置模态
+        self.device_list_signal.connect(self.add_devices_widget.add_radio_to_widget, Qt.QueuedConnection)
+
         self.save_btn.clicked.connect(self.save_event)
+        self.run_btn.clicked.connect(self.run_event)
+
+        self.parsed_line_list = []  # 存放解析后的kw
 
         self.case_id = case_id
         self.set_case_edit_data()
@@ -70,17 +83,17 @@ class EditorWidget(QWidget):
             self.editor_text_edit.setPlainText(case.content)
 
     def save_event(self):
-        case_name = self.case_name_line_edit.text().strip()
-        content = self.editor_text_edit.toPlainText().strip()
-        is_null = self.check_null(case_name, content)
+        case_name = self.case_name_line_edit.text().strip()  # Case Name
+        content = self.editor_text_edit.toPlainText().strip()  # Case Content
+        is_null = self.check_null()
         if is_null:
             return
-        tag_names = self.tag_names_line_edit.text().split(";")   # TODO 可为空，list
+        tag_names = self.tag_names_line_edit.text().split(";")
         # 去除list中的空值
         for tag in tag_names:
             if not tag:
                 tag_names.remove(tag)
-        # TODO 存入库
+
         if self.case_id:
             self.dBCommandLineHelper.update_case(self.case_id, case_name, content, tag_names)
             QMessageBox.information(self, "修改操作", "修改成功")
@@ -88,16 +101,25 @@ class EditorWidget(QWidget):
             case = self.dBCommandLineHelper.insert_case(case_name, content, tag_names)
             self.id_line_edit.setText(str(case.id))
             QMessageBox.information(self, "添加操作", "添加成功")
-        # DBCommandLineHelper.insert_case(case_name, content, tag_names)
+
         self.close()
 
-    def check_null(self, case_name, content):
+    def run_event(self):
+        if self.check_null():
+            return
+        # TODO 选device 获得Tester devices
+        self.device_list_signal.emit([], [111])
+        self.add_devices_widget.show()
+
+    def check_null(self):
         """
         检查必填项是否为空
         :return:
         """
         is_none = False
         type_info = ''
+        case_name = self.case_name_line_edit.text().strip()
+        content = self.editor_text_edit.toPlainText().strip()
 
         if not case_name:
             is_none = True
@@ -129,10 +151,10 @@ class EditorWidget(QWidget):
 
     def editor_adapter(self):
         # TODO for test， 获取 keyword， 给以提示
-        li = ['The', 'that', 'this', 'Red', 'right', 'what']
-        # 自动提示
-        cmp = Completer(li)
-        self.editor_text_edit.set_completer(cmp)
+        kw_core = self.tester.get_kw_runner()
+        func_dict = kw_core.default_func    # 获取默认func
+        cmp = Completer(func_dict)
+        self.editor_text_edit.set_completer(cmp, func_dict)
 
         # 高亮显示
         MyHighlighter(self.editor_text_edit)

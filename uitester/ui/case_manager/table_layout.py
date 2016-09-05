@@ -7,14 +7,14 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import *
 
 from uitester.ui.case_manager.case_edit import CaseEdit
-
+from uitester.ui.case_manager.case_editor import EditorWidget
 
 
 class TableLayout(QWidget):
-    def __init__(self, case_list, *args, **kwargs):
+    def __init__(self, tester, case_list, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.dataTableWidget = DataTableWidget(case_list)  #init ui table
+        self.dataTableWidget = DataTableWidget(tester, case_list)  #init ui table
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.dataTableWidget)
@@ -34,8 +34,9 @@ class DataTableWidget(QTableWidget):
     header_text_list = ['', 'id', '名称', '最后修改时间', '标识']
     column_count = len(header_text_list)
 
-    def __init__(self, case_list, *args):
+    def __init__(self, tester, case_list, *args):
         super().__init__(*args)
+        self.tester = tester
         self.setObjectName("data_table_widget")
         self.case_list = case_list
         self.setRowCount(len(self.case_list))
@@ -48,8 +49,7 @@ class DataTableWidget(QTableWidget):
 
     def edit_case(self, item):
         id_item = self.item(item.row(), 1)
-        self.case_edit_window = CaseEdit(id_item.text())
-        self.case_edit_window.setWindowModality(Qt.ApplicationModal)
+        self.case_edit_window = EditorWidget(self.tester, id_item.text())
         self.case_edit_window.show()
 
     def set_checkbox_item(self, row, column):
