@@ -132,11 +132,7 @@ class DBCommandLineHelper:
             for tag_name in add_tag_names_list:
                 tag = Tag(name=tag_name, description='')
                 tags.append(tag)
-        self.insert_case_with_tags(name, content, tags)
-        # case.tags = tags
-        # DB.session.add(case)
-        # DB.session.commit()
-        return case
+        return self.insert_case_with_tags(name, content, tags)
 
 
 
