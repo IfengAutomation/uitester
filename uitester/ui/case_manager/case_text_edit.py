@@ -21,14 +21,14 @@ class TextEdit(QTextEdit):
         self.popup_widget.selected_func_name_signal.connect(self.popup_widget.update_desc, Qt.QueuedConnection)
         self.func_dict = {}
 
-    def set_completer(self, completer, func_dict):
+    def set_completer(self, completer):
         self.cmp = completer
         if not self.cmp:
             return
         self.cmp.setWidget(self)
         self.cmp.setCompletionMode(QCompleter.PopupCompletion)
         self.cmp.setCaseSensitivity(Qt.CaseInsensitive)
-        self.func_dict = func_dict
+        self.func_dict = self.cmp.func_dict
 
     def completer(self):
         return self.cmp
@@ -65,7 +65,7 @@ class TextEdit(QTextEdit):
             # TODO 逐行解析,update自动提示list
             self.parse_content()
 
-        is_shortcut = ((e.modifiers() & Qt.ControlModifier) and e.key() == Qt.Key_E)
+        is_shortcut = ((e.modifiers() & Qt.ControlModifier) and e.key() == Qt.Key_E)  # 设置 ctrl + e 快捷键
         if not self.cmp or not is_shortcut:
             super(TextEdit, self).keyPressEvent(e)
 

@@ -128,17 +128,8 @@ class MyHighlighter(QSyntaxHighlighter):
                 index = expression.indexIn(text, index + length)
         self.setCurrentBlockState(0)
 
-    def row_number(self, editor):
-        """
-        Get Row Number
-        :return:
-        """
-        cursor = editor.textCursor()
-        row_number = cursor.blockNumber()
-        return row_number
 
-
-class HighlightingRule():
+class HighlightingRule:
     def __init__(self, pattern, format):
         self.pattern = pattern
         self.format = format

@@ -152,9 +152,9 @@ class EditorWidget(QWidget):
     def editor_adapter(self):
         # TODO for test， 获取 keyword， 给以提示
         kw_core = self.tester.get_kw_runner()
-        func_dict = kw_core.default_func    # 获取默认func
+        func_dict = kw_core.user_func    # 获取默认func
         cmp = Completer(func_dict)
-        self.editor_text_edit.set_completer(cmp, func_dict)
+        self.editor_text_edit.set_completer(cmp)
 
         # 高亮显示
         MyHighlighter(self.editor_text_edit)
