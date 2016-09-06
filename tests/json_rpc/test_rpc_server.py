@@ -21,6 +21,12 @@ class TestRPCClient:
         response = self.rfile.readline()
         return json_helper.json_to_obj(response)
 
+    def response(self, id, result, error='', entity=None):
+        res = type('RPCResponse', (), {})()
+        res.__dict__ = {'id': id, 'result': result, 'error': error, 'entity': entity}
+        bytes_msg = json_helper.obj_to_json(res).encode()
+        self.sock.sendall(bytes_msg)
+
     def disconnect(self):
         self.sock.close()
 
@@ -52,3 +58,38 @@ class RPCServerTest(unittest.TestCase):
         self.assertTrue(res.id == 11)
         self.assertTrue(res.result == 1)
         self.assertTrue('123456789' in self.server.wfiles)
+
+    def test_msg_before_register(self):
+        res = self.cli.call(1, 'hello', '0')
+        self.assertTrue(res.id == 1)
+        self.assertTrue(res.result == 0)
+
+    def test_response_callback(self):
+
+        def msg_callback(msg):
+            self.assertTrue(msg.id == 2)
+            self.assertTrue(msg.result == 1)
+
+        res_1 = self.cli.call(1, 'register', '123456789')
+        self.assertTrue(res_1.id == 1)
+        self.assertTrue(res_1.result == 1)
+        self.assertTrue('123456789' in self.server.wfiles)
+
+        self.server.subscribe('123456789', msg_callback)
+
+        self.cli.response(2, 1)
+
+    def test_remote_call(self):
+        res_1 = self.cli.call(1, 'register', '123456789')
+        self.assertTrue(res_1.id == 1)
+        self.assertTrue(res_1.result == 1)
+        self.assertTrue('123456789' in self.server.wfiles)
+
+        request = type('Request', (), {})()
+        request.__dict__ = {'id': 2, 'method': 'get_view', 'args': ['id-123']}
+        self.server.send_msg(request, device_id_list=['123456789'])
+
+        cli_req_str = self.cli.rfile.readline()
+        cli_req = json_helper.json_to_obj(cli_req_str)
+        self.assertTrue(cli_req.method == 'get_view')
+        self.assertTrue(cli_req.args == ['id-123'])

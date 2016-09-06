@@ -1,5 +1,9 @@
-from uitester.ui import mainui
+from uitester.ui import main_window
 
 
 def start():
-    mainui.start()
+    main_window.start()
+
+if __name__ == '__main__':
+    start()
+
