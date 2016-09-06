@@ -57,7 +57,7 @@ class CaseManagerWidget(QWidget):
         :return:
         """
         file_name = QFileDialog.getOpenFileName(caption="Open File", directory="/",
-                                                filter="dcm files(*.dpk)")
+                                                filter="dpk files(*.dpk)")
         if file_name[0] and '.dpk' in file_name[0]:
             conflict_tags_message_dict = self.case_data_manager.import_data(file_name[0])
             if conflict_tags_message_dict:

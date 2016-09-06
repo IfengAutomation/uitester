@@ -1,6 +1,5 @@
 # @Time    : 2016/8/3 13:53
 # @Author  : lixintong
-import datetime
 import os
 import time
 import zipfile
@@ -72,18 +71,6 @@ class CaseDataManager:
         case_tag_data_frame.to_csv(os.path.join(os.getcwd(), self.CASE_TAG_TABLE_NAME_FILE), encoding="utf-8",
                                    index=False)
 
-    # 导出所有数据
-    # def export_all_data(self, path):
-    #     self.export_data_by_name(self.CASE_TABLE_NAME, self.CASE_TABLE_NAME_FILE)
-    #     self.export_data_by_name(self.TAG_TABLE_NAME, self.TAG_TABLE_NAME_FILE)
-    #     self.export_data_by_name(self.CASE_TAG_TABLE_NAME, self.CASE_TAG_TABLE_NAME_FILE)
-    #     self.addzip(path)
-
-    # def export_data_by_name(self, table_name, table_file_name):
-    #     case_data = self.db_command_line_helper.get_table_data(table_name)
-    #     case_data_frame = pd.DataFrame(data=list(case_data), columns=case_data.keys())
-    #     case_data_frame.to_csv(os.path.join(os.getcwd(), table_file_name), encoding="utf-8", index=False)
-
     # 导入数据
     def import_data(self, path):
         self.unzip(path)
@@ -97,6 +84,10 @@ class CaseDataManager:
         else:
             self.merge_data()
             return None
+
+    def merge_conflict_data_callback(self, updata_tag_message_list, callback):
+        result = self.merge_conflict_data(updata_tag_message_list)
+        callback(result)
 
     # 返回冲突修改后的信息 进行数据合并
     def merge_conflict_data(self, updata_tag_message_list):
@@ -151,23 +142,3 @@ class CaseDataManager:
             case.tags = tags
             case_list.append(case)
         self.db_command_line_helper.batch_insert_case_with_tags(case_list)
-
-    def test_export_data(self):
-        path = 'C:/Users/Fredric/Desktop/新建文件夹'
-        self.export_all_data(path)
-
-    def testimport_data(self):
-        caseManager.unzip("C:/Users/Fredric/Desktop/新建文件夹/data.zip")
-        updata_tag_message_list = caseManager.import_data()
-        if updata_tag_message_list is not None:
-            caseManager.merge_conflict_data(updata_tag_message_list)
-
-
-if __name__ == '__main__':
-    caseManager = CaseDataManager()
-    # caseManager.test_export_data()
-    # caseManager.export_all_data('D:\DB')
-    # caseManager.test()
-
-    # caseManager.export_all_data("C:/Users/Fredric/Desktop/新建文件夹")
-    # caseManager.unzip("C:/Users/Fredric/Desktop/新建文件夹/data.zip")

@@ -4,7 +4,7 @@ import os
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMainWindow, QCheckBox, QWidget, QListWidgetItem, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QListWidgetItem, QMessageBox
 
 from uitester.case_manager.database import DBCommandLineHelper
 

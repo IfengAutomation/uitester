@@ -2,14 +2,12 @@
 # @Author  : lixintong
 import math
 import os
-import sys
-import time
-from multiprocessing import Pool
+from threading import Thread
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QImage, QPixmap, QMovie
-from PyQt5.QtWidgets import QWidget, QTableWidgetItem, QApplication, QMessageBox, QLabel
+from PyQt5.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QLabel
 
 from uitester.config import Config
 
@@ -92,10 +90,11 @@ class ConflictTagsWidget(QWidget):
         self.conflict_tag_table_widget.setColumnHidden(3, True)
         self.conflict_tag_table_widget.setColumnHidden(4, True)
 
-    def callback(self, result):
+    def callback(self,result):
         if result:
             self.wait_dialog.close()
             self.close()
+
     def conflict_tags_submit(self):
         """
         submit conflict tags
@@ -105,17 +104,16 @@ class ConflictTagsWidget(QWidget):
         again_conflict_data = self.get_conflict_data(updata_tag_message_list)
         self.wait_dialog = WaitDialog(self)
         self.wait_dialog.setWindowModality(Qt.ApplicationModal)
-        pool = Pool(processes=1)
         if again_conflict_data:
             message = str(again_conflict_data) + " 已存在，是否继续提交"
             reply = QMessageBox.information(self, "合并冲突", message, QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
-                pool.apply_async(func=self.case_data_manager.merge_conflict_data, args=(updata_tag_message_list,),
-                                 callback=self.callback)
+                thread = Thread(target=self.case_data_manager.merge_conflict_data_callback, args=(updata_tag_message_list, self.callback))
+                thread.start()
         else:
             self.wait_dialog.show()
-            pool.apply_async(func=self.case_data_manager.merge_conflict_data, args=(updata_tag_message_list,),
-                                      callback=self.callback)
+            thread = Thread(target=self.case_data_manager.merge_conflict_data_callback, args=(updata_tag_message_list, self.callback))
+            thread.start()
 
     def get_table_data(self):
         table_data = []

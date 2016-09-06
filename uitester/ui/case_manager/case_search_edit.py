@@ -1,10 +1,9 @@
 # @Time    : 2016/8/18 13:37
 # @Author  : lixintong
-import sys
 
 from PyQt5.QtCore import Qt, QStringListModel
 from PyQt5.QtGui import QPixmap, QIcon
-from PyQt5.QtWidgets import QLineEdit, QCompleter, QApplication, QMainWindow, QPushButton, QHBoxLayout, QWidget
+from PyQt5.QtWidgets import QLineEdit, QCompleter, QPushButton, QHBoxLayout
 
 from uitester.config import Config
 
@@ -74,8 +73,6 @@ class TagLineEdit(QLineEdit):
             cr.setWidth(self.cmp.popup().sizeHintForColumn(0)
                         + self.cmp.popup().verticalScrollBar().sizeHint().width())
             self.cmp.complete(cr)
-        else:
-            pass
 
     def completer(self):
         return self.cmp
@@ -109,21 +106,3 @@ class TagCompleter(QCompleter):
                 filtered.append(str)
         self.model().setStringList(filtered)
         self.popup().setCurrentIndex(self.model().index(0, 0))
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    li = ['直播', '点播', '专题', '军事']
-    cmp = TagCompleter(li)
-    window = QMainWindow()
-    edit = TagLineEdit("tag_line_edit")
-    edit.setCompleter(cmp)
-    # window.setCentralWidget(edit)
-    search_layout = SearchLayout(edit, SearchButton())
-    # window.setLayout(search_layout)
-    centerWindow = QWidget()
-    # centerWindow.setLayout(search_layout)
-    # window.setCentralWidget(centerWindow)
-    window.setCentralWidget(edit)
-    window.show()
-    app.exec_()
