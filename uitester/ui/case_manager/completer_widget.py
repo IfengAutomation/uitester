@@ -39,6 +39,7 @@ class CompleterWidget(QWidget):
             return
         func_doc = func_dict[text].__doc__
         if not func_doc:  # 处理func对应帮助文档为空
+            self.desc_text_browser.setText("<pre> <font color='red'>" + "This function has no description." + "</font></pre>")
             return
         func_doc = func_dict[text].__doc__.split("\n")
         func_desc = ''

@@ -19,7 +19,7 @@ class TextEdit(QTextEdit):
         self.insert_func_name_signal.connect(self.insert_completion, Qt.QueuedConnection)
         self.popup_widget.func_list_widget.select_signal.connect(self.insert_completion, Qt.QueuedConnection)
         self.popup_widget.selected_func_name_signal.connect(self.popup_widget.update_desc, Qt.QueuedConnection)
-        self.func_dict = {}
+        self.high_lighter = None
 
     def set_completer(self, completer):
         self.cmp = completer
@@ -28,7 +28,6 @@ class TextEdit(QTextEdit):
         self.cmp.setWidget(self)
         self.cmp.setCompletionMode(QCompleter.PopupCompletion)
         self.cmp.setCaseSensitivity(Qt.CaseInsensitive)
-        self.func_dict = self.cmp.func_dict
 
     def completer(self):
         return self.cmp
@@ -74,7 +73,7 @@ class TextEdit(QTextEdit):
         has_modifier = (e.modifiers() != Qt.NoModifier) and not ctrl_or_shift
         completion_prefix = self.text_under_cursor()
 
-        if not is_shortcut and (has_modifier or (not e.text()) or len(completion_prefix) < 1 or (e.text()[-1] in eow)):
+        if not is_shortcut and (has_modifier or (not e.text()) or len(completion_prefix) < 2 or (e.text()[-1] in eow)):
             self.popup_widget.hide()
             return
         self.cmp.update(completion_prefix, self.popup_widget)
@@ -89,14 +88,17 @@ class TextEdit(QTextEdit):
     def parse_content(self):
         # TODO 解析内容
         # 获取case content
-        # content_list = self.toPlainText().split("\n")
-        # row_index = self.textCursor().blockNumber()  # 光标所在行号
-        # line_content = content_list[row_index].strip()
-        # if line_content.find('import') == 0:
-        #     # TODO 修改import行，重置kw_core的user_func
-        #     print('find import')
-        #     self.kw_core.parse_line(line_content)
-        pass
+        content_list = self.toPlainText().split("\n")
+        row_index = self.textCursor().blockNumber()  # 光标所在行号
+        line_content = content_list[row_index].strip()
+        if line_content.find('import') == 0:
+            # TODO 修改import行，重置kw_core的user_func
+            self.kw_core.release()
+            self.kw_core.parse_line(line_content)
+        if not self.kw_core.user_func:
+            return
+        self.cmp.func_dict = self.kw_core.user_func  # 更新自动提示func_list
+        # TODO 更新高亮kw list
 
     def current_item_down(self, current_row):
         """
@@ -109,7 +111,7 @@ class TextEdit(QTextEdit):
             return
         self.popup_widget.func_list_widget.setCurrentRow(current_row + 1)
         func_name = self.popup_widget.func_list_widget.currentItem().text()
-        self.popup_widget.selected_func_name_signal.emit(func_name, self.func_dict)
+        self.popup_widget.selected_func_name_signal.emit(func_name, self.cmp.func_dict)
 
     def current_item_up(self, current_row):
         """
@@ -122,16 +124,17 @@ class TextEdit(QTextEdit):
             return
         self.popup_widget.func_list_widget.setCurrentRow(current_row - 1)
         func_name = self.popup_widget.func_list_widget.currentItem().text()
-        self.popup_widget.selected_func_name_signal.emit(func_name, self.func_dict)
+        self.popup_widget.selected_func_name_signal.emit(func_name, self.cmp.func_dict)
 
 
 class Completer(QCompleter):
     def __init__(self, func_dict, parent=None):
         super(Completer, self).__init__(parent)
         self.func_dict = func_dict
-        self.string_list = self.get_func_name_list(self.func_dict)
+        self.string_list = []
 
     def update(self, completion_text, popup_widget):
+        self.string_list = self.get_func_name_list(self.func_dict)
         filtered = []
         popup_widget.func_list_widget.clear()
         for string in self.string_list:

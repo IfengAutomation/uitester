@@ -41,6 +41,9 @@ class EditorWidget(QWidget):
         run_icon.addPixmap(QPixmap(config.images + '/run.png'), QIcon.Normal, QIcon.Off)
         self.run_btn.setIcon(run_icon)
 
+        self.message_box = QMessageBox()
+        self.high_lighter = None
+
         self.case_name_line_edit.setPlaceholderText("Case Name")   # 设置提示文字
 
         # tag name 输入框
@@ -96,11 +99,11 @@ class EditorWidget(QWidget):
 
         if self.case_id:
             self.dBCommandLineHelper.update_case(self.case_id, case_name, content, tag_names)
-            QMessageBox.information(self, "修改操作", "修改成功")
+            self.message_box.information(self, "Update case", "Update case success.", QMessageBox.Ok)
         else:
-            case = self.dBCommandLineHelper.insert_case(case_name, content, tag_names)
+            case = self.dBCommandLineHelper.insert_case_with_tagnames(case_name, content, tag_names)
             self.id_line_edit.setText(str(case.id))
-            QMessageBox.information(self, "添加操作", "添加成功")
+            self.message_box.information(self, "Add case", "Add case success.", QMessageBox.Ok)
 
         self.close()
 
@@ -131,7 +134,7 @@ class EditorWidget(QWidget):
             else:
                 type_info += ", Content"
         if is_none:
-            QMessageBox.about(self, "Message", type_info + " is required.")
+            self.message_box.warning(self, "Message", type_info + " is required.", QMessageBox.Ok)
         return is_none
 
     def tag_names_line_edit_adapter(self):
@@ -157,6 +160,7 @@ class EditorWidget(QWidget):
         self.editor_text_edit.set_completer(cmp)
 
         # 高亮显示
-        MyHighlighter(self.editor_text_edit)
+        self.high_lighter = MyHighlighter(self.editor_text_edit)
+
 
 
