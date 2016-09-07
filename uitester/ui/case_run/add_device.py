@@ -29,12 +29,13 @@ class AddDeviceWidget(QWidget):
 
         self.select_device_btn.clicked.connect(self.select_event)
         self.cancel_device_btn.clicked.connect(self.close)
+        self.message_box = QMessageBox()
 
     def select_event(self):
 
         if not self.cases:  # case未选
             # 判断case是否已选，否：提示先选case
-            QMessageBox.about(self, "Message", "Please add cases first.")
+            self.message_box.warning(self, "Message", "Please add cases first.", QMessageBox.Ok)
         else:    # case已选
             self.handle_radio()
 
@@ -47,10 +48,10 @@ class AddDeviceWidget(QWidget):
         for index in range(len(self.buttons_or_labels)):
             item = self.buttons_or_labels[index]
             if type(item) == QLabel:  # 无设备连接提示
-                QMessageBox.about(self, "Message", "Please connect the device to your computer.")
+                self.message_box.warning(self, "Message", "Please connect the device to your computer.", QMessageBox.Ok)
                 return
             if not item.isChecked():  # 有设备但未选提示
-                QMessageBox.about(self, "Message", "Please choose a device.")
+                self.message_box.warning(self, "Message", "Please choose a device.", QMessageBox.Ok)
                 return
             # self.emit_device_info_to_bar(widget.text())  # 主窗口状态栏显示device机身码
             self.emit_log("Choose device: " + item.text())

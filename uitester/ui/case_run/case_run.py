@@ -4,10 +4,9 @@ import os
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap, QBrush, QColor, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QMessageBox
 
 from uitester.case_manager.database import DBCommandLineHelper
-from uitester.tester import Tester
 from uitester.ui.case_run.add_case import AddCaseWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
 
@@ -35,6 +34,8 @@ class RunWidget(QWidget):
         add_icon.addPixmap(QPixmap(self.config.images + '/add.png'), QIcon.Normal, QIcon.Off)
         self.addbtn.setIcon(add_icon)
 
+        self.message_box = QMessageBox()
+
         self.dBCommandLineHelper = DBCommandLineHelper()
 
         self.addbtn.clicked.connect(self.click_add_case)
@@ -57,6 +58,10 @@ class RunWidget(QWidget):
     def click_run_stop_btn(self):
         if self.running:
             self.stop_case()
+            return
+        if not self.cases:  # cases is null
+            # TODO  提示 case未选
+            self.message_box.warning(self, "Message", "Please add cases first.", QMessageBox.Ok)
             return
         self.add_device_widget.show()
         self.device_list_signal.emit(self.tester.devices(), self.cases)
