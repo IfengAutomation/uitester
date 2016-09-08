@@ -238,7 +238,12 @@ class EditorWidget(QWidget):
         self.editor_text_edit.set_completer(cmp)
 
         # 高亮显示
-        self.high_lighter = MyHighlighter(self.editor_text_edit)
+        kw_list = []
+        for func_name, func in func_dict.items():
+            kw_list.append(func_name)
+        self.high_lighter = MyHighlighter(self.editor_text_edit, kw_list)
+        self.editor_text_edit.set_highlighter(self.high_lighter)
+
 
 
 

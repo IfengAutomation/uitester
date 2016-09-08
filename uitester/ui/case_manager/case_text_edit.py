@@ -19,7 +19,21 @@ class TextEdit(QTextEdit):
         self.insert_func_name_signal.connect(self.insert_completion, Qt.QueuedConnection)
         self.popup_widget.func_list_widget.select_signal.connect(self.insert_completion, Qt.QueuedConnection)
         self.popup_widget.selected_func_name_signal.connect(self.popup_widget.update_desc, Qt.QueuedConnection)
+        self.textChanged.connect(self.text_change)
         self.high_lighter = None
+
+    def text_change(self):
+        """
+        text改变处理事件
+        解决使用中文输入法输入时，keyPressEvent被输入法拦截，自动提示框无法及时弹出的问题
+        :return:
+        """
+        completion_prefix = self.text_under_cursor()
+        if len(completion_prefix) < 2:
+            self.popup_widget.hide()
+            return
+        self.cmp.update(completion_prefix, self.popup_widget)
+        self.update_popup_widget_position()
 
     def set_completer(self, completer):
         self.cmp = completer
@@ -31,6 +45,9 @@ class TextEdit(QTextEdit):
 
     def completer(self):
         return self.cmp
+
+    def set_highlighter(self, high_lighter):
+        self.high_lighter = high_lighter
 
     def insert_completion(self, string):
         tc = self.textCursor()
@@ -77,10 +94,15 @@ class TextEdit(QTextEdit):
             self.popup_widget.hide()
             return
         self.cmp.update(completion_prefix, self.popup_widget)
+        self.update_popup_widget_position()
 
-        # 更新提示框显示位置
+    def update_popup_widget_position(self):
+        """
+        更新提示框显示位置
+        :return:
+        """
         cursor_pos = self.cursorRect()  # 光标位置
-        edit_pos = self.mapToGlobal(QPoint(5, 10))   # 获得TextEdit在屏幕中的坐标，QPoint(5, 10)中 5、10为距离光标的x、y偏移量
+        edit_pos = self.mapToGlobal(QPoint(10, 15))   # 获得TextEdit在屏幕中的坐标，QPoint(5, 10)中 5、10为距离光标的x、y偏移量
         x = edit_pos.x() + cursor_pos.x()
         y = edit_pos.y() + cursor_pos.y()
         self.popup_widget.setGeometry(x, y, 650, 280)    # 更新显示位置
@@ -99,6 +121,10 @@ class TextEdit(QTextEdit):
             return
         self.cmp.func_dict = self.kw_core.user_func  # 更新自动提示func_list
         # TODO 更新高亮kw list
+        kw_list = []
+        for func_name, func in self.cmp.func_dict.items():
+            kw_list.append(func_name)
+        self.high_lighter.__init__(self, kw_list)
 
     def current_item_down(self, current_row):
         """
@@ -138,9 +164,10 @@ class Completer(QCompleter):
         filtered = []
         popup_widget.func_list_widget.clear()
         for string in self.string_list:
-            if completion_text in string:
+            if (completion_text in string) and (completion_text != string):
                 filtered.append(string)
                 popup_widget.func_list_widget.addItem(string)
+        popup_widget.func_list_widget.sortItems()  # 按升序排列
 
         if len(filtered) < 1:
             popup_widget.hide()
