@@ -85,27 +85,82 @@ class EditorWidget(QWidget):
             self.tag_names_line_edit.setText(tags)
             self.editor_text_edit.setPlainText(case.content)
 
-    def save_event(self):
+    def closeEvent(self, event):
+        """
+        窗体关闭时触发事件，判断case 是否有更改，提示保存或放弃保存
+        :param event:
+        :return:
+        """
         case_name = self.case_name_line_edit.text().strip()  # Case Name
         content = self.editor_text_edit.toPlainText().strip()  # Case Content
-        is_null = self.check_null()
-        if is_null:
-            return
-        tag_names = self.tag_names_line_edit.text().split(";")
-        # 去除list中的空值
-        for tag in tag_names:
-            if not tag:
-                tag_names.remove(tag)
-
-        if self.case_id:
-            self.dBCommandLineHelper.update_case(self.case_id, case_name, content, tag_names)
-            self.message_box.information(self, "Update case", "Update case success.", QMessageBox.Ok)
+        tag_name_list = self.get_tag_name_list()
+        if not self.case_id:
+            if (not case_name) and (not content) and (not tag_name_list):
+                # add case，没有输入有效内容时直接关闭
+                self.close()
+                return
         else:
-            case = self.dBCommandLineHelper.insert_case_with_tagnames(case_name, content, tag_names)
-            self.id_line_edit.setText(str(case.id))
-            self.message_box.information(self, "Add case", "Add case success.", QMessageBox.Ok)
+            if not self.check_modify():
+                self.close()
+                return
+        self.handle_message_box_apply(event)
 
-        self.close()
+    def handle_message_box_apply(self, event):
+        """
+        处理关闭对话框
+        :param event:
+        :return:
+        """
+        reply = self.message_box.question(self, "Case Editor", "Do you want to save this case?",
+                                          QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+
+        if reply == QMessageBox.Yes:  # update case info
+            self.save_case(event)
+        elif reply == QMessageBox.No:
+            self.close()
+            return
+        else:
+            event.ignore()
+
+    def check_modify(self):
+        """
+        判断case信息是否有改动
+        :return:
+        """
+        is_case_modified = False
+        case = self.dBCommandLineHelper.query_case_by_id(self.case_id)
+
+        is_name_modified = case.name != self.case_name_line_edit.text().strip()
+        is_content_modified = case.content != self.editor_text_edit.toPlainText().strip()
+
+        # TODO 单独函数处理提取tag name方法
+        # 处理页面中tag names
+        tag_name_list = self.get_tag_name_list()
+        # 处理库中tag names
+        db_tag_name_list = []
+        for db_tag in case.tags:
+            db_tag_name_list.append(db_tag.name)
+        is_tags_names_modify = db_tag_name_list != tag_name_list
+
+        if is_name_modified or is_content_modified or is_tags_names_modify:
+            is_case_modified = True
+        return is_case_modified
+
+    def get_tag_name_list(self):
+        """
+        将tag names输入框中内容转换为tag name list
+        :return:
+        """
+        # 处理页面中tag names
+        tag_name_list = self.tag_names_line_edit.text().strip().split(";")
+        # 去除list中的空值
+        for tag in tag_name_list:
+            if not tag:
+                tag_name_list.remove(tag)
+        return tag_name_list
+
+    def save_event(self):
+        self.save_case()
 
     def run_event(self):
         if self.check_null():
@@ -113,6 +168,29 @@ class EditorWidget(QWidget):
         # TODO 选device 获得Tester devices
         self.device_list_signal.emit([], [111])
         self.add_devices_widget.show()
+
+    def save_case(self, event=None):
+        """
+        保存case
+        :return:
+        """
+        case_name = self.case_name_line_edit.text().strip()  # Case Name
+        content = self.editor_text_edit.toPlainText().strip()  # Case Content
+        is_null = self.check_null()
+        if is_null:
+            if event:  # close event 只关闭参数不能为空提示框，不关闭编辑框
+                event.ignore()
+            return
+        tag_names = self.get_tag_name_list()
+
+        if self.case_id:
+            self.dBCommandLineHelper.update_case(self.case_id, case_name, content, tag_names)
+            self.message_box.information(self, "Update case", "Update case success.", QMessageBox.Ok)
+        else:
+            case = self.dBCommandLineHelper.insert_case_with_tagnames(case_name, content, tag_names)
+            self.id_line_edit.setText(str(case.id))
+            self.case_id = self.id_line_edit.text().strip()
+            self.message_box.information(self, "Add case", "Add case success.", QMessageBox.Ok)
 
     def check_null(self):
         """
