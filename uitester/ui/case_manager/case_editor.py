@@ -18,7 +18,7 @@ class EditorWidget(QWidget):
     device_list_signal = pyqtSignal(list, list)
     import_list_signal = pyqtSignal(set)
 
-    def __init__(self, tester, case_id=None, *args, **kwargs):
+    def __init__(self, callback, tester, case_id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.dBCommandLineHelper = DBCommandLineHelper()
         ui_dir_path = os.path.dirname(__file__)
@@ -82,6 +82,7 @@ class EditorWidget(QWidget):
         self.parsed_line_list = []  # 存放解析后的kw
 
         self.set_case_edit_data()
+        self.callback = callback
 
     def log_show_hide_event(self):
         if self.is_log_show:
@@ -220,6 +221,7 @@ class EditorWidget(QWidget):
             self.id_line_edit.setText(str(case.id))
             self.case_id = self.id_line_edit.text().strip()
             self.message_box.information(self, "Add case", "Add case success.", QMessageBox.Ok)
+        self.callback()
 
     def check_null(self):
         """
