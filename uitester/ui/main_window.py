@@ -7,7 +7,7 @@ from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow, QApplication, QDesktopWidget
 
 from uitester.tester import Tester
-from uitester.ui.case_manager.case_manager import CaseManagerWidget, QTabBar
+from uitester.ui.case_manager.case_manager import CaseManagerWidget
 from uitester.ui.case_run.case_run import RunWidget
 
 
@@ -32,7 +32,6 @@ class MainWindow(QMainWindow):
         # Add tab "Run"
         case_run_widget = RunWidget(self.tester)
         self.tabWidget.addTab(case_run_widget, "Run")
-
 
 def start():
     app = QApplication(sys.argv)

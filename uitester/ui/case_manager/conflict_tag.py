@@ -13,8 +13,10 @@ from uitester.config import Config
 
 
 class ConflictTagsWidget(QWidget):
-    def __init__(self, conflict_tags_message_dict, case_data_manager, *args, **kwargs):
+    def __init__(self, refresh, conflict_tags_message_dict, case_data_manager, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.main_window_refresh = refresh
+
         self.case_data_manager = case_data_manager
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, "conflict_tag.ui")
@@ -31,7 +33,7 @@ class ConflictTagsWidget(QWidget):
         self.notice_text_label.setText(
             '合并标识冲突说明：\n'
             '1、确认标识名称与现有标识名称是否含义一致，不一致可修改标识名称\n'
-            '2、信息确认后，点击提交进行合并')
+            '2、信息确认后，点击提交进行合并')  # todo 是否改成英文
         self.conflict_tags_submit_button.clicked.connect(self.conflict_tags_submit)
         self.button_style(self.conflict_tags_submit_button)
         self.cancel_submit_button.clicked.connect(self.cancel_submit)
@@ -90,10 +92,14 @@ class ConflictTagsWidget(QWidget):
         self.conflict_tag_table_widget.setColumnHidden(3, True)
         self.conflict_tag_table_widget.setColumnHidden(4, True)
 
-    def callback(self,result):
+    def callback(self, result):
         if result:
-            self.wait_dialog.close()
-            self.close()
+           self.wait_dialog.close()
+           self.close()
+            # self.main_window_refresh()
+
+    # def closeEvent(self, QCloseEvent):
+    #     self.main_window_refresh()
 
     def conflict_tags_submit(self):
         """
@@ -105,15 +111,19 @@ class ConflictTagsWidget(QWidget):
         self.wait_dialog = WaitDialog(self)
         self.wait_dialog.setWindowModality(Qt.ApplicationModal)
         if again_conflict_data:
-            message = str(again_conflict_data) + " 已存在，是否继续提交"
-            reply = QMessageBox.information(self, "合并冲突", message, QMessageBox.Yes | QMessageBox.No)
+            message = str(again_conflict_data) + " has existed, whether to continue to submit"
+            reply = QMessageBox.information(self, "merge conflicts", message, QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
-                thread = Thread(target=self.case_data_manager.merge_conflict_data_callback, args=(updata_tag_message_list, self.callback))
+                self.wait_dialog.show()
+                thread = Thread(target=self.case_data_manager.merge_conflict_data_callback,
+                                args=(updata_tag_message_list, self.callback))
                 thread.start()
         else:
-            self.wait_dialog.show()
+            self.main_window_refresh()
+
             thread = Thread(target=self.case_data_manager.merge_conflict_data_callback, args=(updata_tag_message_list, self.callback))
             thread.start()
+
 
     def get_table_data(self):
         table_data = []

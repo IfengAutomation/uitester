@@ -17,7 +17,7 @@ class CaseDataManager:
     TAG_TABLE_NAME_FILE = TAG_TABLE_NAME + ".csv"
     CASE_TAG_TABLE_NAME_FILE = CASE_TAG_TABLE_NAME + ".csv"
     ZIP_NAME = "data_#time#.dpk"
-    db_command_line_helper = DBCommandLineHelper()
+    db_helper = DBCommandLineHelper()
     tag_file_data = []
     case_tag_file_data = []
     case_file_data = []
@@ -36,14 +36,13 @@ class CaseDataManager:
 
     # 添加文件到已有的zip包中
     def addzip(self, path):
-        name = self.ZIP_NAME.replace("#time#", str(int(time.time())))
-        f = zipfile.ZipFile(os.path.join(path, name), 'w', zipfile.ZIP_DEFLATED)
+        # name = self.ZIP_NAME.replace("#time#", str(int(time.time())))
+        f = zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED)
         f.write(self.CASE_TABLE_NAME_FILE)
         f.write(self.TAG_TABLE_NAME_FILE)
         f.write(self.CASE_TAG_TABLE_NAME_FILE)
         f.close()
         self.remove_data_file()
-        return name
 
     def remove_data_file(self):
         os.remove(os.path.join(os.getcwd(), self.CASE_TABLE_NAME_FILE))
@@ -52,10 +51,9 @@ class CaseDataManager:
 
     def export_data(self, path, case_id_list):
         cases_id = ','.join(case_id_list)
-        result = self.db_command_line_helper.get_table_data_by_cases_id(cases_id)
+        result = self.db_helper.get_table_data_by_cases_id(cases_id)
         self.trans_to_csv(result)
-        package_name = self.addzip(path)
-        return package_name
+        self.addzip(path)
 
     def trans_to_csv(self, result):
         case_data_frame = pd.DataFrame(data=list(result[self.CASE_TABLE_NAME]),
@@ -99,7 +97,7 @@ class CaseDataManager:
         return True
 
     def check_data(self):
-        tag_data = self.db_command_line_helper.get_table_data(self.TAG_TABLE_NAME)
+        tag_data = self.db_helper.get_table_data(self.TAG_TABLE_NAME)
         tag_db_data = pd.DataFrame(data=list(tag_data), columns=tag_data.keys())
         del self.conflict_tag_name[:]
         for name in self.tag_file_data['name']:  # 获取冲突tag名称
@@ -120,11 +118,11 @@ class CaseDataManager:
         for i in range(len(self.tag_file_data)):
             old_tag_id = self.tag_file_data["id"][i]
             tag_name = self.tag_file_data["name"][i]
-            tag = self.db_command_line_helper.query_tag_by_name(True, tag_name)
+            tag = self.db_helper.query_tag_by_name(tag_name)
             # 检查tag是否存在 存在的不插入 获取ID ，不存在的插入 生成ID
             if tag is None:
                 tag_description = self.tag_file_data["description"][i]
-                tag = self.db_command_line_helper.insert_tag(tag_name, tag_description)
+                tag = self.db_helper.insert_tag(tag_name, tag_description)
             new_tag_id = tag.id
             self.case_tag_file_data.loc[self.case_tag_file_data['tag_id'] == old_tag_id, 'tag_id'] = new_tag_id
         # 插入case 插入case_tag
@@ -134,11 +132,24 @@ class CaseDataManager:
             tag_ids = self.case_tag_file_data[self.case_tag_file_data["case_id"] == old_case_id]["tag_id"].values
             tags = []
             for tag_id in tag_ids:
-                tag = self.db_command_line_helper.query_tag_by_id(int(tag_id))
+                tag = self.db_helper.query_tag_by_id(int(tag_id))
                 tags.append(tag)
             case = Case()
             case.name = self.case_file_data["name"][i]
             case.content = self.case_file_data["content"][i]
             case.tags = tags
             case_list.append(case)
-        self.db_command_line_helper.batch_insert_case_with_tags(case_list)
+        self.db_helper.batch_insert_case_with_tags(case_list)
+
+    def add_tag(self,tag_name,tag_description):
+        #TODO 前端确保标识不存在
+        result={}
+        tag = self.db_helper.query_tag_by_name(tag_name)
+        if tag :
+            result['status']=-1
+            result['message']='标识已存在'
+        else:
+            self.db_helper.insert_tag(tag_name, tag_description)
+            result['status'] = 0
+            result['message'] = '标识插入成功'
+        return result

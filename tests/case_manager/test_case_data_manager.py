@@ -16,7 +16,7 @@ class TestCaseDataManager(unittest.TestCase):
         # notice export and import must has common CaseDataManager
         # export test
         print(" export start :", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        case_list = self.case_data_manager.db_command_line_helper.query_case_all()
+        case_list = self.case_data_manager.db_helper.query_case_all()
         cases_id_list = []
         for case in case_list:
             cases_id_list.append(str(case.id))  # 类型转成str
@@ -36,8 +36,8 @@ class TestCaseDataManager(unittest.TestCase):
                 updata_tag_message_list.append(data)
             self.case_data_manager.merge_conflict_data(updata_tag_message_list)  # result validation unfinished
             print(self.case_data_manager.case_file_data["name"][0])
-            case = self.case_data_manager.db_command_line_helper.query_case_by_name(True,
-                                                                                   self.case_data_manager.case_file_data[
+            case = self.case_data_manager.db_helper.query_case_by_name(True,
+                                                                       self.case_data_manager.case_file_data[
                                                                                        "name"][0])
 
         self.assertTrue(case is not None)

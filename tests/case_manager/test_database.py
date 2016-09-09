@@ -18,10 +18,10 @@ class TestDataBase(unittest.TestCase):
         tag = self.db_helper.insert_tag(tag_name, tag_description)  # 插入tag
         dst_tag = self.db_helper.query_tag_by_id(tag.id)  # 根据tag.id 查询tag
         self.assertTrue(tag == dst_tag)
-        tag_list = self.db_helper.query_tag_by_name(False, tag.name)
+        tag_list = self.db_helper.fuzzy_query_tag_by_name(tag.name)
         self.assertTrue(tag in tag_list)
 
-        dst_tag = self.db_helper.query_tag_by_name(True, tag.name)
+        dst_tag = self.db_helper.query_tag_by_name(tag.name)
         self.assertTrue(tag == dst_tag)
 
         tag_list = self.db_helper.query_tag_all()  # 查询所有tag
@@ -64,3 +64,11 @@ class TestDataBase(unittest.TestCase):
         self.db_helper.delete_case(case.id)
         dst_case = self.db_helper.query_case_by_id(case.id)
         self.assertTrue(dst_case is None)
+
+    def test_delete_tag_by_name(self):
+        tag_name = 'test_123'
+        tag =self.db_helper.insert_tag(tag_name,'test tag')
+        case = self.db_helper.insert_case_with_tags('test_123','test case',[tag])
+        self.db_helper.delete_tag_by_name(tag_name)
+        self.assertTrue(self.db_helper.query_case_by_id(case.id) is None)
+        self.assertTrue(self.db_helper.query_tag_by_name(tag_name) is None)

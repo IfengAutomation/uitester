@@ -53,10 +53,10 @@ class CaseEdit(QMainWindow):
         add_tag_names = self.add_tag_names.text()
 
         if case_name=='' or case_content=='' or (add_tag_names == '' and len(tag_names_list) == 0):
-            QMessageBox.warning(self, "操作错误", "信息不全，请检查")
+            QMessageBox.warning(self, 'operation error', 'information is not complete, please check')
             return
         if '；' in add_tag_names:
-            QMessageBox.warning(self, "操作错误", "添加标签含有中文符号‘；’")
+            QMessageBox.warning(self, 'operation error', 'tags contain Chinese symbols\'；\'')
             return
         if add_tag_names:
             if add_tag_names[len(add_tag_names) - 1:len(add_tag_names)] == ';':
@@ -64,8 +64,8 @@ class CaseEdit(QMainWindow):
             add_tag_names = add_tag_names.split(';')
         if case_id:
             self.db_help.update_case(case_id, case_name, case_content, tag_names_list, add_tag_names)
-            QMessageBox.information(self, "修改操作", "修改成功")
+            QMessageBox.information(self, 'modify operation', 'modify success')
         else:
             case = self.db_help.insert_case_with_tagnames(case_name, case_content, tag_names_list, add_tag_names)
             self.id_line_edit.setText(str(case.id))
-            QMessageBox.information(self, "添加操作", "添加成功")  # todo 添加定时器 QTimer
+            QMessageBox.information(self, 'add operation', 'add success')  # todo 添加定时器 QTimer

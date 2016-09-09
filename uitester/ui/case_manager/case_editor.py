@@ -17,8 +17,9 @@ from uitester.ui.case_run.tag_names_line_edit import TagLineEdit, TagCompleter
 class EditorWidget(QWidget):
     device_list_signal = pyqtSignal(list, list)
 
-    def __init__(self, tester, case_id=None, *args, **kwargs):
+    def __init__(self, callback, tester, case_id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.callback = callback
         self.dBCommandLineHelper = DBCommandLineHelper()
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, 'case_editor.ui')
@@ -28,7 +29,7 @@ class EditorWidget(QWidget):
         screen = QDesktopWidget().screenGeometry()
         self.resize(screen.width() / 5 * 2, screen.height() / 5 * 2)
 
-        self.id_line_edit.hide()   # 隐藏line_edit
+        self.id_line_edit.hide()  # 隐藏line_edit
 
         # set icon
         save_icon = QIcon()
@@ -41,14 +42,14 @@ class EditorWidget(QWidget):
         run_icon.addPixmap(QPixmap(config.images + '/run.png'), QIcon.Normal, QIcon.Off)
         self.run_btn.setIcon(run_icon)
 
-        self.case_name_line_edit.setPlaceholderText("Case Name")   # 设置提示文字
+        self.case_name_line_edit.setPlaceholderText("Case Name")  # 设置提示文字
 
         # tag name 输入框
         self.tag_names_line_edit = TagLineEdit("tag_names_line_edit")
         self.tag_list = None
         self.tag_names_line_edit_adapter()
 
-        self.tester = tester   # 从上级窗体拿到tester()
+        self.tester = tester  # 从上级窗体拿到tester()
         self._kw_core = self.tester.get_kw_runner()
 
         self.editor_text_edit = TextEdit(self.tester)  # case content编辑框
@@ -98,7 +99,7 @@ class EditorWidget(QWidget):
             self.dBCommandLineHelper.update_case(self.case_id, case_name, content, tag_names)
             QMessageBox.information(self, "修改操作", "修改成功")
         else:
-            case = self.dBCommandLineHelper.insert_case(case_name, content, tag_names)
+            case = self.dBCommandLineHelper.insert_case_with_tagnames(case_name, content, tag_names)
             self.id_line_edit.setText(str(case.id))
             QMessageBox.information(self, "添加操作", "添加成功")
 
@@ -139,7 +140,7 @@ class EditorWidget(QWidget):
         给tag_names_line_edit设置自动提示、默认显示提示文字等
         :return:
         """
-        self.tag_names_line_edit.setPlaceholderText("Tag Names")   # 设置提示文字
+        self.tag_names_line_edit.setPlaceholderText("Tag Names")  # 设置提示文字
         self.tag_layout.insertWidget(0, self.tag_names_line_edit)
 
         self.tag_list = self.dBCommandLineHelper.query_tag_all()  # 获取所有tag
@@ -152,11 +153,12 @@ class EditorWidget(QWidget):
     def editor_adapter(self):
         # TODO for test， 获取 keyword， 给以提示
         kw_core = self.tester.get_kw_runner()
-        func_dict = kw_core.user_func    # 获取默认func
+        func_dict = kw_core.user_func  # 获取默认func
         cmp = Completer(func_dict)
         self.editor_text_edit.set_completer(cmp)
 
         # 高亮显示
         MyHighlighter(self.editor_text_edit)
 
-
+    def closeEvent(self, QCloseEvent):
+        self.callback()

@@ -19,18 +19,7 @@ from uitester import config
 logger = logging.getLogger('UiTester')
 logger.setLevel(logging.DEBUG)
 
-
-class DB:
-    Base = declarative_base()
-    db_path = os.path.abspath(os.path.join(config.app_dir, 'casetest.db'))
-    sql_uri = 'sqlite:///{}'.format(db_path)
-    db_file_exists = os.path.exists(db_path)
-    engine = create_engine(sql_uri, echo=False)
-    conn = engine.connect()
-    metadata = MetaData(conn)
-    session = scoped_session(sessionmaker(bind=engine))
-
-
+Base = declarative_base()
 class Model:
     '''
     所有表通用：记录数据创建时间，id主键
@@ -40,13 +29,13 @@ class Model:
     last_modify_time = Column(DateTime(timezone=True), default=datetime.datetime.now)
 
 
-case_tag_table = Table('case_tag', DB.Base.metadata,
+case_tag_table = Table('case_tag', Base.metadata,
                        Column('case_id', Integer, ForeignKey('case.id')),
                        Column('tag_id', Integer, ForeignKey('tag.id'))
                        )
 
 
-class Case(DB.Base, Model):
+class Case(Base, Model):
     '''
     记录case信息
     '''
@@ -56,7 +45,7 @@ class Case(DB.Base, Model):
     tags = relationship('Tag', secondary=case_tag_table, backref="case")
 
 
-class Tag(DB.Base):
+class Tag(Base):
     '''
     tag 信息
     '''
@@ -66,10 +55,24 @@ class Tag(DB.Base):
     description = Column(TEXT)
 
 
+class DB:
+    
+    db_path = os.path.abspath(os.path.join(config.app_dir, 'casetest.db'))
+    sql_uri = 'sqlite:///{}'.format(db_path)
+    db_file_exists = os.path.exists(db_path)
+    engine = create_engine(sql_uri, echo=False)
+    conn = engine.connect()
+    metadata = MetaData(conn)
+    session = scoped_session(sessionmaker(bind=engine))
+    if not db_file_exists:
+        Base.metadata.create_all(engine)
+    db_file_exists = os.path.exists(db_path)
+
+
 class DBCommandLineHelper:
-    def __init__(self):
-        if not DB.db_file_exists:
-            DB.Base.metadata.create_all(DB.engine)
+    # def __init__(self):
+    #     if not DB.db_file_exists:
+    #         Base.metadata.create_all(DB.engine)
 
     def insert_tag(self, name, description):
         tag = Tag()
@@ -79,16 +82,26 @@ class DBCommandLineHelper:
         DB.session.commit()
         return tag
 
-    # def update_tag(self):
-    #     DB.session.commit()
+    def update_tag(self):
+        # tag = DB.session.query(Tag).filter(Tag.id == id).first()
+        # tag.name = name
+        # tag.description = description
+        DB.session.commit()
 
-    def query_tag_by_name(self, is_accurate, name):
-        '''根据标识名查看未删除tag'''
-        if is_accurate == False:
-            name = '%' + name + '%'
-            return DB.session.query(Tag).filter(Tag.name.like(name)).all()
-        else:
-            return DB.session.query(Tag).filter(Tag.name == name).first()
+    def query_tag_by_name(self, name):
+        return DB.session.query(Tag).filter(Tag.name == name).first()
+
+    def fuzzy_query_tag_by_name(self, name):
+        name = '%' + name + '%'
+        return DB.session.query(Tag).filter(Tag.name.like(name)).all()
+
+    # def query_tag_by_name(self, is_accurate, name):
+    #     '''根据标识名查看未删除tag'''
+    #     if is_accurate == False:
+    #         name = '%' + name + '%'
+    #         return DB.session.query(Tag).filter(Tag.name.like(name)).all()
+    #     else:
+    #         return DB.session.query(Tag).filter(Tag.name == name).first()
 
     def query_tag_by_id(self, id):
         '''根据标识名查看tag'''
@@ -133,8 +146,6 @@ class DBCommandLineHelper:
                 tag = Tag(name=tag_name, description='')
                 tags.append(tag)
         return self.insert_case_with_tags(name, content, tags)
-
-
 
     def query_case_by_id(self, id):
         return DB.session.query(Case).filter(Case.id == id).first()
