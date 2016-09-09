@@ -26,7 +26,7 @@ class Tester:
         error_handlers.append(DefaultErrorHandler())
         self.dm = DeviceManager(self.context)
         self.selected_device = None
-        self.runner = kw_runner.KWRunner()
+        self.runner = kw_runner.KWRunner(self.context)
 
     @handle_error
     def get_config(self):
@@ -58,11 +58,15 @@ class Tester:
         self.runner.run(cases)
 
     @handle_error
-    def get_kw_runner(self):
-        return kw.KWCore()
+    def stop(self):
+        self.runner.stop()
 
     @handle_error
-    def start(self):
+    def get_kw_runner(self):
+        return kw.KWCore(self.context)
+
+    @handle_error
+    def start_server(self):
         """
         Start RPC-Server in new thread
         :return:
@@ -70,7 +74,7 @@ class Tester:
         self.dm.start_rpc_server()
 
     @handle_error
-    def stop(self):
+    def stop_server(self):
         pass
 
 

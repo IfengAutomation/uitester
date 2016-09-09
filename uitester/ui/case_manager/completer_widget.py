@@ -26,6 +26,8 @@ class CompleterWidget(QWidget):
         self.func_list_layout.insertWidget(0, self.func_list_widget)
         self.desc_text_browser.setSizeAdjustPolicy(QTextBrowser.AdjustToContents)
 
+        self.func_list_widget.setFocusPolicy(Qt.NoFocus)
+
     def update_desc(self, text, func_dict):
         """
         根据选中的func name，更新帮助信息展示栏
@@ -34,6 +36,10 @@ class CompleterWidget(QWidget):
         :return:
         """
         if not text:
+            return
+        func_doc = func_dict[text].__doc__
+        if not func_doc:  # 处理func对应帮助文档为空
+            self.desc_text_browser.setText("<pre> <font color='red'>" + "This function has no description." + "</font></pre>")
             return
         func_doc = func_dict[text].__doc__.split("\n")
         func_desc = ''

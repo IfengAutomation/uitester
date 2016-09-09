@@ -17,7 +17,7 @@ class RPCServer(socketserver.ThreadingTCPServer):
         self.wfiles[device_id] = wfile
 
     def unregister_wfile(self, device_id):
-        self.wfiles.pop(device_id, default='default')
+        self.wfiles.pop(device_id, None)
 
     def send_msg(self, msg, device_id_list=None):
         if device_id_list is None:
@@ -28,7 +28,7 @@ class RPCServer(socketserver.ThreadingTCPServer):
         for device_id in device_id_list:
             wfile = self.wfiles.get(device_id)
             if wfile:
-                wfile.wirte(bytes(msg_str))
+                wfile.write(msg_str.encode())
 
     def subscribe(self, device_id, callback_func):
         func_signature = inspect.signature(callback_func)
@@ -37,7 +37,7 @@ class RPCServer(socketserver.ThreadingTCPServer):
         self.callback_funcs[device_id] = callback_func
 
     def unsubscribe(self, device_id):
-        self.callback_funcs.pop(device_id, default='default')
+        self.callback_funcs.pop(device_id, None)
 
 
 class RPCRequestHandler(socketserver.StreamRequestHandler):
@@ -53,14 +53,15 @@ class RPCRequestHandler(socketserver.StreamRequestHandler):
             data = self.rfile.readline().strip()
             if len(data) == 0:
                 if register and device_id:
-                    self.server.wfiles.pop(device_id, default=None)
-                    self.server.callback_funcs.pop(device_id, default=None)
+                    self.server.wfiles.pop(device_id, None)
+                    self.server.callback_funcs.pop(device_id, None)
                 break
             origin_msg = json_helper.json_to_obj(data.decode())
             if not register:
                 if origin_msg.method == 'register':
                     device_id = origin_msg.args[0]
                     self.server.wfiles[device_id] = self.wfile
+                    register = True
                     res = Response()
                     res.id = origin_msg.id
                     res.result = RESULT_PASS
@@ -70,9 +71,9 @@ class RPCRequestHandler(socketserver.StreamRequestHandler):
                     res.id = origin_msg.id
                     res.result = RESULT_FAIL
                     res.error = 'Need register device first.'
-                    self.wfile.write(bytes(json_helper.obj_to_json(res)))
+                    self.wfile.write(json_helper.obj_to_json(res).encode())
             else:
-                func = self.server.callback_funcs.get(device_id, default=None)
+                func = self.server.callback_funcs.get(device_id, None)
                 if func:
                     func(origin_msg)
 

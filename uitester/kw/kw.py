@@ -4,6 +4,7 @@ import inspect
 import sys
 from os.path import dirname, abspath, pardir, join
 from types import FunctionType
+from  uitester.remote_proxy.proxy import CommonProxy
 
 
 script_dir = dirname(abspath(__file__))
@@ -23,20 +24,29 @@ class KWCore:
     COMMENT = '#'
     DOT = '.'
 
-    def __init__(self):
+    def __init__(self, context):
+        self.context = context
         self.user_var = {}
         self.default_func = {'import': self.kw_import, 'check': self.kw_check, 'print': self.kw_print}
         self.user_func = {**self.default_func}
         self.parsed_line = []
         self.line_count = 0
+        context.register(self._kw_core_receiver)
+        self.running = False
+        self.real_prc_funcs = {}
+
+    def _kw_core_receiver(self, msg_type, msg=None):
+        if msg_type == 'stop_test':
+            self.running = False
 
     def _execute_line(self, kw_line):
         if kw_line.comment:
             return
-
+        elif kw_line.items[0] == 'import':
+            return
         logger.debug('exec items {}'.format(kw_line.items))
 
-        res = self.user_func[kw_line.items[0]](*kw_line.items[1:])
+        res = self.user_func[kw_line.items[0]](self, *kw_line.items[1:])
         if kw_line.var:
             self.user_var[kw_line.var] = res
 
@@ -62,9 +72,13 @@ class KWCore:
         self.parsed_line.append(kw_line)
 
     def execute(self):
+        self.running = True
         # run all kw line in cache
         for line in self.parsed_line:
+            if not self.running:
+                break
             self._execute_line(line)
+        self.running = False
 
     def release(self):
         # release all var and func
@@ -72,6 +86,7 @@ class KWCore:
         self.user_func.clear()
         self.user_func = {**self.default_func}
         self.parsed_line = []
+        self.context.unregister(self._kw_core_receiver)
 
     def _parse_line(self, kw_line, line_number=0):
         line = KWLine(raw=kw_line, line_number=line_number)
@@ -154,11 +169,27 @@ class KWCore:
         for lib_name in args:
             module = __import__(lib_name)
             for attr_name in dir(module):
-                if attr_name.startswith('__'):
+                clazz = getattr(module, attr_name)
+                if not inspect.isclass(clazz):
                     continue
-                attr = getattr(module, attr_name)
-                if type(attr) is FunctionType:
-                    self.user_func[attr_name] = attr
+
+                self.attach_rpc_funcs(clazz)
+                self.load_funcs(clazz)
+
+    def attach_rpc_funcs(self, clazz):
+        for attr_name in dir(CommonProxy):
+            if attr_name.startswith('_'):
+                continue
+            rpc_func = getattr(CommonProxy, attr_name)
+            if type(rpc_func) is not FunctionType:
+                continue
+            setattr(clazz, attr_name, rpc_func)
+
+    def load_funcs(self, clazz):
+        for attr_name in dir(clazz):
+            attr = getattr(clazz, attr_name)
+            if type(attr) is FunctionType:
+                self.user_func[attr_name] = attr
 
     def kw_check(self, *args, **kwargs):
         """
@@ -182,6 +213,8 @@ class KWCore:
         :return:
         """
         output = []
+        # rm self from *args
+        args = args[1:]
         for arg in args:
             if arg in self.user_func:
                 output.append('<KW:{}>'.format(arg))

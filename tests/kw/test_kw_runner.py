@@ -1,5 +1,6 @@
 import unittest
 from uitester.kw.kw_runner import KWRunningStatusListener, KWCase, KWRunner, StatusMsg
+from uitester.context import Context
 
 
 class TestKWRunner(unittest.TestCase):
@@ -8,9 +9,9 @@ class TestKWRunner(unittest.TestCase):
         kw_case = KWCase()
         kw_case.id = 1
         kw_case.name = 'simple test'
-        kw_case.content = 'import remote_proxy\nimport custom_lib\ntest_str as s\nprint w\nh h'
+        kw_case.content = 'import kw_proxy\nimport example_lib\ntest_str as s\nprint w\nh h'
 
-        runner = KWRunner()
+        runner = KWRunner(Context())
         runner.running_status_listeners.append(TestStatusListener())
         runner.run([kw_case])
 

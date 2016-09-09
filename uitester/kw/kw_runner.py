@@ -70,7 +70,8 @@ class KWCase:
 
 class KWRunner:
 
-    def __init__(self):
+    def __init__(self, context):
+        self.context = context
         self.running_status_listeners = []
 
     def run(self, kw_cases):
@@ -93,10 +94,13 @@ class KWRunner:
         self.__update_status(StatusMsg(StatusMsg.TEST_END))
 
     def run_case(self, kw_case):
-        core = KWCore()
+        core = KWCore(self.context)
         for line in kw_case.content.split('\n'):
             core.parse_line(line.strip())
         core.execute()
+
+    def stop(self):
+        self.context.publish('stop_test')
 
     def __update_status(self, msg):
         for listener in self.running_status_listeners:
