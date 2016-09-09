@@ -42,6 +42,11 @@ class EditorWidget(QWidget):
         run_icon.addPixmap(QPixmap(config.images + '/run.png'), QIcon.Normal, QIcon.Off)
         self.run_btn.setIcon(run_icon)
 
+        # set icon
+        console_icon = QIcon()
+        console_icon.addPixmap(QPixmap(config.images + '/console.png'), QIcon.Normal, QIcon.Off)
+        self.console_btn.setIcon(console_icon)
+
         self.message_box = QMessageBox()
         self.high_lighter = None
 
@@ -54,24 +59,39 @@ class EditorWidget(QWidget):
 
         self.tester = tester   # 从上级窗体拿到tester()
         self.kw_core = self.tester.get_kw_runner()
+        self.config = self.tester.get_config()
 
         self.case_id = case_id
 
         self.editor_text_edit = TextEdit(self.kw_core)  # case content编辑框
         self.editor_layout.insertWidget(0, self.editor_text_edit)
         self.editor_adapter()
+        self.console.hide()  # 隐藏log提示框
 
         self.add_devices_widget = AddDeviceWidget()  # add device
         self.add_devices_widget.setWindowModality(Qt.WindowModal)  # 设置模态
         self.device_list_signal.connect(self.add_devices_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.import_list_signal.connect(self.editor_text_edit.get_import_from_content, Qt.QueuedConnection)
 
+        self.is_log_show = False
+        # button event
         self.save_btn.clicked.connect(self.save_event)
         self.run_btn.clicked.connect(self.run_event)
+        self.console_btn.clicked.connect(self.log_show_hide_event)
 
         self.parsed_line_list = []  # 存放解析后的kw
 
         self.set_case_edit_data()
+
+    def log_show_hide_event(self):
+        if self.is_log_show:
+            self.console_btn.setText("Show Console")
+            self.console.hide()
+            self.is_log_show = False
+        else:
+            self.console_btn.setText("Hide Console")
+            self.console.show()
+            self.is_log_show = True
 
     def set_case_edit_data(self):
         """
