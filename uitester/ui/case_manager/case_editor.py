@@ -16,6 +16,7 @@ from uitester.ui.case_run.tag_names_line_edit import TagLineEdit, TagCompleter
 
 class EditorWidget(QWidget):
     device_list_signal = pyqtSignal(list, list)
+    import_list_signal = pyqtSignal(set)
 
     def __init__(self, tester, case_id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -52,22 +53,24 @@ class EditorWidget(QWidget):
         self.tag_names_line_edit_adapter()
 
         self.tester = tester   # 从上级窗体拿到tester()
-        self._kw_core = self.tester.get_kw_runner()
+        self.kw_core = self.tester.get_kw_runner()
 
-        self.editor_text_edit = TextEdit(self.tester)  # case content编辑框
+        self.case_id = case_id
+
+        self.editor_text_edit = TextEdit(self.kw_core)  # case content编辑框
         self.editor_layout.insertWidget(0, self.editor_text_edit)
         self.editor_adapter()
 
         self.add_devices_widget = AddDeviceWidget()  # add device
         self.add_devices_widget.setWindowModality(Qt.WindowModal)  # 设置模态
         self.device_list_signal.connect(self.add_devices_widget.add_radio_to_widget, Qt.QueuedConnection)
+        self.import_list_signal.connect(self.editor_text_edit.get_import_from_content, Qt.QueuedConnection)
 
         self.save_btn.clicked.connect(self.save_event)
         self.run_btn.clicked.connect(self.run_event)
 
         self.parsed_line_list = []  # 存放解析后的kw
 
-        self.case_id = case_id
         self.set_case_edit_data()
 
     def set_case_edit_data(self):
@@ -84,6 +87,13 @@ class EditorWidget(QWidget):
                 tags = tags + tag.name + ";"
             self.tag_names_line_edit.setText(tags)
             self.editor_text_edit.setPlainText(case.content)
+
+            # 获取case content中import语句list，发送到text_edit中
+            init_import_list = set()
+            for cmd in case.content.split("\n"):
+                if cmd.strip().find("import") == 0:
+                    init_import_list.add(cmd.strip())
+            self.import_list_signal.emit(init_import_list)
 
     def closeEvent(self, event):
         """
@@ -133,7 +143,6 @@ class EditorWidget(QWidget):
         is_name_modified = case.name != self.case_name_line_edit.text().strip()
         is_content_modified = case.content != self.editor_text_edit.toPlainText().strip()
 
-        # TODO 单独函数处理提取tag name方法
         # 处理页面中tag names
         tag_name_list = self.get_tag_name_list()
         # 处理库中tag names
@@ -231,9 +240,14 @@ class EditorWidget(QWidget):
         self.tag_names_line_edit.setCompleter(cmp)
 
     def editor_adapter(self):
-        # TODO for test， 获取 keyword， 给以提示
-        kw_core = self.tester.get_kw_runner()
-        func_dict = kw_core.user_func    # 获取默认func
+        """
+        获取keyword，给以提示
+        :return:
+        """
+        if self.case_id:
+            self.parse_import()
+
+        func_dict = self.kw_core.user_func  # 获取默认func
         cmp = Completer(func_dict)
         self.editor_text_edit.set_completer(cmp)
 
@@ -243,6 +257,24 @@ class EditorWidget(QWidget):
             kw_list.append(func_name)
         self.high_lighter = MyHighlighter(self.editor_text_edit, kw_list)
         self.editor_text_edit.set_highlighter(self.high_lighter)
+
+    def parse_import(self):
+        """
+        遍历case content，解析import语句
+        :return:
+        """
+        import_list = set()
+        content_list = self.dBCommandLineHelper.query_case_by_id(self.case_id).content.split("\n")
+        if not content_list:
+            return
+        for line in content_list:
+            if line.strip().find("import") == 0:
+                import_list.add(line.strip())
+        # 重置
+        self.kw_core.user_func.clear()
+        self.kw_core.user_func = {**self.kw_core.default_func}
+        for import_cmd in import_list:
+            self.kw_core.parse_line(import_cmd)
 
 
 

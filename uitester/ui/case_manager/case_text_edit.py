@@ -10,17 +10,17 @@ from uitester.ui.case_manager.completer_widget import CompleterWidget
 class TextEdit(QTextEdit):
     insert_func_name_signal = pyqtSignal(str)
 
-    def __init__(self, tester, parent=None):
+    def __init__(self, kw_core, parent=None):
         super(TextEdit, self).__init__(parent)
         self.cmp = None
-        self.tester = tester
-        self.kw_core = self.tester.get_kw_runner()
+        self.kw_core = kw_core
         self.popup_widget = CompleterWidget()
         self.insert_func_name_signal.connect(self.insert_completion, Qt.QueuedConnection)
         self.popup_widget.func_list_widget.select_signal.connect(self.insert_completion, Qt.QueuedConnection)
         self.popup_widget.selected_func_name_signal.connect(self.popup_widget.update_desc, Qt.QueuedConnection)
         self.textChanged.connect(self.text_change)
         self.high_lighter = None
+        self.import_lines = set()
 
     def text_change(self):
         """
@@ -78,8 +78,8 @@ class TextEdit(QTextEdit):
                 return
 
         if e.key() in (Qt.Key_Return, Qt.Key_Enter):
-            # TODO 逐行解析,update自动提示list
-            self.parse_content()
+            # 逐行解析,update自动提示list
+            self.parse_import()
 
         is_shortcut = ((e.modifiers() & Qt.ControlModifier) and e.key() == Qt.Key_E)  # 设置 ctrl + e 快捷键
         if not self.cmp or not is_shortcut:
@@ -107,23 +107,55 @@ class TextEdit(QTextEdit):
         y = edit_pos.y() + cursor_pos.y()
         self.popup_widget.setGeometry(x, y, 650, 280)    # 更新显示位置
 
-    def parse_content(self):
-        # TODO 解析内容
-        # 获取case content
+    def get_import_from_content(self, init_import_lines=None):
+        """
+        获取content中的import语句
+        :return:
+        """
+        current_import_lines = set()
+        if init_import_lines:
+            self.import_lines = init_import_lines
+            return self.import_lines
+        if not self.toPlainText():
+            return current_import_lines
         content_list = self.toPlainText().split("\n")
-        row_index = self.textCursor().blockNumber()  # 光标所在行号
-        line_content = content_list[row_index].strip()
-        if line_content.find('import') == 0:
-            # TODO 修改import行，重置kw_core的user_func
-            self.kw_core.release()
-            self.kw_core.parse_line(line_content)
+
+        for line in content_list:
+            if line.strip().find('import') == 0:
+                current_import_lines.add(line.strip())
+        return current_import_lines
+
+    def parse_import(self):
+        """
+        解析case content中所有import语句
+        :return:
+        """
+        current_import = self.get_import_from_content()
+
+        # 判断import语句是否发生变化
+        is_import_updated = (len(self.import_lines) == len(current_import)) and (list(current_import).sort() == list(self.import_lines).sort())
+        if is_import_updated:
+            return
+        if self.kw_core.user_func != self.kw_core.default_func:
+            self.kw_core.user_func.clear()
+            self.kw_core.user_func = {**self.kw_core.default_func}
+        self.import_lines = current_import
+        for import_cmd in self.import_lines:
+            self.kw_core.parse_line(import_cmd)
+        self.update_completer_high_lighter()
+
+    def update_completer_high_lighter(self):
+        """
+        更新自动提示以及高亮提示
+        :return:
+        """
         if not self.kw_core.user_func:
             return
         self.cmp.func_dict = self.kw_core.user_func  # 更新自动提示func_list
-        # TODO 更新高亮kw list
-        kw_list = []
+        # 更新高亮kw list
+        kw_list = set()
         for func_name, func in self.cmp.func_dict.items():
-            kw_list.append(func_name)
+            kw_list.add(func_name)
         self.high_lighter.__init__(self, kw_list)
 
     def current_item_down(self, current_row):
