@@ -35,6 +35,7 @@ class TextEdit(QTextEdit):
             return
         self.cmp.update(completion_prefix, self.popup_widget)
         self.update_popup_widget_position()
+        self.activateWindow()
 
     def set_completer(self, completer):
         self.cmp = completer
@@ -108,6 +109,8 @@ class TextEdit(QTextEdit):
         content_list = self.toPlainText().split("\n")
         row_index = self.textCursor().blockNumber()  # 光标所在行号
         line_content = content_list[row_index].strip()
+        if not line_content:
+            return
         if line_content.find('import') != 0:
             try:
                 self.kw_core.parse_line(line_content)
@@ -175,6 +178,15 @@ class TextEdit(QTextEdit):
         for func_name, func in self.cmp.func_dict.items():
             kw_list.add(func_name)
         self.high_lighter.__init__(self, kw_list)
+        # 重新定位光标, 刷新高亮提示
+        tc = self.textCursor()
+        content = self.toPlainText()
+        index = tc.position()
+        # self.setText("")
+        self.setText(content)
+        tc.setPosition(index)
+        self.setTextCursor(tc)
+        self.activateWindow()
 
     def current_item_down(self, current_row):
         """
