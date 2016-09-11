@@ -3,9 +3,7 @@ import os
 
 from PyQt5 import uic
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMessageBox, QRadioButton, QVBoxLayout
-
-# from uitester.ui.case_run import case_run
+from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMessageBox, QRadioButton
 
 
 class AddDeviceWidget(QWidget):

@@ -4,11 +4,12 @@ import os
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap, QBrush, QColor, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QWidget, QMessageBox
+from PyQt5.QtWidgets import QWidget, QMessageBox, QListWidget
 
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.ui.case_run.add_case import AddCaseWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
+from uitester.ui.case_run.table_widget import RunnerTableWidget
 
 
 class RunWidget(QWidget):
@@ -45,6 +46,9 @@ class RunWidget(QWidget):
         self.add_device_widget = AddDeviceWidget()
         self.add_device_widget.setWindowModality(Qt.ApplicationModal)
 
+        self.case_widget = QListWidget()
+        self.case_table_layout.insertWidget(0, self.case_widget)
+
         # add log 连接
         self.add_device_widget.add_log_signal.connect(self.add_log, Qt.QueuedConnection)
         self.add_device_widget.run_signal.connect(self.run_case, Qt.QueuedConnection)
@@ -60,8 +64,11 @@ class RunWidget(QWidget):
             self.stop_case()
             return
         if not self.cases:  # cases is null
-            # TODO  提示 case未选
+            # 提示 case未选
             self.message_box.warning(self, "Message", "Please add cases first.", QMessageBox.Ok)
+            return
+        if not self.tester.devices():
+            self.message_box.warning(self, "Message", "Please connect your device first.", QMessageBox.Ok)
             return
         self.add_device_widget.show()
         self.device_list_signal.emit(self.tester.devices(), self.cases)
@@ -119,21 +126,13 @@ class RunWidget(QWidget):
         :param id_list:
         :return:
         """
-        # TableView 实现
-        case_name_model = QStandardItemModel()
+        self.case_widget.setParent(None)
+        self.case_table_layout.removeWidget(self.case_widget)
+        case_list = []
         self.cases = id_list
         for case_id in id_list:
             case = self.dBCommandLineHelper.query_case_by_id(case_id)
-            case_name_model.setItem(id_list.index(case_id), 0, QStandardItem(str(case.id)))  # 每行第一列为id
-            case_name_model.setItem(id_list.index(case_id), 1, QStandardItem(case.name))  # 每行第二列为case name
-
-        # 隐藏表头
-        self.case_table_view.verticalHeader().hide()
-        self.case_table_view.horizontalHeader().hide()
-
-        self.case_table_view.setModel(case_name_model)
-
-        self.case_table_view.resizeColumnsToContents()  # 根据content设置size
-        self.case_table_view.setShowGrid(False)   # 不显示网格
-        self.case_table_view.setColumnHidden(0, True)  # 隐藏id列
+            case_list.append(case)
+        self.case_widget = RunnerTableWidget(case_list, [0])
+        self.case_table_layout.insertWidget(0, self.case_widget)
 

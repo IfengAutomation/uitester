@@ -18,7 +18,7 @@
     <layout class="QHBoxLayout" name="search_layout"/>
    </item>
    <item>
-    <widget class="QTextBrowser" name="cases_to_choose"/>
+    <layout class="QHBoxLayout" name="result_table_layout"/>
    </item>
    <item>
     <widget class="QWidget" name="selectbtnwidget" native="true">
