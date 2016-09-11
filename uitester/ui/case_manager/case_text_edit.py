@@ -9,6 +9,7 @@ from uitester.ui.case_manager.completer_widget import CompleterWidget
 
 class TextEdit(QTextEdit):
     insert_func_name_signal = pyqtSignal(str)
+    parse_error_info_signal = pyqtSignal(str)
 
     def __init__(self, kw_core, parent=None):
         super(TextEdit, self).__init__(parent)
@@ -79,7 +80,7 @@ class TextEdit(QTextEdit):
 
         if e.key() in (Qt.Key_Return, Qt.Key_Enter):
             # 逐行解析,update自动提示list
-            self.parse_import()
+            self.parse_content()
 
         is_shortcut = ((e.modifiers() & Qt.ControlModifier) and e.key() == Qt.Key_E)  # 设置 ctrl + e 快捷键
         if not self.cmp or not is_shortcut:
@@ -95,6 +96,23 @@ class TextEdit(QTextEdit):
             return
         self.cmp.update(completion_prefix, self.popup_widget)
         self.update_popup_widget_position()
+
+    def parse_content(self):
+        """
+        解析case内容,显示parse error信息到console
+        :return:
+        """
+        self.parse_import()
+        print(self.kw_core.parse_line)
+
+        content_list = self.toPlainText().split("\n")
+        row_index = self.textCursor().blockNumber()  # 光标所在行号
+        line_content = content_list[row_index].strip()
+        if line_content.find('import') != 0:
+            try:
+                self.kw_core.parse_line(line_content)
+            except ValueError as e:
+                self.parse_error_info_signal.emit(str(e.args))
 
     def update_popup_widget_position(self):
         """

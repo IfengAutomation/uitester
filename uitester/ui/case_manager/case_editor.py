@@ -72,6 +72,7 @@ class EditorWidget(QWidget):
         self.add_devices_widget.setWindowModality(Qt.WindowModal)  # 设置模态
         self.device_list_signal.connect(self.add_devices_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.import_list_signal.connect(self.editor_text_edit.get_import_from_content, Qt.QueuedConnection)
+        self.editor_text_edit.parse_error_info_signal.connect(self.add_error_info, Qt.QueuedConnection)
 
         self.is_log_show = False
         # button event
@@ -93,6 +94,14 @@ class EditorWidget(QWidget):
             self.console_btn.setText("Hide Console")
             self.console.show()
             self.is_log_show = True
+
+    def add_error_info(self, info):
+        """
+        添加error信息到console中
+        :param info:
+        :return:
+        """
+        self.console.append("<font color='red'>" + info + "</font>")
 
     def set_case_edit_data(self):
         """

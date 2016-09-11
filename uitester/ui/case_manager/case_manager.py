@@ -177,6 +177,10 @@ class CaseManagerWidget(QWidget):
         self.editor_widget.case_name_line_edit.setText('')
         self.editor_widget.tag_names_line_edit.setText('')
         self.editor_widget.editor_text_edit.setPlainText('')
+        self.editor_widget.console.setText('')
+        self.editor_widget.is_log_show = False
+        self.editor_widget.console_btn.setText("Show Console")
+        self.editor_widget.console.hide()
         self.editor_widget.show()
 
     def update_table_data(self):
