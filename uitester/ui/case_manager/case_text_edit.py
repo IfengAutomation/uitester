@@ -96,6 +96,7 @@ class TextEdit(QTextEdit):
             return
         self.cmp.update(completion_prefix, self.popup_widget)
         self.update_popup_widget_position()
+        self.activateWindow()
 
     def parse_content(self):
         """
@@ -103,7 +104,6 @@ class TextEdit(QTextEdit):
         :return:
         """
         self.parse_import()
-        print(self.kw_core.parse_line)
 
         content_list = self.toPlainText().split("\n")
         row_index = self.textCursor().blockNumber()  # 光标所在行号
@@ -223,6 +223,7 @@ class Completer(QCompleter):
             popup_widget.hide()
             return
         popup_widget.show()
+        popup_widget.setFocusPolicy(Qt.NoFocus)
         popup_widget.func_list_widget.setCurrentRow(0)  # 设置默认选中项
         func_name = popup_widget.func_list_widget.currentItem().text()
         popup_widget.selected_func_name_signal.emit(func_name, self.func_dict)  # 发送signal，更新desc
