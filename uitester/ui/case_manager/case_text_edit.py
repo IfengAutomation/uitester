@@ -63,6 +63,16 @@ class TextEdit(QTextEdit):
         tc.select(QTextCursor.WordUnderCursor)
         return tc.selectedText()
 
+    def mousePressEvent(self, event):
+        """
+        while the mouse pressed and the popup_widget is visible, hide the popup_widget
+        :param event:
+        :return:
+        """
+        if self.cmp and self.popup_widget.func_list_widget.isVisible():
+            self.popup_widget.hide()
+        super(TextEdit, self).mousePressEvent(event)
+
     def keyPressEvent(self, e):
         if self.cmp and self.popup_widget.func_list_widget.isVisible():
             current_row = self.popup_widget.func_list_widget.currentRow()
