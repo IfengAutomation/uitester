@@ -20,7 +20,6 @@ class AddDeviceWidget(QWidget):
         ui_file_path = os.path.join(ui_dir_path, 'add_device.ui')
         uic.loadUi(ui_file_path, self)
 
-        # 设置窗口大小
         screen = QDesktopWidget().screenGeometry()
         self.resize(screen.width() / 6, screen.height() / 6)
 
@@ -34,26 +33,26 @@ class AddDeviceWidget(QWidget):
 
     def handle_radio(self):
         """
-        对单选按钮选择结果处理
+        handle the select event
         :return:
         """
         for index in range(len(self.buttons_or_labels)):
             item = self.buttons_or_labels[index]
-            if type(item) == QLabel:  # 无设备连接提示
+            if type(item) == QLabel:
                 self.message_box.warning(self, "Message", "Please connect the device to your computer.", QMessageBox.Ok)
                 return
-            if not item.isChecked():  # 有设备但未选提示
+            if not item.isChecked():
                 self.message_box.warning(self, "Message", "Please choose a device.", QMessageBox.Ok)
                 return
             # self.emit_device_info_to_bar(widget.text())  # 主窗口状态栏显示device机身码
             self.emit_log("Choose device: " + item.text())
-            self.run_signal.emit()   # 发送run signal
+            self.run_signal.emit()
         self.close()
         # TODO 执行注册、执行case
 
     def emit_device_info_to_bar(self, msg):
         """
-        发送device info signal
+        send device info signal
         :param msg:
         :return:
         """
@@ -63,7 +62,7 @@ class AddDeviceWidget(QWidget):
 
     def emit_log(self, msg):
         """
-        发送log signal
+        send log signal
         :param msg:
         :return:
         """
@@ -73,13 +72,12 @@ class AddDeviceWidget(QWidget):
 
     def add_radio_to_widget(self, devices_list):
         """
-        将devices_list以单选框的形式展示在页面中
+        add devices list to "add device" widget
         :param devices_list:
         :return:
         """
-        self.clear_button_or_label()  # 清除devices_layout中记录
+        self.clear_button_or_label()
 
-        # 无设备连接时，提示用户
         if len(devices_list) == 0:
             label = QLabel()
             label.setText("There is no device.")
@@ -93,7 +91,7 @@ class AddDeviceWidget(QWidget):
 
     def clear_button_or_label(self):
         """
-        清除单选项或提示label
+        clear the content of devices_layout
         :return:
         """
         for item in self.buttons_or_labels:

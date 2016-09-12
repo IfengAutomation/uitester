@@ -55,7 +55,7 @@ class CaseManagerWidget(QWidget):
         self.set_tag_list_widget()  # show all tags
         self.set_tag_search_line()  # Set the tag input line automatic completion
         self.data_message_layout.insertWidget(1, self.table_widget)
-        self.editor_widget = EditorWidget(self.refresh, self.tester)
+        self.editor_widget = None
         self.button_style(self.check_button, '/check_all.png', 'Check All')
         self.selected_tag_name = ''
 
@@ -171,17 +171,11 @@ class CaseManagerWidget(QWidget):
             QMessageBox.warning(self, 'delte error', 'please select cases to delete')
 
     def add_case(self):
-        '''
+        """
         show editor
         :return:
-        '''
-        self.editor_widget.case_name_line_edit.setText('')
-        self.editor_widget.tag_names_line_edit.setText('')
-        self.editor_widget.editor_text_edit.setPlainText('')
-        self.editor_widget.console.setText('')
-        self.editor_widget.is_log_show = False
-        self.editor_widget.console_btn.setText("Show Console")
-        self.editor_widget.console.hide()
+        """
+        self.editor_widget = EditorWidget(self.refresh, self.tester)
         self.editor_widget.show()
 
     def update_table_data(self):

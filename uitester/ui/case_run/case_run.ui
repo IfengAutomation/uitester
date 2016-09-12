@@ -64,10 +64,6 @@
         <property name="text">
          <string>Run</string>
         </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>C:/Users/lr/Desktop/run.png</normaloff>C:/Users/lr/Desktop/run.png</iconset>
-        </property>
        </widget>
       </item>
       <item>
@@ -80,10 +76,6 @@
         </property>
         <property name="text">
          <string>Add</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>C:/Users/lr/Desktop/addgreen.png</normaloff>C:/Users/lr/Desktop/addgreen.png</iconset>
         </property>
        </widget>
       </item>

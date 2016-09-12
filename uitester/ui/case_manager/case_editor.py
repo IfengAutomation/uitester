@@ -25,11 +25,10 @@ class EditorWidget(QWidget):
         ui_file_path = os.path.join(ui_dir_path, 'case_editor.ui')
         uic.loadUi(ui_file_path, self)
 
-        # 设置窗口大小
         screen = QDesktopWidget().screenGeometry()
         self.resize(screen.width() / 5 * 2, screen.height() / 5 * 2)
 
-        self.id_line_edit.hide()   # 隐藏line_edit
+        self.id_line_edit.hide()   # hide line_edit
 
         # set icon
         save_icon = QIcon()
@@ -52,24 +51,24 @@ class EditorWidget(QWidget):
 
         self.case_name_line_edit.setPlaceholderText("Case Name")   # 设置提示文字
 
-        # tag name 输入框
+        # tag name LineEdit
         self.tag_names_line_edit = TagLineEdit("tag_names_line_edit")
         self.tag_list = None
         self.tag_names_line_edit_adapter()
 
-        self.tester = tester   # 从上级窗体拿到tester()
+        self.tester = tester
         self.kw_core = self.tester.get_kw_runner()
         self.config = self.tester.get_config()
 
         self.case_id = case_id
 
-        self.editor_text_edit = TextEdit(self.kw_core)  # case content编辑框
+        self.editor_text_edit = TextEdit(self.kw_core)  # case content TextEdit
         self.editor_layout.insertWidget(0, self.editor_text_edit)
         self.editor_adapter()
-        self.console.hide()  # 隐藏log提示框
+        self.console.hide()  # hide log
 
         self.add_devices_widget = AddDeviceWidget()  # add device
-        self.add_devices_widget.setWindowModality(Qt.WindowModal)  # 设置模态
+        self.add_devices_widget.setWindowModality(Qt.WindowModal)
         self.device_list_signal.connect(self.add_devices_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.import_list_signal.connect(self.editor_text_edit.get_import_from_content, Qt.QueuedConnection)
         self.editor_text_edit.parse_error_info_signal.connect(self.add_error_info, Qt.QueuedConnection)
@@ -80,8 +79,8 @@ class EditorWidget(QWidget):
         self.run_btn.clicked.connect(self.run_event)
         self.console_btn.clicked.connect(self.log_show_hide_event)
 
-        self.parsed_line_list = []  # 存放解析后的kw
-
+        self.parsed_line_list = []
+        self.case = None
         self.set_case_edit_data()
         self.callback = callback
 
@@ -109,18 +108,18 @@ class EditorWidget(QWidget):
         :return:
         """
         if self.case_id:
-            case = self.dBCommandLineHelper.query_case_by_id(self.case_id)
+            self.case = self.dBCommandLineHelper.query_case_by_id(self.case_id)
             self.id_line_edit.setText(self.case_id)
-            self.case_name_line_edit.setText(case.name)
+            self.case_name_line_edit.setText(self.case.name)
             tags = ''
-            for tag in case.tags:
+            for tag in self.case.tags:
                 tags = tags + tag.name + ";"
             self.tag_names_line_edit.setText(tags)
-            self.editor_text_edit.setPlainText(case.content)
+            self.editor_text_edit.setPlainText(self.case.content)
 
             # 获取case content中import语句list，发送到text_edit中
             init_import_list = set()
-            for cmd in case.content.split("\n"):
+            for cmd in self.case.content.split("\n"):
                 if cmd.strip().find("import") == 0:
                     init_import_list.add(cmd.strip())
             self.import_list_signal.emit(init_import_list)
@@ -133,9 +132,9 @@ class EditorWidget(QWidget):
         """
         case_name = self.case_name_line_edit.text().strip()  # Case Name
         content = self.editor_text_edit.toPlainText().strip()  # Case Content
-        tag_name_list = self.get_tag_name_list()
+        tag_list = self.get_tag_list()
         if not self.case_id:
-            if (not case_name) and (not content) and (not tag_name_list):
+            if (not case_name) and (not content) and (not tag_list):
                 # add case，没有输入有效内容时直接关闭
                 self.close()
                 return
@@ -168,35 +167,35 @@ class EditorWidget(QWidget):
         :return:
         """
         is_case_modified = False
-        case = self.dBCommandLineHelper.query_case_by_id(self.case_id)
+        case_db = self.dBCommandLineHelper.query_case_by_id(self.case_id)
 
-        is_name_modified = case.name != self.case_name_line_edit.text().strip()
-        is_content_modified = case.content != self.editor_text_edit.toPlainText().strip()
+        is_name_modified = case_db.name != self.case_name_line_edit.text().strip()
+        is_content_modified = case_db.content != self.editor_text_edit.toPlainText().strip()
 
         # 处理页面中tag names
-        tag_name_list = self.get_tag_name_list()
+        tag_list = self.get_tag_list()
         # 处理库中tag names
-        db_tag_name_list = []
-        for db_tag in case.tags:
-            db_tag_name_list.append(db_tag.name)
-        is_tags_names_modify = db_tag_name_list != tag_name_list
+        db_tag_list = case_db.tags
+        is_tags_names_modify = db_tag_list != tag_list
 
         if is_name_modified or is_content_modified or is_tags_names_modify:
             is_case_modified = True
         return is_case_modified
 
-    def get_tag_name_list(self):
+    def get_tag_list(self):
         """
         将tag names输入框中内容转换为tag name list
         :return:
         """
         # 处理页面中tag names
         tag_name_list = self.tag_names_line_edit.text().strip().split(";")
+        tag_list = []
         # 去除list中的空值
-        for tag in tag_name_list:
-            if not tag:
-                tag_name_list.remove(tag)
-        return tag_name_list
+        for tag_name in tag_name_list:
+            if tag_name:
+                tag = self.dBCommandLineHelper.query_tag_by_name(tag_name)
+                tag_list.append(tag)
+        return tag_list
 
     def save_event(self):
         self.save_case()
@@ -210,7 +209,7 @@ class EditorWidget(QWidget):
 
     def save_case(self, event=None):
         """
-        保存case
+        save case
         :return:
         """
         case_name = self.case_name_line_edit.text().strip()  # Case Name
@@ -220,13 +219,16 @@ class EditorWidget(QWidget):
             if event:  # close event 只关闭参数不能为空提示框，不关闭编辑框
                 event.ignore()
             return
-        tag_names = self.get_tag_name_list()
+        tags = self.get_tag_list()
+        self.case.name = case_name
+        self.case.content = content
+        self.case.tags = tags
 
         if self.case_id:
-            self.dBCommandLineHelper.update_case(self.case_id, case_name, content, tag_names)
+            self.dBCommandLineHelper.update_case()
             self.message_box.information(self, "Update case", "Update case success.", QMessageBox.Ok)
         else:
-            case = self.dBCommandLineHelper.insert_case_with_tagnames(case_name, content, tag_names)
+            case = self.dBCommandLineHelper.insert_case_with_tagnames(case_name, content, tags)
             self.id_line_edit.setText(str(case.id))
             self.case_id = self.id_line_edit.text().strip()
             self.message_box.information(self, "Add case", "Add case success.", QMessageBox.Ok)
