@@ -70,5 +70,5 @@ class TestDataBase(unittest.TestCase):
         tag =self.db_helper.insert_tag(tag_name,'test tag')
         case = self.db_helper.insert_case_with_tags('test_123','test case',[tag])
         self.db_helper.delete_tag_by_name(tag_name)
-        self.assertTrue(self.db_helper.query_case_by_id(case.id) is None)
+        self.assertTrue(self.db_helper.query_case_by_id(case.id) is not  None)
         self.assertTrue(self.db_helper.query_tag_by_name(tag_name) is None)

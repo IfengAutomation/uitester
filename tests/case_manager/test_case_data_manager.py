@@ -20,13 +20,12 @@ class TestCaseDataManager(unittest.TestCase):
         cases_id_list = []
         for case in case_list:
             cases_id_list.append(str(case.id))  # 类型转成str
-        path = os.getcwd()
-        self.package_name = self.case_data_manager.export_data(path, cases_id_list)
-        self.assertTrue(self.package_name is not None)
+        path = os.path.join(os.getcwd(),'data.dpk')
+        # self.package_name = self.case_data_manager.export_data(path, cases_id_list)
+        self.case_data_manager.export_data(path, cases_id_list)#导入数据
         print(" export finish :", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         # import test
         print(" import start :", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        path = os.path.join(os.getcwd(), self.package_name)
         conflict_datas = self.case_data_manager.import_data(path)#有冲突
         conflict_datas = self.case_data_manager.import_data(path)  # 无冲突
         if conflict_datas:
