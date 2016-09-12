@@ -55,7 +55,7 @@ class TextEdit(QTextEdit):
         tc = self.textCursor()
         tc.movePosition(QTextCursor.StartOfWord, QTextCursor.KeepAnchor)
         tc.insertText(string)
-        self.popup_widget.hide()   # 插入选中项，同时关闭提示框
+        self.popup_widget.hide()   # insert the text into text edit, and hide the popup_widget
         self.setTextCursor(tc)
 
     def text_under_cursor(self):

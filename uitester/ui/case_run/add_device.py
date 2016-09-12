@@ -15,7 +15,6 @@ class AddDeviceWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         self.buttons_or_labels = []
-        self.cases = []
 
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, 'add_device.ui')
@@ -31,16 +30,11 @@ class AddDeviceWidget(QWidget):
 
     def select_event(self):
 
-        if not self.cases:  # case未选
-            # 判断case是否已选，否：提示先选case
-            self.message_box.warning(self, "Message", "Please add cases first.", QMessageBox.Ok)
-        else:    # case已选
-            self.handle_radio()
+        self.handle_radio()
 
     def handle_radio(self):
         """
         对单选按钮选择结果处理
-        :param layout_name:
         :return:
         """
         for index in range(len(self.buttons_or_labels)):
@@ -77,15 +71,13 @@ class AddDeviceWidget(QWidget):
             return
         self.add_log_signal.emit(msg)
 
-    def add_radio_to_widget(self, devices_list, cases_list):
+    def add_radio_to_widget(self, devices_list):
         """
         将devices_list以单选框的形式展示在页面中
-        :param cases_list:
         :param devices_list:
         :return:
         """
         self.clear_button_or_label()  # 清除devices_layout中记录
-        self.cases = cases_list
 
         # 无设备连接时，提示用户
         if len(devices_list) == 0:
@@ -95,7 +87,6 @@ class AddDeviceWidget(QWidget):
             self.devices_layout.addWidget(label)
             return
         for device in devices_list:
-            # radio = QRadioButton(device)
             radio = QRadioButton(device.id)
             self.buttons_or_labels.append(radio)
             self.devices_layout.addWidget(radio)

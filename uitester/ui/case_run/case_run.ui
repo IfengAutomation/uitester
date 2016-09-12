@@ -20,6 +20,9 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>2</number>
+   </property>
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -35,6 +38,9 @@
    <item>
     <widget class="QWidget" name="widget" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="spacing">
+       <number>2</number>
+      </property>
       <property name="leftMargin">
        <number>0</number>
       </property>
@@ -103,7 +109,11 @@
       <enum>Qt::Vertical</enum>
      </property>
      <widget class="QWidget" name="layoutWidget">
-      <layout class="QHBoxLayout" name="case_table_layout"/>
+      <layout class="QHBoxLayout" name="case_table_layout">
+       <property name="spacing">
+        <number>1</number>
+       </property>
+      </layout>
      </widget>
      <widget class="QTextBrowser" name="logarea">
       <property name="sizePolicy">

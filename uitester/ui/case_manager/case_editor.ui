@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
-    <number>1</number>
+    <number>2</number>
    </property>
    <property name="leftMargin">
     <number>0</number>
@@ -31,6 +31,9 @@
    </property>
    <item>
     <layout class="QHBoxLayout" name="case_info_layout">
+     <property name="spacing">
+      <number>2</number>
+     </property>
      <item>
       <widget class="QPushButton" name="save_btn">
        <property name="sizePolicy">
@@ -121,7 +124,7 @@
      <property name="handleWidth">
       <number>2</number>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="editor_layout">
        <property name="spacing">
         <number>0</number>

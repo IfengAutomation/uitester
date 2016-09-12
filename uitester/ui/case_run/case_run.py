@@ -14,7 +14,7 @@ from uitester.ui.case_run.table_widget import RunnerTableWidget
 
 class RunWidget(QWidget):
     running = False
-    device_list_signal = pyqtSignal(list, list)
+    device_list_signal = pyqtSignal(list)
     cases = []
 
     def __init__(self, tester, *args, **kwargs):
@@ -60,6 +60,7 @@ class RunWidget(QWidget):
         self.add_case_widget.show()
 
     def click_run_stop_btn(self):
+        devices = []
         if self.running:
             self.stop_case()
             return
@@ -67,11 +68,12 @@ class RunWidget(QWidget):
             # 提示 case未选
             self.message_box.warning(self, "Message", "Please add cases first.", QMessageBox.Ok)
             return
-        if not self.tester.devices():
-            self.message_box.warning(self, "Message", "Please connect your device first.", QMessageBox.Ok)
-            return
+        if self.tester.devices():
+            # self.message_box.warning(self, "Message", "Please connect your device first.", QMessageBox.Ok)
+            # return
+            devices = self.tester.devices()
         self.add_device_widget.show()
-        self.device_list_signal.emit(self.tester.devices(), self.cases)
+        self.device_list_signal.emit(devices)
 
     def add_log(self, log_info):
         """
