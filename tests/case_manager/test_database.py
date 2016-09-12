@@ -4,7 +4,7 @@ import unittest
 
 import time
 
-from uitester.case_manager.database import DBCommandLineHelper, Tag, Case
+from uitester.case_manager.database import DBCommandLineHelper, Tag, Case, DB
 
 
 class TestDataBase(unittest.TestCase):
@@ -49,10 +49,19 @@ class TestDataBase(unittest.TestCase):
 
         case_list = self.db_helper.query_case_by_tag_names([tag.name])
         self.assertTrue(type(case_list[0]) is Case)
-        tag_name = "test_tag_name_" + str(time.time())
+        # tag_name = "test_tag_name_" + str(time.time())
 
-        case = self.db_helper.update_case(case.id, case.name, case.content, [tag.name], [tag_name])#todo 使用方法修改
-        self.assertTrue(type(case) is Case)
+        # 更改case：
+        case = self.db_helper.query_case_by_id(case.id)
+        case_id = case.id
+        case_name = 'test_case_name_' + str(time.time())
+        case.name = case_name
+        case.content = 'test_case_name_' + str(time.time())
+        tags = self.db_helper.query_tag_all()
+        case.tags = tags
+        self.db_helper.update_case()
+        case = self.db_helper.query_case_by_id(case.id)
+        self.assertTrue(case.name == case_name)
 
         tag_name = "test_tag_name_" + str(time.time())
         case = self.db_helper.insert_case_with_tagnames(case.name, case.content, [tag.name], [tag_name])
@@ -67,8 +76,8 @@ class TestDataBase(unittest.TestCase):
 
     def test_delete_tag_by_name(self):
         tag_name = 'test_123'
-        tag =self.db_helper.insert_tag(tag_name,'test tag')
-        case = self.db_helper.insert_case_with_tags('test_123','test case',[tag])
+        tag = self.db_helper.insert_tag(tag_name, 'test tag')
+        case = self.db_helper.insert_case_with_tags('test_123', 'test case', [tag])
         self.db_helper.delete_tag_by_name(tag_name)
-        self.assertTrue(self.db_helper.query_case_by_id(case.id) is not  None)
+        self.assertTrue(self.db_helper.query_case_by_id(case.id) is not None)
         self.assertTrue(self.db_helper.query_tag_by_name(tag_name) is None)

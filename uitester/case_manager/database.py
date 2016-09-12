@@ -179,22 +179,8 @@ class DBCommandLineHelper:
     def query_no_tag_case(self):
         return DB.session.query(Case).filter(Case.tags == None).order_by(Case.last_modify_time.desc()).all()
 
-    def update_case(self, case_id, case_name, case_content, tag_names_list,
-                    add_tag_names_list=None):  # todo 改成前端修改case 本函数直接commit
-        case = DB.session.query(Case).filter(Case.id == case_id).first()
-        case.name = case_name
-        case.content = case_content
-        tags = []
-        if tag_names_list:
-            select = or_(*[Tag.name == tag_name for tag_name in tag_names_list])
-            tags = DB.session.query(Tag).filter(select).all()
-        if add_tag_names_list:
-            for tag_name in add_tag_names_list:
-                tag = Tag(name=tag_name, description='')
-                tags.append(tag)
-        case.tags = tags
+    def update_case(self):
         DB.session.commit()
-        return case
 
     def delete_case(self, id):
         case = DB.session.query(Case).filter(Case.id == id).first()

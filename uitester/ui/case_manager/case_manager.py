@@ -92,23 +92,11 @@ class CaseManagerWidget(QWidget):
         if item.text() == '全部' or item.text() == '未选择':
             QMessageBox.warning(self, 'Tag Select ', 'tag can\'t be empty')
         else:
-            reply = QMessageBox.Information(self, "Tag Delete", "Do you want to delete this tag?",
+            reply = QMessageBox.information(self, "Tag Delete", "Do you want to delete this tag?",
                                               QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:  # update case info
-                self.db_helper.delete_tag(item.text())
-                self.tag_list_widget.update()
-            elif reply == QMessageBox.No:
-                self.close()
-                return
-
-        # if self.selected_tag_name:
-        #     reply = QMessageBox.information(self, '删除提示', '所属此标识的case也会被删除，确认删除？', QMessageBox.Yes, QMessageBox.No)
-        #     if reply == QMessageBox.Yes:
-        #         # TODO 确认需求 删除tag时，删除case吗？当一个case 属于多个tag 时怎么办
-        #         self.db_helper.delete_tag_by_name(self.selected_tag_name)
-        #         self.selected_tag_name = ''
-        # else:
-        #     QMessageBox.warning(self, '删除错误', '未选择要删除的标识')
+                self.db_helper.delete_tag_by_name(item.text())
+                self.refresh()
 
     def import_data(self):
         '''
