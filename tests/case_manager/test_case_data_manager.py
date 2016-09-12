@@ -39,5 +39,5 @@ class TestCaseDataManager(unittest.TestCase):
                                                                        self.case_data_manager.case_file_data[
                                                                                        "name"][0])
 
-        self.assertTrue(case is not None)
+            self.assertTrue(case is not None)
         print("import finish :", datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
