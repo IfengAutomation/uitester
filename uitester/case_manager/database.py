@@ -20,6 +20,8 @@ logger = logging.getLogger('UiTester')
 logger.setLevel(logging.DEBUG)
 
 Base = declarative_base()
+
+
 class Model:
     '''
     所有表通用：记录数据创建时间，id主键
@@ -56,7 +58,6 @@ class Tag(Base):
 
 
 class DB:
-    
     db_path = os.path.abspath(os.path.join(config.app_dir, 'casetest.db'))
     sql_uri = 'sqlite:///{}'.format(db_path)
     db_file_exists = os.path.exists(db_path)
@@ -110,6 +111,12 @@ class DBCommandLineHelper:
     def query_tag_all(self):
         '''查看所有tag'''
         return DB.session.query(Tag).all()
+
+    def delete_tag_by_name(self, name):
+        '''删除tag'''
+        del_tag = DB.session.query(Tag).filter(Tag.name == name).first()
+        DB.session.delete(del_tag)
+        DB.session.commit()
 
     def delete_tag(self, id):
         '''删除tag'''
@@ -168,6 +175,9 @@ class DBCommandLineHelper:
     def query_case_all(self):
         '''查看case'''
         return DB.session.query(Case).order_by(Case.last_modify_time.desc()).all()
+
+    def query_no_tag_case(self):
+        return DB.session.query(Case).filter(Case.tags == None).order_by(Case.last_modify_time.desc()).all()
 
     def update_case(self, case_id, case_name, case_content, tag_names_list,
                     add_tag_names_list=None):  # todo 改成前端修改case 本函数直接commit
