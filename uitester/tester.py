@@ -8,6 +8,7 @@ from uitester.device_manager.device_manager import DeviceManager
 from uitester.error_handler import handle_error, error_handlers
 from uitester.kw import kw, kw_runner
 
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('Tester')
 logger.setLevel(logging.DEBUG)
@@ -41,13 +42,13 @@ class Tester:
         return self.dm.devices
 
     @handle_error
-    def select_devices(self, device):
+    def select_devices(self, devices):
         """
         select devices for test
         :param device:
         :return:
         """
-        self.selected_device = device
+        self.dm.selected_devices = devices
 
     @handle_error
     def add_run_status_listener(self, status_listener):
@@ -75,6 +76,14 @@ class Tester:
 
     @handle_error
     def stop_server(self):
+        pass
+
+    @handle_error
+    def install_agent(self):
+        pass
+
+    @handle_error
+    def start_agent(self):
         pass
 
 

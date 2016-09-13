@@ -14,10 +14,18 @@ class DeviceManager:
     def __init__(self, context):
         self.context = context
         self.__devices = []
+        self.selected_devices = []
         self.server = None
         self.server_thread = None
         self.adb = ADB(context)
         self.msg_queue = Queue()
+
+        def request_handler(msg_type, msg=None):
+            # send requests
+            if msg_type == 'rpc_proxy' and msg is not None:
+                self.server.send_msg(msg, device_id_list=self.selected_devices)
+
+        context.register(request_handler)
 
     @property
     def devices(self):

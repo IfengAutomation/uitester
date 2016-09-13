@@ -3,8 +3,8 @@ import logging
 import inspect
 import sys
 from os.path import dirname, abspath, pardir, join
-from types import FunctionType
-from  uitester.remote_proxy.proxy import CommonProxy
+from types import FunctionType, MethodType
+from uitester.remote_proxy.proxy import CommonProxy
 
 
 script_dir = dirname(abspath(__file__))
@@ -34,6 +34,7 @@ class KWCore:
         context.register(self._kw_core_receiver)
         self.running = False
         self.real_prc_funcs = {}
+        self.proxy = CommonProxy(context)
 
     def _kw_core_receiver(self, msg_type, msg=None):
         if msg_type == 'stop_test':
@@ -46,13 +47,15 @@ class KWCore:
             return
         logger.debug('exec items {}'.format(kw_line.items))
 
-        res = self.user_func[kw_line.items[0]](self, *kw_line.items[1:])
+        res = self.user_func[kw_line.items[0]](*kw_line.items[1:])
         if kw_line.var:
             self.user_var[kw_line.var] = res
 
     def parse_line(self, line):
         # set line number
         self.line_count += 1
+        if len(line) == 0:
+            return
         # parse line to kw line
         kw_line = self._parse_line(line, line_number=self.line_count)
 
@@ -173,22 +176,23 @@ class KWCore:
                 if not inspect.isclass(clazz):
                     continue
 
-                self.attach_rpc_funcs(clazz)
-                self.load_funcs(clazz)
+                user_kw_instance = clazz()
+                self.attach_rpc_funcs(user_kw_instance)
+                self.load_funcs(user_kw_instance)
 
-    def attach_rpc_funcs(self, clazz):
-        for attr_name in dir(CommonProxy):
+    def attach_rpc_funcs(self, kw_instance):
+        for attr_name in dir(self.proxy):
             if attr_name.startswith('_'):
                 continue
-            rpc_func = getattr(CommonProxy, attr_name)
-            if type(rpc_func) is not FunctionType:
+            rpc_func = getattr(self.proxy, attr_name)
+            if type(rpc_func) is not MethodType:
                 continue
-            setattr(clazz, attr_name, rpc_func)
+            setattr(kw_instance, attr_name, rpc_func)
 
-    def load_funcs(self, clazz):
-        for attr_name in dir(clazz):
-            attr = getattr(clazz, attr_name)
-            if type(attr) is FunctionType:
+    def load_funcs(self, kw_instance):
+        for attr_name in dir(kw_instance):
+            attr = getattr(kw_instance, attr_name)
+            if type(attr) is MethodType:
                 self.user_func[attr_name] = attr
 
     def kw_check(self, *args, **kwargs):
