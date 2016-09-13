@@ -3,7 +3,7 @@
 import os
 
 from PyQt5 import uic
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal, QObject
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import *
 
@@ -16,8 +16,8 @@ from uitester.ui.case_manager.conflict_tag import ConflictTagsWidget
 from uitester.ui.case_manager.table_widget import TableWidget
 from uitester.ui.case_manager.tag_editor import TagEditorWidget
 
-
 class CaseManagerWidget(QWidget):
+    refresh_signal = pyqtSignal(name='refresh_data')
     def __init__(self, tester, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db_helper = DBCommandLineHelper()
@@ -58,6 +58,7 @@ class CaseManagerWidget(QWidget):
         self.editor_widget = None
         self.button_style(self.check_button, '/check_all.png', 'Check All')
         self.selected_tag_name = ''
+        self.refresh_signal.connect(self.refresh, Qt.QueuedConnection)
 
     def refresh(self):
         self.set_tag_search_line()
@@ -68,7 +69,7 @@ class CaseManagerWidget(QWidget):
         add tag
         :return:
         '''
-        self.tag_editor_window = TagEditorWidget(self.refresh)
+        self.tag_editor_window = TagEditorWidget(self.refresh_signal)
         self.tag_editor_window.setWindowModality(Qt.ApplicationModal)
         self.tag_editor_window.show()
 
@@ -78,7 +79,7 @@ class CaseManagerWidget(QWidget):
         if item.text() == '全部' or item.text() == '未选择':
             QMessageBox.warning(self, 'tag select ', 'tag can\'t be empty')
         else:
-            self.tag_editor_window = TagEditorWidget(self.refresh, item.text())
+            self.tag_editor_window = TagEditorWidget(self.refresh_signal, item.text())
             self.tag_editor_window.setWindowModality(Qt.ApplicationModal)
             self.tag_editor_window.show()
 
@@ -93,10 +94,10 @@ class CaseManagerWidget(QWidget):
             QMessageBox.warning(self, 'Tag Select ', 'tag can\'t be empty')
         else:
             reply = QMessageBox.information(self, "Tag Delete", "Do you want to delete this tag?",
-                                              QMessageBox.Yes | QMessageBox.No)
+                                            QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:  # update case info
                 self.db_helper.delete_tag_by_name(item.text())
-                self.refresh()
+                self.refresh_signal.emit()
 
     def import_data(self):
         '''
@@ -108,7 +109,7 @@ class CaseManagerWidget(QWidget):
         if file_name[0] and '.dpk' in file_name[0]:
             conflict_tags_message_dict = self.case_data_manager.import_data(file_name[0])
             if conflict_tags_message_dict:
-                self.conflict_tags_widget = ConflictTagsWidget(self.refresh, conflict_tags_message_dict,
+                self.conflict_tags_widget = ConflictTagsWidget(self.refresh_signal, conflict_tags_message_dict,
                                                                self.case_data_manager)
                 self.conflict_tags_widget.setWindowModality(Qt.ApplicationModal)
                 self.conflict_tags_widget.show()

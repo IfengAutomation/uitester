@@ -10,9 +10,9 @@ from uitester.config import Config
 
 
 class TagEditorWidget(QWidget):
-    def __init__(self, callback, tag_name=None, *args, **kwargs):
+    def __init__(self, refresh_signal, tag_name=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.callback = callback
+        self.refresh_signal = refresh_signal
         self.db_helper = DBCommandLineHelper()
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, 'tag_editor.ui')
@@ -47,7 +47,7 @@ class TagEditorWidget(QWidget):
                 if reply != QMessageBox.Yes:
                     close_even.ignore()
                     return
-        self.callback()
+        self.refresh_signal.emit()
 
     def tag_save(self):
         tag_id = self.tag_id_line_edit.text()
@@ -63,13 +63,13 @@ class TagEditorWidget(QWidget):
                     self.tag.name = tag_name
                     self.tag.description = tag_description
                     self.db_helper.update_tag()
-                    QMessageBox.information(self, 'tag editor', 'tag update success')
+                    QMessageBox.information(self, 'tag editor', 'tag update success')#todo 是否添加刷新
                 else:
                     tag = self.db_helper.query_tag_by_name(tag_name)
                     if tag is None:
                         tag = self.db_helper.insert_tag(tag_name, tag_description)
                         self.tag_id_line_edit.setText(str(tag.id))
                         self.tag = tag
-                        QMessageBox.information(self, 'tag editor', 'tag insert success')
+                        QMessageBox.information(self, 'tag editor', 'tag insert success')#todo 是否添加刷新
                     else:
                         QMessageBox.warning(self, 'tag editor', 'tag has existed')

@@ -10,11 +10,11 @@ from uitester.ui.case_manager.case_editor import EditorWidget
 
 
 class TableWidget(QWidget):
-    def __init__(self, callback, tester, case_list, *args, **kwargs):
+    def __init__(self, refresh_data, tester, case_list, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.callback = callback
+        self.refresh_data = refresh_data
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.dataTableWidget = DataTableWidget(self.callback ,tester, case_list)  # init ui table
+        self.dataTableWidget = DataTableWidget(self.refresh_data, tester, case_list)  # init ui table
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.dataTableWidget)
@@ -34,10 +34,10 @@ class DataTableWidget(QTableWidget):
     header_text_list = ['', 'id', '名称', '最后修改时间', '标识']
     column_count = len(header_text_list)
 
-    def __init__(self,callback, tester, case_list, *args):
+    def __init__(self, refresh_data, tester, case_list, *args):
         super().__init__(*args)
+        self.refresh_data = refresh_data
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.callback = callback
         self.tester = tester
         self.setObjectName("data_table_widget")
         self.case_list = case_list
@@ -52,7 +52,7 @@ class DataTableWidget(QTableWidget):
     def cell_clicked(self, row, column):
         if column == 2:
             id_item = self.item(row, 1)
-            self.case_edit_window = EditorWidget(self.callback, self.tester, id_item.text())
+            self.case_edit_window = EditorWidget(self.refresh_data, self.tester, id_item.text())
             self.case_edit_window.show()
 
     def edit_case(self, item):

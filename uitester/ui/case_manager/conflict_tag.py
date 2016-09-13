@@ -13,10 +13,9 @@ from uitester.config import Config
 
 
 class ConflictTagsWidget(QWidget):
-    def __init__(self, refresh, conflict_tags_message_dict, case_data_manager, *args, **kwargs):
+    def __init__(self, refresh_signal, conflict_tags_message_dict, case_data_manager, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.main_window_refresh = refresh
-
+        self.refresh_signal = refresh_signal
         self.case_data_manager = case_data_manager
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, "conflict_tag.ui")
@@ -94,12 +93,9 @@ class ConflictTagsWidget(QWidget):
 
     def callback(self, result):
         if result:
-           self.wait_dialog.close()
-           self.close()
-            # self.main_window_refresh()
-
-    # def closeEvent(self, QCloseEvent):
-    #     self.main_window_refresh()
+            self.wait_dialog.close()
+            self.close()
+            self.refresh_signal.emit()
 
     def conflict_tags_submit(self):
         """
@@ -119,11 +115,10 @@ class ConflictTagsWidget(QWidget):
                                 args=(updata_tag_message_list, self.callback))
                 thread.start()
         else:
-            self.main_window_refresh()
-
-            thread = Thread(target=self.case_data_manager.merge_conflict_data_callback, args=(updata_tag_message_list, self.callback))
+            self.wait_dialog.show()
+            thread = Thread(target=self.case_data_manager.merge_conflict_data_callback,
+                            args=(updata_tag_message_list, self.callback))
             thread.start()
-
 
     def get_table_data(self):
         table_data = []
