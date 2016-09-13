@@ -12,6 +12,10 @@ class TestDeviceManager(unittest.TestCase):
         self.context = type('Context', (), {'config': None})()
         config = type('Config', (), {'sdk': '', 'libs': '', 'port': 11800})()
         config.sdk = sdk_path
+
+        def register(func):
+            pass
+        setattr(self.context, 'register', register)
         self.context.config = config
 
     def test_get_devices(self):
