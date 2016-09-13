@@ -7,23 +7,26 @@ from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox
 
 from uitester.case_manager.database import DBCommandLineHelper
-from uitester.config import Config
+from uitester.ui.case_manager.case_search_edit import TagLineEdit, TagCompleter
 from uitester.ui.case_manager.case_text_edit import TextEdit, Completer
 from uitester.ui.case_manager.highlighter import MyHighlighter
+from uitester.ui.case_manager.tag_manage_button import ChooseButton
+from uitester.ui.case_manager.tag_manage_widget import TagManageWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
-from uitester.ui.case_run.tag_names_line_edit import TagLineEdit, TagCompleter
 
 
 class EditorWidget(QWidget):
-    device_list_signal = pyqtSignal(list, list)
+    device_list_signal = pyqtSignal(list)
     import_list_signal = pyqtSignal(set)
 
-    def __init__(self, callback, tester, case_id=None, *args, **kwargs):
+    def __init__(self, refresh_signal, tester, case_id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.dBCommandLineHelper = DBCommandLineHelper()
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, 'case_editor.ui')
         uic.loadUi(ui_file_path, self)
+
+        self.tester = tester
 
         screen = QDesktopWidget().screenGeometry()
         self.resize(screen.width() / 5 * 2, screen.height() / 5 * 2)
@@ -32,7 +35,7 @@ class EditorWidget(QWidget):
 
         # set icon
         save_icon = QIcon()
-        config = Config()
+        config = self.tester.get_config()
         save_icon.addPixmap(QPixmap(config.images + '/save.png'), QIcon.Normal, QIcon.Off)
         self.save_btn.setIcon(save_icon)
 
@@ -51,38 +54,62 @@ class EditorWidget(QWidget):
 
         self.case_name_line_edit.setPlaceholderText("Case Name")   # 设置提示文字
 
-        # tag name LineEdit
-        self.tag_names_line_edit = TagLineEdit("tag_names_line_edit")
-        self.tag_list = None
-        self.tag_names_line_edit_adapter()
-
-        self.tester = tester
         self.kw_core = self.tester.get_kw_runner()
         self.config = self.tester.get_config()
 
         self.case_id = case_id
+
+        # tag name 输入框
+        self.tag_list = []
+        self.choose_button = ChooseButton()
+        self.tag_names_line_edit = TagLineEdit("tag_names_line_edit", self.choose_button)
+        self.tag_names_line_edit_adapter()
+        self.tag_layout.insertWidget(0, self.tag_names_line_edit)
 
         self.editor_text_edit = TextEdit(self.kw_core)  # case content TextEdit
         self.editor_layout.insertWidget(0, self.editor_text_edit)
         self.editor_adapter()
         self.console.hide()  # hide log
 
-        self.add_devices_widget = AddDeviceWidget()  # add device
-        self.add_devices_widget.setWindowModality(Qt.WindowModal)
-        self.device_list_signal.connect(self.add_devices_widget.add_radio_to_widget, Qt.QueuedConnection)
+        self.add_device_widget = AddDeviceWidget()  # add device
+        self.add_device_widget.setWindowModality(Qt.WindowModal)
+        self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.import_list_signal.connect(self.editor_text_edit.get_import_from_content, Qt.QueuedConnection)
         self.editor_text_edit.parse_error_info_signal.connect(self.add_error_info, Qt.QueuedConnection)
+
+        self.tag_manage_widget = TagManageWidget(self.config)
+        self.tag_manage_widget.selected_tag_names_signal.connect(self.set_selected_tag_names)
 
         self.is_log_show = False
         # button event
         self.save_btn.clicked.connect(self.save_event)
         self.run_btn.clicked.connect(self.run_event)
         self.console_btn.clicked.connect(self.log_show_hide_event)
+        self.choose_button.clicked.connect(self.choose_event)
 
         self.parsed_line_list = []
         self.case = None
         self.set_case_edit_data()
-        self.callback = callback
+        self.refresh_signal = refresh_signal
+        self.is_running = False
+
+    def choose_event(self):
+        """
+        choose tag event, show tags
+        :return:
+        """
+        self.tag_manage_widget.setWindowModality(Qt.ApplicationModal)
+        self.tag_manage_widget.show()
+
+    def set_selected_tag_names(self, tag_names):
+        """
+        set tag names
+        :param tag_names:
+        :return:
+        """
+        self.tag_names_line_edit.is_completer = False
+        self.tag_names_line_edit.setText(tag_names)
+        self.tag_names_line_edit.is_completer = True
 
     def log_show_hide_event(self):
         if self.is_log_show:
@@ -201,11 +228,16 @@ class EditorWidget(QWidget):
         self.save_case()
 
     def run_event(self):
+        devices = []
         if self.check_null():
             return
-        # TODO 选device 获得Tester devices
-        self.device_list_signal.emit([], [111])
-        self.add_devices_widget.show()
+        if self.is_running:
+            # TODO stop
+            pass
+        if self.tester.devices():
+            devices = self.tester.devices()
+        self.device_list_signal.emit(devices)
+        self.add_device_widget.show()
 
     def save_case(self, event=None):
         """
@@ -213,26 +245,27 @@ class EditorWidget(QWidget):
         :return:
         """
         case_name = self.case_name_line_edit.text().strip()  # Case Name
-        content = self.editor_text_edit.toPlainText().strip()  # Case Content
+        content = self.editor_text_edit.toPlainText()  # Case Content
         is_null = self.check_null()
         if is_null:
             if event:  # close event 只关闭参数不能为空提示框，不关闭编辑框
                 event.ignore()
             return
         tags = self.get_tag_list()
-        self.case.name = case_name
-        self.case.content = content
-        self.case.tags = tags
 
         if self.case_id:
+            self.case.name = case_name
+            self.case.content = content
+            self.case.tags = tags
             self.dBCommandLineHelper.update_case()
             self.message_box.information(self, "Update case", "Update case success.", QMessageBox.Ok)
         else:
             case = self.dBCommandLineHelper.insert_case_with_tagnames(case_name, content, tags)
             self.id_line_edit.setText(str(case.id))
             self.case_id = self.id_line_edit.text().strip()
+            self.set_case_edit_data()
             self.message_box.information(self, "Add case", "Add case success.", QMessageBox.Ok)
-        self.callback()
+        self.refresh_signal.emit()
 
     def check_null(self):
         """
