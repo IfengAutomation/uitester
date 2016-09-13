@@ -33,8 +33,8 @@ class CaseManagerWidget(QWidget):
         self.tag_names_line_edit = TagLineEdit('tag_names_line_edit', self.search_button)
         self.query_conditions_layout.insertWidget(5, self.tag_names_line_edit)
         # init table data
-        case_list = self.db_helper.query_case_all()
-        self.table_widget = TableWidget(self.refresh, self.tester, case_list)  # init ui table
+        # case_list = self.db_helper.query_case_all()
+        self.table_widget = TableWidget(self.refresh_signal, self.tester, [])  # init ui table
 
         self.delete_case_button.clicked.connect(self.delete_case)
         self.check_button.clicked.connect(self.check_or_cancel_all)
@@ -176,7 +176,7 @@ class CaseManagerWidget(QWidget):
         show editor
         :return:
         """
-        self.editor_widget = EditorWidget(self.refresh, self.tester)
+        self.editor_widget = EditorWidget(self.refresh_signal, self.tester)
         self.editor_widget.show()
 
     def update_table_data(self):
@@ -197,7 +197,7 @@ class CaseManagerWidget(QWidget):
             else:
                 tag_names = tag_names[:len(tag_names)].split(';')
                 case_list = self.db_helper.query_case_by_tag_names(tag_names)
-        self.table_widget = TableWidget(self.refresh, self.tester, case_list)
+        self.table_widget = TableWidget(self.refresh_signal, self.tester, case_list)
         self.data_message_layout.insertWidget(1, self.table_widget)
 
     def set_tag_list_widget(self):
