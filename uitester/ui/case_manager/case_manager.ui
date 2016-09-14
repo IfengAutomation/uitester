@@ -36,54 +36,75 @@
     <number>0</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="QHBoxLayout">
+    <layout class="QHBoxLayout" name="QHBoxLayout" stretch="1,5">
      <property name="spacing">
       <number>0</number>
      </property>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
        <property name="spacing">
         <number>0</number>
        </property>
        <item>
-        <layout class="QHBoxLayout" name="tag_button_layout" stretch="0,0,0">
+        <layout class="QHBoxLayout" name="tag_button_layout">
          <property name="spacing">
           <number>0</number>
          </property>
          <property name="sizeConstraint">
-          <enum>QLayout::SetDefaultConstraint</enum>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
+          <enum>QLayout::SetFixedSize</enum>
          </property>
          <item alignment="Qt::AlignLeft">
           <widget class="QPushButton" name="add_tag_button">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
            <property name="minimumSize">
             <size>
-             <width>75</width>
-             <height>23</height>
+             <width>20</width>
+             <height>0</height>
             </size>
            </property>
            <property name="text">
-            <string>1</string>
+            <string>PushButton</string>
            </property>
           </widget>
          </item>
          <item alignment="Qt::AlignLeft">
           <widget class="QPushButton" name="delete_tag_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="text">
-            <string>2</string>
+            <string>PushButton</string>
            </property>
           </widget>
          </item>
-         <item alignment="Qt::AlignLeft">
+         <item>
           <widget class="QPushButton" name="modify_tag_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="text">
             <string>PushButton</string>
            </property>
@@ -101,7 +122,7 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>200</width>
+           <width>100</width>
            <height>1</height>
           </size>
          </property>
@@ -116,7 +137,7 @@
       </layout>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="data_message_layout">
+      <layout class="QVBoxLayout" name="data_message_layout" stretch="0">
        <property name="spacing">
         <number>0</number>
        </property>
@@ -130,6 +151,12 @@
          </property>
          <item>
           <widget class="QPushButton" name="check_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>PushButton</string>
            </property>
@@ -137,6 +164,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="delete_case_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>delete</string>
            </property>
@@ -144,6 +177,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="add_case_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>add</string>
            </property>
@@ -151,6 +190,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="import_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>import</string>
            </property>
@@ -158,6 +203,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="export_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>export</string>
            </property>

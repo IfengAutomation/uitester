@@ -30,9 +30,9 @@ class SearchButton(QPushButton):
         config = Config()
         search_icon.addPixmap(QPixmap(config.images + '/search.png'), QIcon.Normal, QIcon.Off)
         self.setIcon(search_icon)
-        self.setText("Search")
+        # self.setText("Search")
         self.setCursor(Qt.PointingHandCursor)
-        self.setFixedSize(90, 22)
+        self.setFixedSize(22, 22)
         self.setStyleSheet(
             "QPushButton{border-width:0px; background:transparent;} ")
 

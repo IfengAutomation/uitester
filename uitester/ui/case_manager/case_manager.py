@@ -3,23 +3,25 @@
 import os
 
 from PyQt5 import uic
-from PyQt5.QtCore import Qt, pyqtSignal, QObject
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import *
 
 from uitester.case_manager.case_data_manager import CaseDataManager
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.config import Config
-from uitester.ui.case_manager.case_editor import EditorWidget
 from uitester.ui.case_manager.case_search_edit import TagCompleter, TagLineEdit, SearchButton
 from uitester.ui.case_manager.conflict_tag import ConflictTagsWidget
 from uitester.ui.case_manager.table_widget import TableWidget
 from uitester.ui.case_manager.tag_editor import TagEditorWidget
 
+
 class CaseManagerWidget(QWidget):
     refresh_signal = pyqtSignal(name='refresh_data')
-    def __init__(self, tester, *args, **kwargs):
+
+    def __init__(self, show_case_editor_signal, tester, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.show_case_editor_signal = show_case_editor_signal
         self.db_helper = DBCommandLineHelper()
         self.case_data_manager = CaseDataManager()
         ui_dir_path = os.path.dirname(__file__)
@@ -32,9 +34,7 @@ class CaseManagerWidget(QWidget):
         self.search_button.clicked.connect(self.update_table_data)
         self.tag_names_line_edit = TagLineEdit('tag_names_line_edit', self.search_button)
         self.query_conditions_layout.insertWidget(5, self.tag_names_line_edit)
-        # init table data
-        # case_list = self.db_helper.query_case_all()
-        self.table_widget = TableWidget(self.refresh_signal, self.tester, [])  # init ui table
+        self.table_widget = TableWidget(self.show_case_editor_signal, self.tester, [])  # init ui table
 
         self.delete_case_button.clicked.connect(self.delete_case)
         self.check_button.clicked.connect(self.check_or_cancel_all)
@@ -50,7 +50,7 @@ class CaseManagerWidget(QWidget):
         self.button_style(self.export_button, '/export.png', 'Export')
         self.button_style(self.add_tag_button, '/add.png', 'Add')
         self.button_style(self.delete_tag_button, '/delete.png', 'Delete')
-        self.button_style(self.modify_tag_button, '/delete.png', 'Modify')
+        self.button_style(self.modify_tag_button, '/edit.png', 'Modify')
 
         self.set_tag_list_widget()  # show all tags
         self.set_tag_search_line()  # Set the tag input line automatic completion
@@ -140,8 +140,10 @@ class CaseManagerWidget(QWidget):
         config = Config()
         icon.addPixmap(QPixmap(config.images + image_path), QIcon.Normal, QIcon.Off)
         button.setIcon(icon)
-        button.setText(text)
-        # button.resize(50,50)
+        button.setText('')
+        button.setToolTip(text)
+
+        button.resize(50,50)
         button.setStyleSheet(
             'QPushButton{border-width:0px; background:transparent;} ')
 
@@ -176,8 +178,7 @@ class CaseManagerWidget(QWidget):
         show editor
         :return:
         """
-        self.editor_widget = EditorWidget(self.refresh_signal, self.tester)
-        self.editor_widget.show()
+        self.show_case_editor_signal.emit(0,0)
 
     def update_table_data(self):
         '''
@@ -197,7 +198,7 @@ class CaseManagerWidget(QWidget):
             else:
                 tag_names = tag_names[:len(tag_names)].split(';')
                 case_list = self.db_helper.query_case_by_tag_names(tag_names)
-        self.table_widget = TableWidget(self.refresh_signal, self.tester, case_list)
+        self.table_widget = TableWidget(self.show_case_editor_signal, self.tester, case_list)
         self.data_message_layout.insertWidget(1, self.table_widget)
 
     def set_tag_list_widget(self):
