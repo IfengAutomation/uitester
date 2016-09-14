@@ -10,11 +10,11 @@ from uitester.ui.case_manager.case_editor import EditorWidget
 
 
 class TableWidget(QWidget):
-    def __init__(self, refresh_signal, tester, case_list, *args, **kwargs):
+    def __init__(self, show_case_editor_signal, tester, case_list, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.refresh_signal = refresh_signal
+        self.show_case_editor_signal = show_case_editor_signal
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.dataTableWidget = DataTableWidget(self.refresh_signal, tester, case_list)  # init ui table
+        self.dataTableWidget = DataTableWidget(self.show_case_editor_signal, tester, case_list)  # init ui table
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.dataTableWidget)
@@ -34,9 +34,9 @@ class DataTableWidget(QTableWidget):
     header_text_list = ['', 'id', '名称', '最后修改时间', '标识']
     column_count = len(header_text_list)
 
-    def __init__(self, refresh_signal, tester, case_list, *args):
+    def __init__(self, show_case_editor_signal, tester, case_list, *args):
         super().__init__(*args)
-        self.refresh_signal = refresh_signal
+        self.show_case_editor_signal = show_case_editor_signal
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tester = tester
         self.setObjectName("data_table_widget")
@@ -44,21 +44,14 @@ class DataTableWidget(QTableWidget):
         self.setRowCount(len(self.case_list))
         self.setColumnCount(self.column_count)
         self.set_table_data()
+        self.cellClicked.connect(self.cell_clicked)
 
-    def item_clicked(self, item):
-        if item.column() == 2:
-            self.edit_case(item)
+
 
     def cell_clicked(self, row, column):
-        if column == 2:
+        if column != 0:
             id_item = self.item(row, 1)
-            self.case_edit_window = EditorWidget(self.refresh_signal, self.tester, id_item.text())
-            self.case_edit_window.show()
-
-    def edit_case(self, item):
-        id_item = self.item(item.row(), 1)
-        self.case_edit_window = EditorWidget(self.refresh_signal,self.tester, id_item.text())
-        self.case_edit_window.show()
+            self.show_case_editor_signal.emit(1,int(id_item.text()))
 
     def set_checkbox_item(self, row, column):
         item = QTableWidgetItem()
@@ -75,16 +68,12 @@ class DataTableWidget(QTableWidget):
         self.horizontalHeader().setStyleSheet("QHeaderView::section{background:	#ECF5FF;}")
 
     def set_table_data(self):
-        # self.itemClicked.connect(self.item_clicked)
-        self.cellDoubleClicked.connect(self.cell_clicked)
         self.set_table_header()
         for row in range(0, self.rowCount()):
             self.set_checkbox_item(row, 0)
             case = self.case_list[row]
             self.setItem(row, 1, QTableWidgetItem(str(case.id)))
-            case_name_label = QLabel()
-            case_name_label.setText("<font color=#0072E3><u>{}</u></font>".format(case.name))
-            self.setCellWidget(row, 2, case_name_label)
+            self.setItem(row, 2, QTableWidgetItem(case.name))
             self.setItem(row, 3, QTableWidgetItem(case.last_modify_time.strftime("%Y-%m-%d %H:%M:%S")))
             tag_names = ''
             for tag in case.tags:
@@ -92,10 +81,6 @@ class DataTableWidget(QTableWidget):
             self.setItem(row, 4, QTableWidgetItem(tag_names[1:]))
         self.resizeColumnsToContents()
         self.horizontalHeader().setStretchLastSection(True)
-
-    def label_clicked(self):
-        print('label clicked')
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
