@@ -63,7 +63,7 @@ class EditorWidget(QWidget):
         self.tag_list = []
         self.choose_button = ChooseButton()
         self.tag_names_line_edit = TagLineEdit("tag_names_line_edit", self.choose_button)
-        self.tag_names_line_edit_adapter()
+        self.tag_names_line_edit.setReadOnly(True)
         self.tag_layout.insertWidget(0, self.tag_names_line_edit)
 
         self.editor_text_edit = TextEdit(self.kw_core)  # case content TextEdit
@@ -76,13 +76,13 @@ class EditorWidget(QWidget):
         self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.import_list_signal.connect(self.editor_text_edit.get_import_from_content, Qt.QueuedConnection)
         self.editor_text_edit.parse_error_info_signal.connect(self.add_error_info, Qt.QueuedConnection)
+        self.add_device_widget.run_signal.connect(self.run_case, Qt.QueuedConnection)
 
-        self.tag_manage_widget = TagManageWidget(self.config)
-        self.tag_manage_widget.selected_tag_names_signal.connect(self.set_selected_tag_names)
+        self.tag_manage_widget = None
 
         self.is_log_show = False
         # button event
-        self.save_btn.clicked.connect(self.save_event)
+        self.save_btn.clicked.connect(self.save_case)
         self.run_btn.clicked.connect(self.run_event)
         self.console_btn.clicked.connect(self.log_show_hide_event)
         self.choose_button.clicked.connect(self.choose_event)
@@ -98,6 +98,8 @@ class EditorWidget(QWidget):
         choose tag event, show tags
         :return:
         """
+        self.tag_manage_widget = TagManageWidget(self.config)
+        self.tag_manage_widget.selected_tag_names_signal.connect(self.set_selected_tag_names)
         self.tag_manage_widget.setWindowModality(Qt.ApplicationModal)
         self.tag_manage_widget.show()
 
@@ -196,8 +198,8 @@ class EditorWidget(QWidget):
         is_case_modified = False
         case_db = self.dBCommandLineHelper.query_case_by_id(self.case_id)
 
-        is_name_modified = case_db.name != self.case_name_line_edit.text().strip()
-        is_content_modified = case_db.content != self.editor_text_edit.toPlainText().strip()
+        is_name_modified = case_db.name.strip() != self.case_name_line_edit.text().strip()
+        is_content_modified = case_db.content.strip() != self.editor_text_edit.toPlainText().strip()
 
         # 处理页面中tag names
         tag_list = self.get_tag_list()
@@ -224,20 +226,58 @@ class EditorWidget(QWidget):
                 tag_list.append(tag)
         return tag_list
 
-    def save_event(self):
-        self.save_case()
-
     def run_event(self):
         devices = []
         if self.check_null():
             return
         if self.is_running:
-            # TODO stop
-            pass
+            self.stop_case()
+            return
         if self.tester.devices():
             devices = self.tester.devices()
         self.device_list_signal.emit(devices)
         self.add_device_widget.show()
+
+    def run_case(self, devices):
+        # change icon
+        stop_icon = QIcon()
+        stop_icon.addPixmap(QPixmap(self.config.images + '/stop.png'), QIcon.Normal, QIcon.Off)
+        self.run_btn.setIcon(stop_icon)
+        self.run_btn.setText("Stop")
+        self.is_running = True
+        if not devices:
+            return
+        self.tester.select_devices(devices)
+        self.run()   # run
+
+    def stop_case(self):
+        # set icon
+        run_icon = QIcon()
+        run_icon.addPixmap(QPixmap(self.config.images + '/run.png'), QIcon.Normal, QIcon.Off)
+        self.run_btn.setIcon(run_icon)
+        self.run_btn.setText("Run")
+        self.is_running = False
+        # TODO 停止执行
+        self.tester.stop()
+        self.tester.stop_server()
+
+    def run(self):
+        """
+        run case content
+        :return:
+        """
+        self.tester.start_server()
+        case_content = self.editor_text_edit.toPlainText().strip()
+        kw_list = case_content.split("\n")
+        self.kw_core.parsed_line = []
+        for kw in kw_list:
+            self.kw_core.parse_line(kw)
+        try:
+            self.kw_core.execute()
+        except Exception as e:
+            self.stop_case()
+            self.add_error_info(str(e))
+        self.stop_case()
 
     def save_case(self, event=None):
         """
@@ -252,6 +292,7 @@ class EditorWidget(QWidget):
                 event.ignore()
             return
         tags = self.get_tag_list()
+        # TODO check new tag
 
         if self.case_id:
             self.case.name = case_name
@@ -260,7 +301,7 @@ class EditorWidget(QWidget):
             self.dBCommandLineHelper.update_case()
             self.message_box.information(self, "Update case", "Update case success.", QMessageBox.Ok)
         else:
-            case = self.dBCommandLineHelper.insert_case_with_tagnames(case_name, content, tags)
+            case = self.dBCommandLineHelper.insert_case_with_tags(case_name, content, tags)
             self.id_line_edit.setText(str(case.id))
             self.case_id = self.id_line_edit.text().strip()
             self.set_case_edit_data()
@@ -289,21 +330,6 @@ class EditorWidget(QWidget):
         if is_none:
             self.message_box.warning(self, "Message", type_info + " is required.", QMessageBox.Ok)
         return is_none
-
-    def tag_names_line_edit_adapter(self):
-        """
-        给tag_names_line_edit设置自动提示、默认显示提示文字等
-        :return:
-        """
-        self.tag_names_line_edit.setPlaceholderText("Tag Names")   # 设置提示文字
-        self.tag_layout.insertWidget(0, self.tag_names_line_edit)
-
-        self.tag_list = self.dBCommandLineHelper.query_tag_all()  # 获取所有tag
-        tag_name_list = []
-        for tag in self.tag_list:
-            tag_name_list.append(tag.name)
-        cmp = TagCompleter(tag_name_list)
-        self.tag_names_line_edit.setCompleter(cmp)
 
     def editor_adapter(self):
         """

@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMessageBox, QRadio
 class AddDeviceWidget(QWidget):
     add_device_signal = pyqtSignal(str)
     add_log_signal = pyqtSignal(str)
-    run_signal = pyqtSignal()
+    run_signal = pyqtSignal(list)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -23,19 +23,17 @@ class AddDeviceWidget(QWidget):
         screen = QDesktopWidget().screenGeometry()
         self.resize(screen.width() / 6, screen.height() / 6)
 
-        self.select_device_btn.clicked.connect(self.select_event)
+        self.select_device_btn.clicked.connect(self.handle_radio)
         self.cancel_device_btn.clicked.connect(self.close)
         self.message_box = QMessageBox()
-
-    def select_event(self):
-
-        self.handle_radio()
+        self.devices_list = []
 
     def handle_radio(self):
         """
         handle the select event
         :return:
         """
+        devices = []
         for index in range(len(self.buttons_or_labels)):
             item = self.buttons_or_labels[index]
             if type(item) == QLabel:
@@ -46,9 +44,12 @@ class AddDeviceWidget(QWidget):
                 return
             # self.emit_device_info_to_bar(widget.text())  # 主窗口状态栏显示device机身码
             self.emit_log("Choose device: " + item.text())
-            self.run_signal.emit()
+            device = self.devices_list[index]
+            if device.id == item.text():
+                devices.append(device)
+            self.run_signal.emit(devices)
+            break
         self.close()
-        # TODO 执行注册、执行case
 
     def emit_device_info_to_bar(self, msg):
         """
@@ -78,6 +79,7 @@ class AddDeviceWidget(QWidget):
         """
         self.clear_button_or_label()
 
+        self.devices_list = devices_list
         if len(devices_list) == 0:
             label = QLabel()
             label.setText("There is no device.")

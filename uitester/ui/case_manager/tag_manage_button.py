@@ -13,8 +13,6 @@ class ChooseButton(QPushButton):
         config = Config()
         search_icon.addPixmap(QPixmap(config.images + '/add.png'), QIcon.Normal, QIcon.Off)
         self.setIcon(search_icon)
-        self.setText("Add Tags")
         self.setCursor(Qt.PointingHandCursor)
-        self.setFixedSize(90, 22)
         self.setStyleSheet(
             "QPushButton{border-width:0px; background:transparent;} ")

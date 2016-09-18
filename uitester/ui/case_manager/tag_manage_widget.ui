@@ -82,11 +82,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="selected_line_edit">
-     <property name="placeholderText">
-      <string>selected tag names</string>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="selected_tag_names_layout"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">

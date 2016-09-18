@@ -3,10 +3,11 @@ import os
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QMessageBox
 
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.ui.case_manager.tag_editor import TagEditorWidget
+from uitester.ui.case_manager.tag_names_line_edit import TagNamesLineEdit, TagCompleter
 
 
 class TagManageWidget(QWidget):
@@ -20,6 +21,14 @@ class TagManageWidget(QWidget):
         uic.loadUi(ui_file_path, self)
 
         self.db_helper = DBCommandLineHelper()
+        self.message_box = QMessageBox()
+
+        self.tag_names_line_edit = TagNamesLineEdit()
+        self.tag_names_line_edit.setPlaceholderText("Tag Names")
+        self.cmp = None
+        self.set_completer()
+        self.selected_tag_names_layout.insertWidget(0, self.tag_names_line_edit)
+
         add_icon = QIcon()
         add_icon.addPixmap(QPixmap(config.images + '/add.png'), QIcon.Normal, QIcon.Off)
         self.new_tag_btn.setIcon(add_icon)
@@ -47,9 +56,11 @@ class TagManageWidget(QWidget):
         handle select event
         :return:
         """
-        selected_tag_names = self.selected_line_edit.text()
+        selected_tag_names = self.tag_names_line_edit.text()
         if not selected_tag_names:
             self.close()
+            return
+        if self.check_tag_name():
             return
         self.selected_tag_names_signal.emit(selected_tag_names)
         self.close()
@@ -77,7 +88,7 @@ class TagManageWidget(QWidget):
         tag_name_set = set()
         selected_tag_names = ""
 
-        selected_line_edit_text = self.selected_line_edit.text()
+        selected_line_edit_text = self.tag_names_line_edit.text()
         tag_names_list = selected_line_edit_text.split(";")
         for tag_name in tag_names_list:
             if tag_name:
@@ -86,6 +97,40 @@ class TagManageWidget(QWidget):
 
         for tag_name in tag_name_set:
             selected_tag_names += tag_name
+        self.tag_names_line_edit.is_completer = False
+        self.tag_names_line_edit.clear()
+        self.tag_names_line_edit.setText(selected_tag_names)
+        self.tag_names_line_edit.is_completer = True
 
-        self.selected_line_edit.clear()
-        self.selected_line_edit.setText(selected_tag_names)
+    def check_tag_name(self):
+        """
+        check tag name,return unrecognized tag names
+        :return:
+        """
+        tag_name_list = self.tag_names_line_edit.text().split(";")
+        unrecognized_tag_names = ""
+        has_unrecognized = False
+        for tag_name in tag_name_list:
+            if not tag_name:
+                continue
+            tag = self.db_helper.query_tag_by_name(tag_name)
+            if not tag:
+                unrecognized_tag_names += "\"" + tag_name + "\"" + "、"
+        if unrecognized_tag_names != "":
+            has_unrecognized = True
+            unrecognized_tag_names = unrecognized_tag_names[:-1]
+            self.message_box.about(self, "Warning", "tag: " + unrecognized_tag_names +
+                                   " unrecognized, please add it first.")
+        return has_unrecognized
+
+    def set_completer(self):
+        """
+        set completer to tag_names_line_edit
+        :return:
+        """
+        self.tag_list = self.db_helper.query_tag_all()  # get all tag
+        tag_name_list = []
+        for tag in self.tag_list:
+            tag_name_list.append(tag.name)
+        cmp = TagCompleter(tag_name_list)
+        self.tag_names_line_edit.setCompleter(cmp)

@@ -7,8 +7,10 @@ from PyQt5.QtGui import QIcon, QPixmap, QBrush, QColor, QStandardItemModel, QSta
 from PyQt5.QtWidgets import QWidget, QMessageBox, QListWidget
 
 from uitester.case_manager.database import DBCommandLineHelper
+from uitester.kw.kw_runner import KWCase
 from uitester.ui.case_run.add_case import AddCaseWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
+from uitester.ui.case_run.case_run_status_listener import CaseRunStatusListener
 from uitester.ui.case_run.table_widget import RunnerTableWidget
 
 
@@ -42,35 +44,41 @@ class RunWidget(QWidget):
         self.addbtn.clicked.connect(self.click_add_case)
         self.run_stop_btn.clicked.connect(self.click_run_stop_btn)
 
-        self.add_case_widget = AddCaseWidget()
+        self.add_case_widget = None
         self.add_device_widget = AddDeviceWidget()
         self.add_device_widget.setWindowModality(Qt.ApplicationModal)
 
-        self.case_widget = QListWidget()
+        self.case_widget = RunnerTableWidget([], [0])
         self.case_table_layout.insertWidget(0, self.case_widget)
 
         # add log 连接
         self.add_device_widget.add_log_signal.connect(self.add_log, Qt.QueuedConnection)
         self.add_device_widget.run_signal.connect(self.run_case, Qt.QueuedConnection)
         self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
-        self.add_case_widget.select_case_signal.connect(self.show_cases, Qt.QueuedConnection)
 
     def click_add_case(self):
+        """
+        click the button to show add case widget
+        :return:
+        """
+        self.add_case_widget = AddCaseWidget()
+        self.add_case_widget.select_case_signal.connect(self.show_cases, Qt.QueuedConnection)
         self.add_case_widget.setWindowModality(Qt.ApplicationModal)  # 设置QWidget为模态
         self.add_case_widget.show()
 
     def click_run_stop_btn(self):
+        """
+        start or stop to run case
+        :return:
+        """
         devices = []
         if self.running:
             self.stop_case()
             return
         if not self.cases:  # cases is null
-            # 提示 case未选
             self.message_box.warning(self, "Message", "Please add cases first.", QMessageBox.Ok)
             return
         if self.tester.devices():
-            # self.message_box.warning(self, "Message", "Please connect your device first.", QMessageBox.Ok)
-            # return
             devices = self.tester.devices()
         self.add_device_widget.show()
         self.device_list_signal.emit(devices)
@@ -86,32 +94,48 @@ class RunWidget(QWidget):
 
     def update_case_name_color(self, case_id, result):
         """
-        根据执行结果对case name着色 pass: green; fail: red
+        update case's font color according to the case's result
+        pass: green; fail: red
         :param case_id:
         :param result:
         :return:
         """
-        model = self.case_table_view.model()
-        for column_index in range(model.rowCount()):
-            index = model.index(column_index, 0)
-            cell_content = model.data(index)
-            if str(case_id) == str(cell_content):
-                if result == 1:  # case pass
-                    model.item(column_index, 1).setForeground(QBrush(QColor(55, 177, 88)))  # 设置字体颜色 绿色
-                    self.case_table_view.selectRow(column_index)
-                else:   # case fail
-                    model.item(column_index, 1).setForeground(QBrush(QColor(255, 0, 0)))  # 设置字体颜色 红色
-                return
+        for row_index in range(self.case_widget.dataTableWidget.rowCount()):
+            case_id_item = self.case_widget.dataTableWidget.item(row_index, 1)  # get case id from dataTableWidget
+            if case_id_item.text() != str(case_id):
+                continue
+                self.update_green(row_index)
+            else:
+                self.update_red(row_index)
 
-    def run_case(self):
-        # 图标变为stop
+    def run_case(self, devices):
+        kw_case_list = []
+        if not self.cases:
+            return
+        for case_id in self.cases:
+            kw_case = KWCase()
+            case = self.dBCommandLineHelper.query_case_by_id(case_id)
+            kw_case.id = case.id
+            kw_case.name = case.name
+            kw_case.content = case.content
+            kw_case_list.append(kw_case)
         # set icon
         stop_icon = QIcon()
         stop_icon.addPixmap(QPixmap(self.config.images + '/stop.png'), QIcon.Normal, QIcon.Off)
         self.run_stop_btn.setIcon(stop_icon)
         self.run_stop_btn.setText("Stop")
         self.running = True
-        # TODO 调用tester中提供方法run case
+        self.tester.start_server()    # start rpc server
+        if not devices:
+            return
+        self.tester.select_devices(devices)
+        status_listener = CaseRunStatusListener()
+        status_listener.listener_msg_signal.connect(self.update_case_name_color, Qt.QueuedConnection)
+        self.tester.add_run_status_listener(status_listener)
+        try:
+            self.tester.run(kw_case_list)
+        except Exception as e:
+            self.add_log(str(e))
 
     def stop_case(self):
         # set icon
@@ -124,7 +148,7 @@ class RunWidget(QWidget):
 
     def show_cases(self, id_list):
         """
-        根据id去数据库中拿到Case对象，展示Case对象的casename
+        show cases in RunnerTableWidget according to id list
         :param id_list:
         :return:
         """
@@ -137,4 +161,26 @@ class RunWidget(QWidget):
             case_list.append(case)
         self.case_widget = RunnerTableWidget(case_list, [0])
         self.case_table_layout.insertWidget(0, self.case_widget)
+
+    def update_green(self, row_index):
+        """
+        update item text color to green by row number
+        :param row_index:
+        :return:
+        """
+        brush_green_color = QBrush(QColor(55, 177, 88))
+        for column_index in range(self.case_widget.dataTableWidget.columnCount()):
+            item = self.case_widget.dataTableWidget.item(row_index, column_index)
+            item.setForeground(brush_green_color)
+
+    def update_red(self, row_index):
+        """
+        update item text color to red by row number
+        :param row_index:
+        :return:
+        """
+        brush_red_color = QBrush(QColor(255, 0, 0))
+        for column_index in range(self.case_widget.dataTableWidget.columnCount()):
+            item = self.case_widget.dataTableWidget.item(row_index, column_index)
+            item.setForeground(brush_red_color)
 

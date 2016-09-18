@@ -1,12 +1,10 @@
-import sys
 from PyQt5.QtCore import Qt, QStringListModel
-from PyQt5.QtWidgets import QLineEdit, QCompleter, QApplication, QMainWindow
+from PyQt5.QtWidgets import QLineEdit, QCompleter
 
 
-class TagLineEdit(QLineEdit):
-    def __init__(self, name, parent=None):
+class TagNamesLineEdit(QLineEdit):
+    def __init__(self, parent=None):
         super(QLineEdit, self).__init__(parent)
-        self.setObjectName(name)
         self.cmp = None
         self.is_completer = True
 
@@ -16,7 +14,7 @@ class TagLineEdit(QLineEdit):
         self.cmp.setCompletionMode(QCompleter.PopupCompletion)
         self.cmp.setCaseSensitivity(Qt.CaseInsensitive)
         self.textChanged.connect(self.tag_names_changed)
-        self.cmp.activated.connect(self.insertCompletion)
+        self.cmp.activated.connect(self.insert_completion)
 
     def tag_names_changed(self):
         if self.is_completer:
@@ -35,7 +33,7 @@ class TagLineEdit(QLineEdit):
     def completer(self):
         return self.cmp
 
-    def insertCompletion(self, string):
+    def insert_completion(self, string):
         text = self.text()
         tag_names = text.split(';')
         last_tag_name = tag_names[len(tag_names) - 1]
@@ -45,23 +43,18 @@ class TagLineEdit(QLineEdit):
         self.setText(new_text)
         self.is_completer = True
 
-    def textUnderCursor(self):
-        text = self.text()
-        tag_names = text.split(';')
-        return tag_names[len(tag_names) - 1]
-
 
 class TagCompleter(QCompleter):
-    def __init__(self, stringlist, parent=None):
+    def __init__(self, string_list, parent=None):
         super(TagCompleter, self).__init__(parent)
-        self.stringlist = stringlist
+        self.string_list = string_list
         self.setModel(QStringListModel())
 
-    def update(self, completionText):
+    def update(self, completion_text):
         filtered = []
-        for str in self.stringlist:
-            if completionText in str:
-                filtered.append(str)
+        for string in self.string_list:
+            if completion_text in string:
+                filtered.append(string)
         self.model().setStringList(filtered)
         self.popup().setCurrentIndex(self.model().index(0, 0))
 
