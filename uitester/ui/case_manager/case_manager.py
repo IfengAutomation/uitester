@@ -60,6 +60,17 @@ class CaseManagerWidget(QWidget):
         self.selected_tag_name = ''
         self.refresh_signal.connect(self.refresh, Qt.QueuedConnection)
 
+    def check_or_cancel_all(self):
+        if self.table_widget.check_all:
+            check_status = Qt.Unchecked
+            self.table_widget.check_all = False
+        else:
+            check_status = Qt.Checked
+            self.table_widget.check_all = True
+        for row in range(0, self.table_widget.dataTableWidget.rowCount()):
+            check_box_item = self.table_widget.dataTableWidget.item(row, 0)
+            check_box_item.setCheckState(check_status)
+
     def refresh(self):
         self.set_tag_search_line()
         self.set_tag_list_widget()
@@ -115,6 +126,7 @@ class CaseManagerWidget(QWidget):
                 self.conflict_tags_widget.show()
             else:
                 QMessageBox.information(self, ' import operation', 'import success')
+                self.refresh_signal.emit()
 
     def export_data(self):
         '''
@@ -143,21 +155,9 @@ class CaseManagerWidget(QWidget):
         button.setText('')
         button.setToolTip(text)
 
-        button.resize(50,50)
+        button.resize(50, 50)
         button.setStyleSheet(
             'QPushButton{border-width:0px; background:transparent;} ')
-
-    def check_or_cancel_all(self):
-        text = self.check_button.text()
-        check_status = Qt.Checked
-        if text == 'Check All':
-            self.check_button.setText('Cancel Check')
-        else:
-            self.check_button.setText('Check All')
-            check_status = Qt.Unchecked
-        for row in range(0, self.table_widget.dataTableWidget.rowCount()):
-            check_box_item = self.table_widget.dataTableWidget.item(row, 0)
-            check_box_item.setCheckState(check_status)
 
     def delete_case(self):
         self.table_widget.get_checked_data()  # todo  尝试能否直接获取到checkboxs 的状态
@@ -178,7 +178,7 @@ class CaseManagerWidget(QWidget):
         show editor
         :return:
         """
-        self.show_case_editor_signal.emit(0,0)
+        self.show_case_editor_signal.emit(0, 0)
 
     def update_table_data(self):
         '''

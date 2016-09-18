@@ -20,6 +20,7 @@ class TableWidget(QWidget):
         layout.addWidget(self.dataTableWidget)
         self.setLayout(layout)
         self.checked_cases_message = []
+        self.check_all = False
 
     def get_checked_data(self):
         del self.checked_cases_message[:]
@@ -46,12 +47,10 @@ class DataTableWidget(QTableWidget):
         self.set_table_data()
         self.cellClicked.connect(self.cell_clicked)
 
-
-
     def cell_clicked(self, row, column):
         if column != 0:
             id_item = self.item(row, 1)
-            self.show_case_editor_signal.emit(1,int(id_item.text()))
+            self.show_case_editor_signal.emit(1, int(id_item.text()))
 
     def set_checkbox_item(self, row, column):
         item = QTableWidgetItem()
@@ -81,6 +80,7 @@ class DataTableWidget(QTableWidget):
             self.setItem(row, 4, QTableWidgetItem(tag_names[1:]))
         self.resizeColumnsToContents()
         self.horizontalHeader().setStretchLastSection(True)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
