@@ -104,6 +104,7 @@ class RunWidget(QWidget):
             case_id_item = self.case_widget.dataTableWidget.item(row_index, 1)  # get case id from dataTableWidget
             if case_id_item.text() != str(case_id):
                 continue
+            if result == 102:  # case pass
                 self.update_green(row_index)
             else:
                 self.update_red(row_index)
