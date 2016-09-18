@@ -3,7 +3,6 @@
 import math
 import os
 from threading import Thread
-
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QImage, QPixmap, QMovie
@@ -146,7 +145,7 @@ class WaitDialog(QWidget):
         super(WaitDialog, self).__init__(parent)
         self.label = QLabel(self)
         self.label.setAlignment(Qt.AlignCenter)
-        self.setFixedSize(181, 181)
+        self.setFixedSize(551, 401)
         self.setWindowOpacity(0.5)  # set transparent
         self.setWindowFlags(Qt.Dialog | Qt.CustomizeWindowHint | Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)  # background transparent
@@ -155,3 +154,4 @@ class WaitDialog(QWidget):
         self.movie = QMovie(os.path.join(config.images, 'wait.gif'))
         self.label.setMovie(self.movie)
         self.movie.start()
+
