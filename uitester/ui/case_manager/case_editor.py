@@ -269,7 +269,10 @@ class EditorWidget(QWidget):
         kw_list = case_content.split("\n")
         self.kw_core.parsed_line = []
         for kw in kw_list:
-            self.kw_core.parse_line(kw)
+            try:
+                self.kw_core.parse_line(kw)
+            except Exception as e:
+                self.add_error_info(str(e))
         try:
             self.kw_core.execute()
         except Exception as e:

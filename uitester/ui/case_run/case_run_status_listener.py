@@ -1,15 +1,14 @@
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import pyqtSignal, QObject
 
 from uitester.kw.kw_runner import KWRunningStatusListener
 
 
-class CaseRunStatusListener(KWRunningStatusListener, QWidget):
-    listener_msg_signal = pyqtSignal(int, int, name="listener_msg_signal")
+class CaseRunStatusListener(KWRunningStatusListener, QObject):
+    listener_msg_signal = pyqtSignal(object, name="listener_msg_signal")
 
     def __init__(self):
         super().__init__()
 
     def update(self, msg):
-        if msg.status == 500 or msg.status == 102:
-            self.listener_msg_signal.emit(msg.case_id, msg.status)  # update case's color
+        if msg.status == 101 or msg.status == 500 or msg.status == 2:
+            self.listener_msg_signal.emit(msg)  # update case's color

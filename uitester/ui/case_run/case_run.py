@@ -91,22 +91,25 @@ class RunWidget(QWidget):
             return
         self.logarea.append(log_info)
 
-    def update_case_name_color(self, case_id, result):
+    def update_case_name_color(self, msg):
         """
         update case's font color according to the case's result
         pass: green; fail: red
-        :param case_id:
-        :param result:
+        :param msg:
         :return:
         """
         for row_index in range(self.case_widget.dataTableWidget.rowCount()):
             case_id_item = self.case_widget.dataTableWidget.item(row_index, 1)  # get case id from dataTableWidget
-            if case_id_item.text() != str(case_id):
+            if case_id_item.text() != str(msg.case_id):
                 continue
-            if result == 102:  # case pass
+            self.case_widget.dataTableWidget.selectRow(row_index)
+            if msg.status == 101:  # case pass
                 self.update_green(row_index)
-            else:
+            elif msg.status == 500:
                 self.update_red(row_index)
+                self.add_log("<pre><font color='red'>" + str(msg.message) + "</font></pre>")
+            elif msg.status == 2:
+                self.stop_case()
 
     def run_case(self, devices):
         kw_case_list = []
@@ -125,7 +128,10 @@ class RunWidget(QWidget):
         self.run_stop_btn.setIcon(stop_icon)
         self.run_stop_btn.setText("Stop")
         self.running = True
-        self.tester.start_server()    # start rpc server
+        try:
+            self.tester.start_server()    # start rpc server
+        except Exception as e:
+            self.add_log(str(e))
         if not devices:
             return
         self.tester.select_devices(devices)
