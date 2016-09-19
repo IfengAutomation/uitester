@@ -5,7 +5,7 @@ from uitester.kw.kw_runner import KWRunningStatusListener
 
 
 class CaseRunStatusListener(KWRunningStatusListener, QWidget):
-    listener_msg_signal = pyqtSignal(int, int)
+    listener_msg_signal = pyqtSignal(int, int, name="listener_msg_signal")
 
     def __init__(self):
         super().__init__()

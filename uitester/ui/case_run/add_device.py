@@ -7,9 +7,9 @@ from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMessageBox, QRadio
 
 
 class AddDeviceWidget(QWidget):
-    add_device_signal = pyqtSignal(str)
-    add_log_signal = pyqtSignal(str)
-    run_signal = pyqtSignal(list)
+    add_device_signal = pyqtSignal(str, name="add_device_signal")
+    add_log_signal = pyqtSignal(str, name="add_log_signal")
+    run_signal = pyqtSignal(list, name="run_signal")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

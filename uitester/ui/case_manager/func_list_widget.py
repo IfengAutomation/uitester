@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QListWidget
 
 
 class FuncNameListWidget(QListWidget):
-    select_signal = pyqtSignal(str)
+    select_signal = pyqtSignal(str, name="select_signal")
 
     def __init__(self, parent=None):
         super(FuncNameListWidget, self).__init__(parent)

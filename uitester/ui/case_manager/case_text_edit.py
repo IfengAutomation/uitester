@@ -8,8 +8,8 @@ from uitester.ui.case_manager.completer_widget import CompleterWidget
 
 
 class TextEdit(QTextEdit):
-    insert_func_name_signal = pyqtSignal(str)
-    parse_error_info_signal = pyqtSignal(str)
+    insert_func_name_signal = pyqtSignal(str, name="insert_func_name_signal")
+    parse_error_info_signal = pyqtSignal(str, name="parse_error_info_signal")
 
     def __init__(self, kw_core, parent=None):
         super(TextEdit, self).__init__(parent)
@@ -25,8 +25,7 @@ class TextEdit(QTextEdit):
 
     def text_change(self):
         """
-        text改变处理事件
-        解决使用中文输入法输入时，keyPressEvent被输入法拦截，自动提示框无法及时弹出的问题
+        editor content change event
         :return:
         """
         completion_prefix = self.text_under_cursor()
@@ -76,7 +75,6 @@ class TextEdit(QTextEdit):
     def keyPressEvent(self, e):
         if self.cmp and self.popup_widget.func_list_widget.isVisible():
             current_row = self.popup_widget.func_list_widget.currentRow()
-            # 上下键控制list
             if e.key() == Qt.Key_Down:
                 self.current_item_down(current_row)
                 return
@@ -90,7 +88,6 @@ class TextEdit(QTextEdit):
                 return
 
         if e.key() in (Qt.Key_Return, Qt.Key_Enter):
-            # 逐行解析,update自动提示list
             self.parse_content()
 
         is_shortcut = ((e.modifiers() & Qt.ControlModifier) and e.key() == Qt.Key_E)  # 设置 ctrl + e 快捷键
@@ -111,7 +108,7 @@ class TextEdit(QTextEdit):
 
     def parse_content(self):
         """
-        解析case内容,显示parse error信息到console
+        parse the editor's content,and show the error massage in console
         :return:
         """
         self.parse_import()
@@ -129,18 +126,18 @@ class TextEdit(QTextEdit):
 
     def update_popup_widget_position(self):
         """
-        更新提示框显示位置
+        set completer widget's position
         :return:
         """
-        cursor_pos = self.cursorRect()  # 光标位置
-        edit_pos = self.mapToGlobal(QPoint(10, 15))   # 获得TextEdit在屏幕中的坐标，QPoint(5, 10)中 5、10为距离光标的x、y偏移量
+        cursor_pos = self.cursorRect()
+        edit_pos = self.mapToGlobal(QPoint(10, 15))
         x = edit_pos.x() + cursor_pos.x()
         y = edit_pos.y() + cursor_pos.y()
-        self.popup_widget.setGeometry(x, y, 650, 280)    # 更新显示位置
+        self.popup_widget.setGeometry(x, y, 650, 280)
 
     def get_import_from_content(self, init_import_lines=None):
         """
-        获取content中的import语句
+        get all 'import' block from edit text
         :return:
         """
         current_import_lines = set()
@@ -158,12 +155,12 @@ class TextEdit(QTextEdit):
 
     def parse_import(self):
         """
-        解析case content中所有import语句
+        parse the 'import' block
         :return:
         """
         current_import = self.get_import_from_content()
 
-        # 判断import语句是否发生变化
+        # check the changes between the case content in db and the edit text content
         is_import_updated = (len(self.import_lines) == len(current_import)) and (list(current_import).sort() == list(self.import_lines).sort())
         if is_import_updated:
             return
@@ -177,22 +174,21 @@ class TextEdit(QTextEdit):
 
     def update_completer_high_lighter(self):
         """
-        更新自动提示以及高亮提示
+        update completer and high lighter
         :return:
         """
         if not self.kw_core.user_func:
             return
-        self.cmp.func_dict = self.kw_core.user_func  # 更新自动提示func_list
-        # 更新高亮kw list
+        self.cmp.func_dict = self.kw_core.user_func  # update completer's func_list
+        # update highlighter's kw list
         kw_list = set()
         for func_name, func in self.cmp.func_dict.items():
             kw_list.add(func_name)
         self.high_lighter.__init__(self, kw_list)
-        # 重新定位光标, 刷新高亮提示
+        # refresh the text
         tc = self.textCursor()
         content = self.toPlainText()
         index = tc.position()
-        # self.setText("")
         self.setText(content)
         tc.setPosition(index)
         self.setTextCursor(tc)
@@ -200,7 +196,7 @@ class TextEdit(QTextEdit):
 
     def current_item_down(self, current_row):
         """
-        向下移动选中项
+        move down to the next item
         :param current_row:
         :return:
         """
@@ -213,7 +209,7 @@ class TextEdit(QTextEdit):
 
     def current_item_up(self, current_row):
         """
-        向上移动选中项
+        move up to the previous item
         :param current_row:
         :return:
         """
@@ -239,20 +235,20 @@ class Completer(QCompleter):
             if (completion_text in string) and (completion_text != string):
                 filtered.append(string)
                 popup_widget.func_list_widget.addItem(string)
-        popup_widget.func_list_widget.sortItems()  # 按升序排列
+        popup_widget.func_list_widget.sortItems()  # ASC
 
         if len(filtered) < 1:
             popup_widget.hide()
             return
         popup_widget.show()
         popup_widget.setFocusPolicy(Qt.NoFocus)
-        popup_widget.func_list_widget.setCurrentRow(0)  # 设置默认选中项
+        popup_widget.func_list_widget.setCurrentRow(0)
         func_name = popup_widget.func_list_widget.currentItem().text()
-        popup_widget.selected_func_name_signal.emit(func_name, self.func_dict)  # 发送signal，更新desc
+        popup_widget.selected_func_name_signal.emit(func_name, self.func_dict)
 
     def get_func_name_list(self, func_dict):
         """
-        获取func name列表
+        get function name list
         :param func_dict:
         :return:
         """

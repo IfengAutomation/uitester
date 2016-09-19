@@ -7,7 +7,7 @@ from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox
 
 from uitester.case_manager.database import DBCommandLineHelper
-from uitester.ui.case_manager.case_search_edit import TagLineEdit, TagCompleter
+from uitester.ui.case_manager.case_search_edit import TagLineEdit
 from uitester.ui.case_manager.case_text_edit import TextEdit, Completer
 from uitester.ui.case_manager.highlighter import MyHighlighter
 from uitester.ui.case_manager.tag_manage_button import ChooseButton
@@ -16,8 +16,8 @@ from uitester.ui.case_run.add_device import AddDeviceWidget
 
 
 class EditorWidget(QWidget):
-    device_list_signal = pyqtSignal(list)
-    import_list_signal = pyqtSignal(set)
+    device_list_signal = pyqtSignal(list, name="device_list_signal")
+    import_list_signal = pyqtSignal(set, name="import_list_signal")
 
     def __init__(self, refresh_signal, tester, case_id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -52,14 +52,13 @@ class EditorWidget(QWidget):
         self.message_box = QMessageBox()
         self.high_lighter = None
 
-        self.case_name_line_edit.setPlaceholderText("Case Name")   # 设置提示文字
+        self.case_name_line_edit.setPlaceholderText("Case Name")
 
         self.kw_core = self.tester.get_kw_runner()
         self.config = self.tester.get_config()
 
         self.case_id = case_id
 
-        # tag name 输入框
         self.tag_list = []
         self.choose_button = ChooseButton()
         self.tag_names_line_edit = TagLineEdit("tag_names_line_edit", self.choose_button)
@@ -125,7 +124,7 @@ class EditorWidget(QWidget):
 
     def add_error_info(self, info):
         """
-        添加error信息到console中
+        append error massage to console
         :param info:
         :return:
         """
@@ -133,7 +132,7 @@ class EditorWidget(QWidget):
 
     def set_case_edit_data(self):
         """
-        编辑case，设置原始数据
+        init data
         :return:
         """
         if self.case_id:
@@ -146,7 +145,6 @@ class EditorWidget(QWidget):
             self.tag_names_line_edit.setText(tags)
             self.editor_text_edit.setPlainText(self.case.content)
 
-            # 获取case content中import语句list，发送到text_edit中
             init_import_list = set()
             for cmd in self.case.content.split("\n"):
                 if cmd.strip().find("import") == 0:
@@ -155,7 +153,7 @@ class EditorWidget(QWidget):
 
     def closeEvent(self, event):
         """
-        窗体关闭时触发事件，判断case 是否有更改，提示保存或放弃保存
+        close window event
         :param event:
         :return:
         """
@@ -164,7 +162,6 @@ class EditorWidget(QWidget):
         tag_list = self.get_tag_list()
         if not self.case_id:
             if (not case_name) and (not content) and (not tag_list):
-                # add case，没有输入有效内容时直接关闭
                 self.close()
                 return
         else:
@@ -175,7 +172,7 @@ class EditorWidget(QWidget):
 
     def handle_message_box_apply(self, event):
         """
-        处理关闭对话框
+        message box
         :param event:
         :return:
         """
@@ -192,7 +189,7 @@ class EditorWidget(QWidget):
 
     def check_modify(self):
         """
-        判断case信息是否有改动
+        check the changes of the case
         :return:
         """
         is_case_modified = False
@@ -201,9 +198,9 @@ class EditorWidget(QWidget):
         is_name_modified = case_db.name.strip() != self.case_name_line_edit.text().strip()
         is_content_modified = case_db.content.strip() != self.editor_text_edit.toPlainText().strip()
 
-        # 处理页面中tag names
+        # tag names in the line edit
         tag_list = self.get_tag_list()
-        # 处理库中tag names
+        # tag names in db
         db_tag_list = case_db.tags
         is_tags_names_modify = db_tag_list != tag_list
 
@@ -213,13 +210,12 @@ class EditorWidget(QWidget):
 
     def get_tag_list(self):
         """
-        将tag names输入框中内容转换为tag name list
+        get tag list from tag_names_line_edit
         :return:
         """
-        # 处理页面中tag names
+        # get tag names
         tag_name_list = self.tag_names_line_edit.text().strip().split(";")
         tag_list = []
-        # 去除list中的空值
         for tag_name in tag_name_list:
             if tag_name:
                 tag = self.dBCommandLineHelper.query_tag_by_name(tag_name)
@@ -257,9 +253,11 @@ class EditorWidget(QWidget):
         self.run_btn.setIcon(run_icon)
         self.run_btn.setText("Run")
         self.is_running = False
-        # TODO 停止执行
-        self.tester.stop()
-        self.tester.stop_server()
+        try:
+            self.tester.stop()
+            self.tester.stop_server()
+        except Exception as e:
+            self.add_error_info(str(e))
 
     def run(self):
         """
@@ -288,11 +286,10 @@ class EditorWidget(QWidget):
         content = self.editor_text_edit.toPlainText()  # Case Content
         is_null = self.check_null()
         if is_null:
-            if event:  # close event 只关闭参数不能为空提示框，不关闭编辑框
+            if event:
                 event.ignore()
             return
         tags = self.get_tag_list()
-        # TODO check new tag
 
         if self.case_id:
             self.case.name = case_name
@@ -310,7 +307,7 @@ class EditorWidget(QWidget):
 
     def check_null(self):
         """
-        检查必填项是否为空
+        check the required options
         :return:
         """
         is_none = False
@@ -333,17 +330,17 @@ class EditorWidget(QWidget):
 
     def editor_adapter(self):
         """
-        获取keyword，给以提示
+        get keywords for the completer and the highlighter
         :return:
         """
         if self.case_id:
             self.parse_import()
 
-        func_dict = self.kw_core.user_func  # 获取默认func
+        func_dict = self.kw_core.user_func  # get default functions
         cmp = Completer(func_dict)
         self.editor_text_edit.set_completer(cmp)
 
-        # 高亮显示
+        # highlighter
         kw_list = []
         for func_name, func in func_dict.items():
             kw_list.append(func_name)
@@ -352,7 +349,7 @@ class EditorWidget(QWidget):
 
     def parse_import(self):
         """
-        遍历case content，解析import语句
+        parse all the 'import' block in the case content
         :return:
         """
         import_list = set()
@@ -362,7 +359,7 @@ class EditorWidget(QWidget):
         for line in content_list:
             if line.strip().find("import") == 0:
                 import_list.add(line.strip())
-        # 重置
+
         self.kw_core.user_func.clear()
         self.kw_core.user_func = {**self.kw_core.default_func}
         for import_cmd in import_list:

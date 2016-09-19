@@ -11,7 +11,7 @@ from uitester.ui.case_run.table_widget import RunnerTableWidget
 
 
 class AddCaseWidget(QWidget):
-    select_case_signal = pyqtSignal(list)
+    select_case_signal = pyqtSignal(list, name="select_case_signal")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -20,14 +20,12 @@ class AddCaseWidget(QWidget):
         ui_file_path = os.path.join(ui_dir_path, 'add_case.ui')
         uic.loadUi(ui_file_path, self)
 
-        # 设置窗口大小
         screen = QDesktopWidget().screenGeometry()
         self.resize(screen.width() / 5 * 2, screen.height() / 5 * 2)
 
-        # tag name 输入框
         self.search_button = SearchButton()
         self.tag_names_line_edit = TagLineEdit("tag_names_line_edit", self.search_button)
-        self.tag_names_line_edit_adapter()   # 设置自动提示
+        self.tag_names_line_edit_adapter()
         self.tag_list = None
 
         self.result_widget = RunnerTableWidget(self.dBCommandLineHelper.query_case_all(), [])
@@ -41,8 +39,7 @@ class AddCaseWidget(QWidget):
 
     def search_event(self):
         """
-        获取搜索框tag_lineedit text，根据text进行数据查询
-        结果以复选框形式显示
+        search tags by tag name, and show the result in the table widget
         :return:
         """
         self.result_widget.setParent(None)
@@ -60,8 +57,7 @@ class AddCaseWidget(QWidget):
 
     def select_event(self):
         """
-        记录选择数据，返回run主页
-        根据选择结果获得case id
+        handle the select event
         :return:
         """
         self.result_widget.get_checked_data()
@@ -72,17 +68,18 @@ class AddCaseWidget(QWidget):
         for item in self.result_widget.checked_cases_message:
             id_list.append(int(item["case_id"]))
         self.select_case_signal.emit(id_list)
-        self.close()     # 关闭AddCase页
+        self.close()     # close AddCase
 
     def tag_names_line_edit_adapter(self):
         """
-        给tag_names_line_edit设置自动提示、默认显示提示文字等
+        settings for tag_names_line_edit
+        such as completer, placeholder text
         :return:
         """
-        self.tag_names_line_edit.setPlaceholderText("Tag names")   # 设置提示文字
+        self.tag_names_line_edit.setPlaceholderText("Tag names")
         self.search_layout.insertWidget(0, self.tag_names_line_edit)
 
-        self.tag_list = self.dBCommandLineHelper.query_tag_all()  # 获取所有tag
+        self.tag_list = self.dBCommandLineHelper.query_tag_all()  # get all tags
         tag_name_list = []
         for tag in self.tag_list:
             tag_name_list.append(tag.name)

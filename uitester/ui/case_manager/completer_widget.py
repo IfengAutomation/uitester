@@ -9,8 +9,8 @@ from uitester.ui.case_manager.func_list_widget import FuncNameListWidget
 
 
 class CompleterWidget(QWidget):
-    select_signal = pyqtSignal(str)
-    selected_func_name_signal = pyqtSignal(str, dict)
+    select_signal = pyqtSignal(str, name="select_signal")
+    selected_func_name_signal = pyqtSignal(str, dict, name="selected_func_name_signal")
 
     def __init__(self, parent=None):
         super(CompleterWidget, self).__init__(parent)
@@ -19,7 +19,7 @@ class CompleterWidget(QWidget):
         ui_file_path = os.path.join(ui_dir_path, 'completer_widget.ui')
         uic.loadUi(ui_file_path, self)
 
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool)  # 去除标题栏、窗体置顶、隐藏任务栏图标 | Qt.WindowStaysOnTopHint
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool)
 
         self.func_list_widget = FuncNameListWidget()
         self.func_list_widget.setSizeAdjustPolicy(QListWidget.AdjustToContents)
@@ -30,7 +30,7 @@ class CompleterWidget(QWidget):
 
     def update_desc(self, text, func_dict):
         """
-        根据选中的func name，更新帮助信息展示栏
+        update the description according to the selected function name
         :param func_dict:
         :param text:
         :return:
@@ -38,11 +38,12 @@ class CompleterWidget(QWidget):
         if not text:
             return
         func_doc = func_dict[text].__doc__
-        if not func_doc:  # 处理func对应帮助文档为空
-            self.desc_text_browser.setText("<pre> <font color='red'>" + "This function has no description." + "</font></pre>")
+        if not func_doc:  # desc is None
+            self.desc_text_browser.setText("<pre> <font color='red'>" +
+                                           "This function has no description." + "</font></pre>")
             return
         func_doc = func_dict[text].__doc__.split("\n")
         func_desc = ''
         for line in func_doc:
-            func_desc = func_desc + line.lstrip() + "\n"    # 逐行去除左侧空格
+            func_desc = func_desc + line.lstrip() + "\n"
         self.desc_text_browser.setText("<pre> <font color='green'>" + func_desc + "</font></pre>")

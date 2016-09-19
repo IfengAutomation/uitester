@@ -3,8 +3,8 @@ import os
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QPixmap, QBrush, QColor, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QWidget, QMessageBox, QListWidget
+from PyQt5.QtGui import QIcon, QPixmap, QBrush, QColor
+from PyQt5.QtWidgets import QWidget, QMessageBox
 
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.kw.kw_runner import KWCase
@@ -16,7 +16,7 @@ from uitester.ui.case_run.table_widget import RunnerTableWidget
 
 class RunWidget(QWidget):
     running = False
-    device_list_signal = pyqtSignal(list)
+    device_list_signal = pyqtSignal(list, name="device_list_signal")
     cases = []
 
     def __init__(self, tester, *args, **kwargs):
@@ -51,7 +51,6 @@ class RunWidget(QWidget):
         self.case_widget = RunnerTableWidget([], [0])
         self.case_table_layout.insertWidget(0, self.case_widget)
 
-        # add log 连接
         self.add_device_widget.add_log_signal.connect(self.add_log, Qt.QueuedConnection)
         self.add_device_widget.run_signal.connect(self.run_case, Qt.QueuedConnection)
         self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
@@ -63,7 +62,7 @@ class RunWidget(QWidget):
         """
         self.add_case_widget = AddCaseWidget()
         self.add_case_widget.select_case_signal.connect(self.show_cases, Qt.QueuedConnection)
-        self.add_case_widget.setWindowModality(Qt.ApplicationModal)  # 设置QWidget为模态
+        self.add_case_widget.setWindowModality(Qt.ApplicationModal)
         self.add_case_widget.show()
 
     def click_run_stop_btn(self):
@@ -139,13 +138,16 @@ class RunWidget(QWidget):
             self.add_log(str(e))
 
     def stop_case(self):
-        # set icon
         run_icon = QIcon()
         run_icon.addPixmap(QPixmap(self.config.images + '/run.png'), QIcon.Normal, QIcon.Off)
-        self.run_stop_btn.setIcon(run_icon)
+        self.run_stop_btn.setIcon(run_icon)          # change icon
         self.run_stop_btn.setText("Run")
         self.running = False
-        # TODO 停止执行
+        try:
+            self.tester.stop()
+            self.tester.stop_server()
+        except Exception as e:
+            self.add_log(str(e))
 
     def show_cases(self, id_list):
         """

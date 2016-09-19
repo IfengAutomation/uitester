@@ -11,8 +11,8 @@ from uitester.ui.case_manager.tag_names_line_edit import TagNamesLineEdit, TagCo
 
 
 class TagManageWidget(QWidget):
-    selected_tag_names_signal = pyqtSignal(str)
-    refresh_signal = pyqtSignal()
+    selected_tag_names_signal = pyqtSignal(str, name="selected_tag_names_signal")
+    refresh_signal = pyqtSignal(name="refresh_signal")
 
     def __init__(self, config, *args, **kwargs):
         super().__init__(*args, **kwargs)
