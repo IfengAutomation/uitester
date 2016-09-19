@@ -1,7 +1,6 @@
 # @Time    : 2016/8/3 13:53
 # @Author  : lixintong
 import os
-import time
 import zipfile
 
 import pandas as pd
@@ -16,7 +15,6 @@ class CaseDataManager:
     CASE_TABLE_NAME_FILE = CASE_TABLE_NAME + ".csv"
     TAG_TABLE_NAME_FILE = TAG_TABLE_NAME + ".csv"
     CASE_TAG_TABLE_NAME_FILE = CASE_TAG_TABLE_NAME + ".csv"
-    ZIP_NAME = "data_#time#.dpk"
     db_helper = DBCommandLineHelper()
     tag_file_data = []
     case_tag_file_data = []
@@ -36,7 +34,6 @@ class CaseDataManager:
 
     # 添加文件到已有的zip包中
     def addzip(self, path):
-        # name = self.ZIP_NAME.replace("#time#", str(int(time.time())))
         f = zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED)
         f.write(self.CASE_TABLE_NAME_FILE)
         f.write(self.TAG_TABLE_NAME_FILE)

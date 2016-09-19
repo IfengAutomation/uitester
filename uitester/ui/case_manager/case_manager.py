@@ -55,7 +55,6 @@ class CaseManagerWidget(QWidget):
         self.set_tag_list_widget()  # show all tags
         self.set_tag_search_line()  # Set the tag input line automatic completion
         self.data_message_layout.insertWidget(1, self.table_widget)
-        self.editor_widget = None
         self.button_style(self.check_button, '/check_all.png', 'Check All')
         self.selected_tag_name = ''
         self.refresh_signal.connect(self.refresh, Qt.QueuedConnection)
@@ -154,7 +153,6 @@ class CaseManagerWidget(QWidget):
         button.setIcon(icon)
         button.setText('')
         button.setToolTip(text)
-
         button.resize(50, 50)
         button.setStyleSheet(
             'QPushButton{border-width:0px; background:transparent;} ')

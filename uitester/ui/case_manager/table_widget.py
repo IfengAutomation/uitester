@@ -6,8 +6,6 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import *
 
-from uitester.ui.case_manager.case_editor import EditorWidget
-
 
 class TableWidget(QWidget):
     def __init__(self, show_case_editor_signal, tester, case_list, *args, **kwargs):

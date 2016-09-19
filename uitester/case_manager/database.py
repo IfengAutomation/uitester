@@ -71,9 +71,6 @@ class DB:
 
 
 class DBCommandLineHelper:
-    # def __init__(self):
-    #     if not DB.db_file_exists:
-    #         Base.metadata.create_all(DB.engine)
 
     def insert_tag(self, name, description):
         tag = Tag()
@@ -84,9 +81,6 @@ class DBCommandLineHelper:
         return tag
 
     def update_tag(self):
-        # tag = DB.session.query(Tag).filter(Tag.id == id).first()
-        # tag.name = name
-        # tag.description = description
         DB.session.commit()
 
     def query_tag_by_name(self, name):
@@ -95,14 +89,6 @@ class DBCommandLineHelper:
     def fuzzy_query_tag_by_name(self, name):
         name = '%' + name + '%'
         return DB.session.query(Tag).filter(Tag.name.like(name)).all()
-
-    # def query_tag_by_name(self, is_accurate, name):
-    #     '''根据标识名查看未删除tag'''
-    #     if is_accurate == False:
-    #         name = '%' + name + '%'
-    #         return DB.session.query(Tag).filter(Tag.name.like(name)).all()
-    #     else:
-    #         return DB.session.query(Tag).filter(Tag.name == name).first()
 
     def query_tag_by_id(self, id):
         '''根据标识名查看tag'''
@@ -160,7 +146,6 @@ class DBCommandLineHelper:
     def query_case_by_name(self, is_accurate, name):
         '''查看case'''
         if is_accurate == False:
-            name = '%' + name + '%'
             return DB.session.query(Case).filter(Case.name.like('%' + name + '%')).all()
         else:
             return DB.session.query(Case).filter(Case.name == name).first()
