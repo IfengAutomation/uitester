@@ -71,7 +71,6 @@ class DB:
 
 
 class DBCommandLineHelper:
-
     def insert_tag(self, name, description):
         tag = Tag()
         tag.name = name
@@ -170,6 +169,10 @@ class DBCommandLineHelper:
     def delete_case(self, id):
         case = DB.session.query(Case).filter(Case.id == id).first()
         DB.session.delete(case)
+        DB.session.commit()
+
+    def batch_delete_case(self, ids):
+        DB.session.query(Case).filter(Case.id in ids).delete()
         DB.session.commit()
 
     def get_table_data(self, table_name):
