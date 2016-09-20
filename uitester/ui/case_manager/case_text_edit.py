@@ -161,7 +161,7 @@ class TextEdit(QTextEdit):
         current_import = self.get_import_from_content()
 
         # check the changes between the case content in db and the edit text content
-        is_import_updated = (len(self.import_lines) == len(current_import)) and (list(current_import).sort() == list(self.import_lines).sort())
+        is_import_updated = (len(self.import_lines) == len(current_import)) and (set(current_import) == set(self.import_lines))
         if is_import_updated:
             return
         if self.kw_core.user_func != self.kw_core.default_func:
