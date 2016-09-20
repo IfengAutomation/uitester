@@ -109,8 +109,19 @@ class EditorWidget(QWidget):
         :return:
         """
         original_tag_names = self.tag_names_line_edit.text()
+        if not tag_names:
+            return
+        # handle duplicates
+        tag_name_list = tag_names.split(";")
+        for tag_name in tag_name_list:
+            if tag_name in original_tag_names:
+                tag_name_list.remove(tag_name)
+        add_tag_names = ""
+        for tag_name in tag_name_list:
+            add_tag_names += tag_name + ";"
+
         self.tag_names_line_edit.is_completer = False
-        self.tag_names_line_edit.setText(original_tag_names + tag_names)
+        self.tag_names_line_edit.setText(original_tag_names + add_tag_names)
         self.tag_names_line_edit.is_completer = True
 
     def log_show_hide_event(self):
