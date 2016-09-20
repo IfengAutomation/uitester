@@ -25,7 +25,7 @@ class DeviceManager:
     def request_handler(self, msg_type, msg=None):
         # send requests
         if msg_type == 'rpc_proxy' and msg is not None:
-            self.server.send_msg(msg, device_id_list=self.selected_devices)
+            self.server.send_msg(msg, device_id_list=[device.id for device in self.selected_devices])
 
     @property
     def devices(self):

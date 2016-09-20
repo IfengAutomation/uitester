@@ -13,15 +13,17 @@ class TextEdit(QTextEdit):
 
     def __init__(self, kw_core, parent=None):
         super(TextEdit, self).__init__(parent)
-        self.cmp = None
         self.kw_core = kw_core
+        self.cmp = None
+        self.high_lighter = None
+        self.import_lines = set()
+
         self.popup_widget = CompleterWidget()
+
         self.insert_func_name_signal.connect(self.insert_completion, Qt.QueuedConnection)
         self.popup_widget.func_list_widget.select_signal.connect(self.insert_completion, Qt.QueuedConnection)
         self.popup_widget.selected_func_name_signal.connect(self.popup_widget.update_desc, Qt.QueuedConnection)
         self.textChanged.connect(self.text_change)
-        self.high_lighter = None
-        self.import_lines = set()
 
     def text_change(self):
         """
@@ -228,19 +230,18 @@ class Completer(QCompleter):
     def __init__(self, func_dict, parent=None):
         super(Completer, self).__init__(parent)
         self.func_dict = func_dict
-        self.string_list = []
 
     def update(self, completion_text, popup_widget):
-        self.string_list = self.get_func_name_list(self.func_dict)
-        filtered = []
+        string_list = self.get_func_name_list(self.func_dict)
+        match_str_list = []
         popup_widget.func_list_widget.clear()
-        for string in self.string_list:
+        for string in string_list:
             if (completion_text in string) and (completion_text != string):
-                filtered.append(string)
+                match_str_list.append(string)
                 popup_widget.func_list_widget.addItem(string)
         popup_widget.func_list_widget.sortItems()  # ASC
 
-        if len(filtered) < 1:
+        if len(match_str_list) < 1:
             popup_widget.hide()
             return
         popup_widget.show()

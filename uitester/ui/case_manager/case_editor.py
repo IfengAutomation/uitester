@@ -68,7 +68,7 @@ class EditorWidget(QWidget):
         :return:
         """
         screen = QDesktopWidget().screenGeometry()
-        self.resize(screen.width() / 5 * 2, screen.height() / 5 * 2)
+        self.resize(screen.width() / 2, screen.height() / 2)
         self.init_btn_icon()
 
         self.id_line_edit.hide()  # hide line_edit
@@ -216,7 +216,7 @@ class EditorWidget(QWidget):
         tag_list = self.get_tag_list()
         # tag names in db
         db_tag_list = case_db.tags
-        is_tags_names_modify = db_tag_list != tag_list
+        is_tags_names_modify = list(set(db_tag_list).difference(set(tag_list))) != list(set(tag_list).difference(set(db_tag_list)))
 
         if is_name_modified or is_content_modified or is_tags_names_modify:
             is_case_modified = True
@@ -229,12 +229,13 @@ class EditorWidget(QWidget):
         """
         # get tag names
         tag_name_list = self.tag_names_line_edit.text().strip().split(";")
-        tag_list = []
+        tag_set = set()
         for tag_name in tag_name_list:
-            if tag_name:
-                tag = self.dBCommandLineHelper.query_tag_by_name(tag_name)
-                tag_list.append(tag)
-        return tag_list
+            if not tag_name:
+                continue
+            tag = self.dBCommandLineHelper.query_tag_by_name(tag_name)
+            tag_set.add(tag)
+        return list(tag_set)
 
     def run_btn_event(self):
         """
