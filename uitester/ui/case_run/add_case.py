@@ -51,7 +51,7 @@ class AddCaseWidget(QWidget):
             tag_names = tag_names[:len(tag_names)].split(';')
             case_list = self.dBCommandLineHelper.query_case_by_tag_names(tag_names)
         else:
-            case_list = self.db_helper.query_case_all()
+            case_list = self.dBCommandLineHelper.query_case_all()
         self.result_widget = RunnerTableWidget(case_list, [])
         self.result_table_layout.insertWidget(0, self.result_widget)
 
