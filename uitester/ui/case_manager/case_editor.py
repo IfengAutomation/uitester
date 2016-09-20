@@ -21,76 +21,76 @@ class EditorWidget(QWidget):
 
     def __init__(self, refresh_signal, tester, case_id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.dBCommandLineHelper = DBCommandLineHelper()
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, 'case_editor.ui')
         uic.loadUi(ui_file_path, self)
 
+        self.dBCommandLineHelper = DBCommandLineHelper()
         self.tester = tester
+        self.config = self.tester.get_config()
+        self.kw_core = self.tester.get_kw_runner()
+        self.case_id = case_id
+        self.refresh_signal = refresh_signal
 
-        screen = QDesktopWidget().screenGeometry()
-        self.resize(screen.width() / 5 * 2, screen.height() / 5 * 2)
+        self.init_ui()
 
-        self.id_line_edit.hide()   # hide line_edit
-
-        # set icon
-        save_icon = QIcon()
-        config = self.tester.get_config()
-        save_icon.addPixmap(QPixmap(config.images + '/save.png'), QIcon.Normal, QIcon.Off)
-        self.save_btn.setIcon(save_icon)
-
-        # set icon
-        run_icon = QIcon()
-        run_icon.addPixmap(QPixmap(config.images + '/run.png'), QIcon.Normal, QIcon.Off)
-        self.run_btn.setIcon(run_icon)
-
-        # set icon
-        console_icon = QIcon()
-        console_icon.addPixmap(QPixmap(config.images + '/console.png'), QIcon.Normal, QIcon.Off)
-        self.console_btn.setIcon(console_icon)
+        self.is_log_show = False
+        self.is_running = False
+        self.tag_list = []
+        self.parsed_line_list = []
+        self.case = None
+        self.high_lighter = None
+        self.tag_manage_widget = None
+        self.add_device_widget = None
 
         self.message_box = QMessageBox()
-        self.high_lighter = None
-
-        self.case_name_line_edit.setPlaceholderText("Case Name")
-
-        self.kw_core = self.tester.get_kw_runner()
-        self.config = self.tester.get_config()
-
-        self.case_id = case_id
-
-        self.tag_list = []
         self.choose_button = ChooseButton()
         self.tag_names_line_edit = TagLineEdit("tag_names_line_edit", self.choose_button)
-        self.tag_names_line_edit_adapter()
-        self.tag_layout.insertWidget(0, self.tag_names_line_edit)
+        self.set_tag_name_completer()
 
         self.editor_text_edit = TextEdit(self.kw_core)  # case content TextEdit
         self.editor_layout.insertWidget(0, self.editor_text_edit)
-        self.editor_adapter()
-        self.console.hide()  # hide log
+        self.editor_adapter()  # set completer and highlighter
+        self.set_case_edit_data()  # update case
 
-        self.add_device_widget = AddDeviceWidget()  # add device
-        self.add_device_widget.setWindowModality(Qt.WindowModal)
-        self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.import_list_signal.connect(self.editor_text_edit.get_import_from_content, Qt.QueuedConnection)
         self.editor_text_edit.parse_error_info_signal.connect(self.add_error_info, Qt.QueuedConnection)
-        self.add_device_widget.run_signal.connect(self.run_case, Qt.QueuedConnection)
 
-        self.tag_manage_widget = None
-
-        self.is_log_show = False
         # button event
         self.save_btn.clicked.connect(self.save_case)
-        self.run_btn.clicked.connect(self.run_event)
+        self.run_btn.clicked.connect(self.run_btn_event)
         self.console_btn.clicked.connect(self.log_show_hide_event)
         self.choose_button.clicked.connect(self.choose_event)
 
-        self.parsed_line_list = []
-        self.case = None
-        self.set_case_edit_data()
-        self.refresh_signal = refresh_signal
-        self.is_running = False
+    def init_ui(self):
+        """
+        init ui, include: resize window
+        :return:
+        """
+        screen = QDesktopWidget().screenGeometry()
+        self.resize(screen.width() / 5 * 2, screen.height() / 5 * 2)
+        self.init_btn_icon()
+
+        self.id_line_edit.hide()  # hide line_edit
+        self.console.hide()  # hide log
+        self.case_name_line_edit.setPlaceholderText("Case Name")
+
+    def init_btn_icon(self):
+        """
+        init button icon, including: save button、run button、show/hide console button
+        :return:
+        """
+        save_icon = QIcon()
+        save_icon.addPixmap(QPixmap(self.config.images + '/save.png'), QIcon.Normal, QIcon.Off)           # save icon
+        self.save_btn.setIcon(save_icon)
+
+        run_icon = QIcon()
+        run_icon.addPixmap(QPixmap(self.config.images + '/run.png'), QIcon.Normal, QIcon.Off)             # run icon
+        self.run_btn.setIcon(run_icon)
+
+        console_icon = QIcon()
+        console_icon.addPixmap(QPixmap(self.config.images + '/console.png'), QIcon.Normal, QIcon.Off)     # console icon
+        self.console_btn.setIcon(console_icon)
 
     def choose_event(self):
         """
@@ -111,13 +111,15 @@ class EditorWidget(QWidget):
         original_tag_names = self.tag_names_line_edit.text()
         if not tag_names:
             return
-        # handle duplicates
+        # handle the repeat tag names
         tag_name_list = tag_names.split(";")
         for tag_name in tag_name_list:
             if tag_name in original_tag_names:
                 tag_name_list.remove(tag_name)
         add_tag_names = ""
         for tag_name in tag_name_list:
+            if not tag_name:
+                continue
             add_tag_names += tag_name + ";"
 
         self.tag_names_line_edit.is_completer = False
@@ -144,7 +146,7 @@ class EditorWidget(QWidget):
 
     def set_case_edit_data(self):
         """
-        init data
+        init data for update case
         :return:
         """
         if self.case_id:
@@ -234,7 +236,15 @@ class EditorWidget(QWidget):
                 tag_list.append(tag)
         return tag_list
 
-    def run_event(self):
+    def run_btn_event(self):
+        """
+        click run button, show add_device_widget
+        :return:
+        """
+        self.add_device_widget = AddDeviceWidget()  # add device
+        self.add_device_widget.setWindowModality(Qt.WindowModal)
+        self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
+        self.add_device_widget.run_signal.connect(self.run_case, Qt.QueuedConnection)
         devices = []
         if self.check_null():
             return
@@ -385,15 +395,15 @@ class EditorWidget(QWidget):
             except Exception as e:
                 self.add_error_info(str(e))
 
-    def tag_names_line_edit_adapter(self):
+    def set_tag_name_completer(self):
         """
-        给tag_names_line_edit设置自动提示、默认显示提示文字等
+        set completer to tag_names_line_edit
         :return:
         """
-        self.tag_names_line_edit.setPlaceholderText("Tag Names")   # 设置提示文字
+        self.tag_names_line_edit.setPlaceholderText("Tag Names")
         self.tag_layout.insertWidget(0, self.tag_names_line_edit)
 
-        self.tag_list = self.dBCommandLineHelper.query_tag_all()  # 获取所有tag
+        self.tag_list = self.dBCommandLineHelper.query_tag_all()  # get all tags
         tag_name_list = []
         for tag in self.tag_list:
             tag_name_list.append(tag.name)
