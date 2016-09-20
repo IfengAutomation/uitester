@@ -99,14 +99,12 @@ class DBCommandLineHelper:
 
     def delete_tag_by_name(self, name):
         '''删除tag'''
-        del_tag = DB.session.query(Tag).filter(Tag.name == name).first()
-        DB.session.delete(del_tag)
+        DB.session.query(Tag).filter(Tag.name == name).delete()
         DB.session.commit()
 
     def delete_tag(self, id):
         '''删除tag'''
-        del_tag = DB.session.query(Tag).filter(Tag.id == id).first()
-        DB.session.delete(del_tag)
+        DB.session.query(Tag).filter(Tag.id == id).delete()
         DB.session.commit()
 
     def insert_case_with_tags(self, name, content, tags):
@@ -167,8 +165,7 @@ class DBCommandLineHelper:
         DB.session.commit()
 
     def delete_case(self, id):
-        case = DB.session.query(Case).filter(Case.id == id).first()
-        DB.session.delete(case)
+        DB.session.query(Case).filter(Case.id == id).delete()
         DB.session.commit()
 
     def batch_delete_case(self, ids):
