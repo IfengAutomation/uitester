@@ -169,7 +169,10 @@ class TextEdit(QTextEdit):
             self.kw_core.user_func = {**self.kw_core.default_func}
         self.import_lines = current_import
         for import_cmd in self.import_lines:
-            self.kw_core.parse_line(import_cmd)
+            try:
+                self.kw_core.parse_line(import_cmd)
+            except Exception as e:
+                self.parse_error_info_signal.emit(str(e))
         self.update_completer_high_lighter()
 
     def update_completer_high_lighter(self):

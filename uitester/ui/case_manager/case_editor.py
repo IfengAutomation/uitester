@@ -7,7 +7,7 @@ from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox
 
 from uitester.case_manager.database import DBCommandLineHelper
-from uitester.ui.case_manager.case_search_edit import TagLineEdit
+from uitester.ui.case_manager.case_search_edit import TagLineEdit, TagCompleter
 from uitester.ui.case_manager.case_text_edit import TextEdit, Completer
 from uitester.ui.case_manager.highlighter import MyHighlighter
 from uitester.ui.case_manager.tag_manage_button import ChooseButton
@@ -62,7 +62,7 @@ class EditorWidget(QWidget):
         self.tag_list = []
         self.choose_button = ChooseButton()
         self.tag_names_line_edit = TagLineEdit("tag_names_line_edit", self.choose_button)
-        self.tag_names_line_edit.setReadOnly(True)
+        self.tag_names_line_edit_adapter()
         self.tag_layout.insertWidget(0, self.tag_names_line_edit)
 
         self.editor_text_edit = TextEdit(self.kw_core)  # case content TextEdit
@@ -108,8 +108,9 @@ class EditorWidget(QWidget):
         :param tag_names:
         :return:
         """
+        original_tag_names = self.tag_names_line_edit.text()
         self.tag_names_line_edit.is_completer = False
-        self.tag_names_line_edit.setText(tag_names)
+        self.tag_names_line_edit.setText(original_tag_names + tag_names)
         self.tag_names_line_edit.is_completer = True
 
     def log_show_hide_event(self):
@@ -287,12 +288,14 @@ class EditorWidget(QWidget):
         """
         case_name = self.case_name_line_edit.text().strip()  # Case Name
         content = self.editor_text_edit.toPlainText()  # Case Content
-        is_null = self.check_null()
-        if is_null:
+        if self.check_null():
             if event:
                 event.ignore()
             return
         tags = self.get_tag_list()
+
+        if self.check_tag_name():   # check unrecognized tag names
+            return
 
         if self.case_id:
             self.case.name = case_name
@@ -366,8 +369,46 @@ class EditorWidget(QWidget):
         self.kw_core.user_func.clear()
         self.kw_core.user_func = {**self.kw_core.default_func}
         for import_cmd in import_list:
-            self.kw_core.parse_line(import_cmd)
+            try:
+                self.kw_core.parse_line(import_cmd)
+            except Exception as e:
+                self.add_error_info(str(e))
 
+    def tag_names_line_edit_adapter(self):
+        """
+        给tag_names_line_edit设置自动提示、默认显示提示文字等
+        :return:
+        """
+        self.tag_names_line_edit.setPlaceholderText("Tag Names")   # 设置提示文字
+        self.tag_layout.insertWidget(0, self.tag_names_line_edit)
+
+        self.tag_list = self.dBCommandLineHelper.query_tag_all()  # 获取所有tag
+        tag_name_list = []
+        for tag in self.tag_list:
+            tag_name_list.append(tag.name)
+        cmp = TagCompleter(tag_name_list)
+        self.tag_names_line_edit.setCompleter(cmp)
+
+    def check_tag_name(self):
+        """
+        check tag name, return unrecognized tag names
+        :return:
+        """
+        tag_name_list = self.tag_names_line_edit.text().split(";")
+        unrecognized_tag_names = ""
+        has_unrecognized = False
+        for tag_name in tag_name_list:
+            if not tag_name:
+                continue
+            tag = self.dBCommandLineHelper.query_tag_by_name(tag_name)
+            if not tag:
+                unrecognized_tag_names += "\"" + tag_name + "\"" + "、"
+        if unrecognized_tag_names != "":
+            has_unrecognized = True
+            unrecognized_tag_names = unrecognized_tag_names[:-1]
+            self.message_box.about(self, "Warning", "tag: " + unrecognized_tag_names +
+                                   " unrecognized, please add it first.")
+        return has_unrecognized
 
 
 

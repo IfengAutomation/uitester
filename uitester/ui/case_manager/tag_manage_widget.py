@@ -77,6 +77,8 @@ class TagManageWidget(QWidget):
         self.tag_list_widget.itemClicked.connect(
             lambda: self.list_widget_item_clicked(self.tag_list_widget.currentItem()))
         item = self.tag_list_widget.item(0)
+        if not item:
+            return
         item.setSelected(True)
 
     def list_widget_item_clicked(self, tag_list_widget_item):

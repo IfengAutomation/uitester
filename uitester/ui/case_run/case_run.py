@@ -55,6 +55,10 @@ class RunWidget(QWidget):
         self.add_device_widget.run_signal.connect(self.run_case, Qt.QueuedConnection)
         self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
 
+        self.status_listener = CaseRunStatusListener()
+        self.status_listener.listener_msg_signal.connect(self.update_case_name_color, Qt.QueuedConnection)
+        self.tester.add_run_status_listener(self.status_listener)
+
     def click_add_case(self):
         """
         click the button to show add case widget
@@ -103,7 +107,7 @@ class RunWidget(QWidget):
             if case_id_item.text() != str(msg.case_id):
                 continue
             self.case_widget.dataTableWidget.selectRow(row_index)
-            if msg.status == 101:  # case pass
+            if msg.status == 101:  # default: case pass
                 self.update_green(row_index)
             elif msg.status == 500:
                 self.update_red(row_index)
@@ -135,12 +139,10 @@ class RunWidget(QWidget):
         if not devices:
             return
         self.tester.select_devices(devices)
-        status_listener = CaseRunStatusListener()
-        status_listener.listener_msg_signal.connect(self.update_case_name_color, Qt.QueuedConnection)
-        self.tester.add_run_status_listener(status_listener)
         try:
             self.tester.run(kw_case_list)
         except Exception as e:
+            self.stop_case()
             self.add_log(str(e))
 
     def stop_case(self):
