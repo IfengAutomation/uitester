@@ -43,7 +43,7 @@ class AddDeviceWidget(QWidget):
                 self.message_box.warning(self, "Message", "Please choose a device.", QMessageBox.Ok)
                 return
             # self.emit_device_info_to_bar(widget.text())  # 主窗口状态栏显示device机身码
-            self.emit_log("Choose device: " + item.text())
+            self.emit_log("<font color='black'>Choose device: " + item.text() + " </font>")
             device = self.devices_list[index]
             if device.id == item.text():
                 devices.append(device)
