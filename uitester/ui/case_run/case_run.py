@@ -4,13 +4,14 @@ import os
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap, QBrush, QColor
-from PyQt5.QtWidgets import QWidget, QMessageBox
+from PyQt5.QtWidgets import QWidget, QMessageBox, QSplitter
 
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.kw.kw_runner import KWCase
 from uitester.ui.case_run.add_case import AddCaseWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
 from uitester.ui.case_run.case_run_status_listener import CaseRunStatusListener
+from uitester.ui.case_run.console import Console
 from uitester.ui.case_run.table_widget import RunnerTableWidget
 
 
@@ -48,8 +49,10 @@ class RunWidget(QWidget):
         self.add_device_widget = AddDeviceWidget()
         self.add_device_widget.setWindowModality(Qt.ApplicationModal)
 
+        self.splitter = None
         self.case_widget = RunnerTableWidget([], [0])
-        self.case_table_layout.insertWidget(0, self.case_widget)
+        self.log_area = Console()
+        self.splitter_setting()
 
         self.add_device_widget.add_log_signal.connect(self.add_log, Qt.QueuedConnection)
         self.add_device_widget.run_signal.connect(self.run_case, Qt.QueuedConnection)
@@ -58,6 +61,23 @@ class RunWidget(QWidget):
         self.status_listener = CaseRunStatusListener()
         self.status_listener.listener_msg_signal.connect(self.update_case_name_color, Qt.QueuedConnection)
         self.tester.add_run_status_listener(self.status_listener)
+
+    def splitter_setting(self):
+        """
+        set splitter
+        :return:
+        """
+        if self.splitter:
+            self.splitter = None
+        self.splitter = QSplitter(Qt.Vertical)
+        # add "case_widget" and "log_area" to splitter
+        self.splitter.addWidget(self.case_widget)
+        self.splitter.addWidget(self.log_area)
+
+        # set the initial scale: 4:1
+        self.splitter.setStretchFactor(0, 4)
+        self.splitter.setStretchFactor(1, 1)
+        self.case_table_layout.addWidget(self.splitter)
 
     def click_add_case(self):
         """
@@ -88,12 +108,12 @@ class RunWidget(QWidget):
 
     def add_log(self, log_info):
         """
-        add log to logarea
+        add log to log_area
         :return:
         """
-        if self.logarea is None:
+        if self.log_area is None:
             return
-        self.logarea.append(log_info)
+        self.log_area.append(log_info)
 
     def update_case_name_color(self, msg):
         """
@@ -163,15 +183,13 @@ class RunWidget(QWidget):
         :param id_list:
         :return:
         """
-        self.case_widget.setParent(None)
-        self.case_table_layout.removeWidget(self.case_widget)
+        self.case_table_layout.removeWidget(self.splitter)
         case_list = []
         self.cases = id_list
         for case_id in id_list:
             case = self.dBCommandLineHelper.query_case_by_id(case_id)
             case_list.append(case)
         self.case_widget = RunnerTableWidget(case_list, [0])
-        self.case_table_layout.insertWidget(0, self.case_widget)
 
     def update_green(self, row_index):
         """

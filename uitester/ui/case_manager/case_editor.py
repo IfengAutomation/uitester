@@ -9,10 +9,10 @@ from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox, QSplitter
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.ui.case_manager.case_search_edit import TagLineEdit, TagCompleter, SearchButton
 from uitester.ui.case_manager.case_text_edit import TextEdit, Completer
-from uitester.ui.case_manager.console import Console
 from uitester.ui.case_manager.highlighter import MyHighlighter
 from uitester.ui.case_manager.tag_manage_widget import TagManageWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
+from uitester.ui.case_run.console import Console
 
 
 class EditorWidget(QWidget):
