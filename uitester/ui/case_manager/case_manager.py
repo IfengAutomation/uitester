@@ -31,13 +31,12 @@ class CaseManagerWidget(QWidget):
         self.tester = tester  # 从上级窗体获得Tester()
         # case 搜索
         self.search_button = SearchButton()
-        self.search_button.clicked.connect(self.update_table_data)
+        self.search_button.clicked.connect(self.update_table_data_by_search_line)
         self.tag_names_line_edit = TagLineEdit('tag_names_line_edit', self.search_button)
         self.query_conditions_layout.insertWidget(5, self.tag_names_line_edit)
         self.table_widget = TableWidget(self.show_case_editor_signal, self.tester, [])  # init ui table
 
         self.delete_case_button.clicked.connect(self.delete_case)
-        self.check_button.clicked.connect(self.check_or_cancel_all)
         self.export_button.clicked.connect(self.export_data)
         self.import_button.clicked.connect(self.import_data)
         self.add_tag_button.clicked.connect(self.add_tag)
@@ -55,20 +54,7 @@ class CaseManagerWidget(QWidget):
         self.set_tag_list_widget()  # show all tags
         self.set_tag_search_line()  # Set the tag input line automatic completion
         self.data_message_layout.insertWidget(1, self.table_widget)
-        self.button_style(self.check_button, '/check_all.png', 'Check All')
-        self.selected_tag_name = ''
         self.refresh_signal.connect(self.refresh, Qt.QueuedConnection)
-
-    def check_or_cancel_all(self):
-        if self.table_widget.check_all:
-            check_status = Qt.Unchecked
-            self.table_widget.check_all = False
-        else:
-            check_status = Qt.Checked
-            self.table_widget.check_all = True
-        for row in range(0, self.table_widget.dataTableWidget.rowCount()):
-            check_box_item = self.table_widget.dataTableWidget.item(row, 0)
-            check_box_item.setCheckState(check_status)
 
     def refresh(self):
         self.set_tag_search_line()
@@ -87,7 +73,7 @@ class CaseManagerWidget(QWidget):
         items = self.tag_list_widget.selectedItems()
         item = items[0]
         if item.text() == '全部' or item.text() == '未选择':
-            QMessageBox.warning(self, 'tag select ', 'tag can\'t be empty')
+            QMessageBox.warning(self, 'tag select ', 'please select a tag')
         else:
             self.tag_editor_window = TagEditorWidget(self.refresh_signal, item.text())
             self.tag_editor_window.setWindowModality(Qt.ApplicationModal)
@@ -166,7 +152,6 @@ class CaseManagerWidget(QWidget):
                 case_ids = []
                 for i in range(0, len(self.table_widget.checked_cases_message)):
                     case_message = self.table_widget.checked_cases_message[i]
-                    # self.db_helper.delete_case(int(case_message['case_id']))
                     self.table_widget.dataTableWidget.removeRow(int(case_message['row_num']) - i)  # 删除行后 行数会变 所以-i
                     case_ids.append(int(case_message['case_id']))
                 self.db_helper.batch_delete_case(case_ids)
@@ -181,7 +166,19 @@ class CaseManagerWidget(QWidget):
         """
         self.show_case_editor_signal.emit(0, 0)
 
-    def update_table_data(self):
+    def update_table_data_by_list_view(self, tag_name):
+        self.table_widget.setParent(None)
+        self.data_message_layout.removeWidget(self.table_widget)
+        if '全部' == tag_name:
+            case_list = self.db_helper.query_case_all()
+        elif '未选择' == tag_name:
+            case_list = self.db_helper.query_no_tag_case()
+        else:
+            case_list = self.db_helper.query_case_by_tag_names([tag_name])
+        self.table_widget = TableWidget(self.show_case_editor_signal, self.tester, case_list)
+        self.data_message_layout.insertWidget(1, self.table_widget)
+
+    def update_table_data_by_search_line(self):
         '''
         update ui table data
         :return:
@@ -189,16 +186,12 @@ class CaseManagerWidget(QWidget):
         self.table_widget.setParent(None)
         self.data_message_layout.removeWidget(self.table_widget)
         tag_names = self.tag_names_line_edit.text()
-        tag_names = tag_names[0: len(tag_names) - 1]
+        if (tag_names.endswith(';')):
+            tag_names = tag_names[0: len(tag_names) - 1]
         case_list = []
         if tag_names != '':
-            if '全部' in tag_names:
-                case_list = self.db_helper.query_case_all()
-            elif '未选择' in tag_names:
-                case_list = self.db_helper.query_no_tag_case()
-            else:
-                tag_names = tag_names[:len(tag_names)].split(';')
-                case_list = self.db_helper.query_case_by_tag_names(tag_names)
+            tag_names = tag_names[:len(tag_names)].split(';')
+            case_list = self.db_helper.query_case_by_tag_names(tag_names)
         self.table_widget = TableWidget(self.show_case_editor_signal, self.tester, case_list)
         self.data_message_layout.insertWidget(1, self.table_widget)
 
@@ -224,7 +217,7 @@ class CaseManagerWidget(QWidget):
         set tag search line
         :return:
         '''
-        string_list = ['全部', '未选择']
+        string_list = []
         tag_names_list = string_list + self.get_tag_names()
         tag_completer = TagCompleter(tag_names_list)
         self.tag_names_line_edit.setCompleter(tag_completer)
@@ -236,9 +229,5 @@ class CaseManagerWidget(QWidget):
         return tag_model_list
 
     def list_widget_item_clicked(self, tag_list_widget_item):
-        self.tag_names_line_edit.is_completer = False
         self.tag_names_line_edit.clear()
-        self.tag_names_line_edit.setText(tag_list_widget_item.text() + ';')
-        self.update_table_data()
-        self.tag_names_line_edit.is_completer = True
-        self.selected_tag_name = tag_list_widget_item.text()
+        self.update_table_data_by_list_view(tag_list_widget_item.text())

@@ -3,8 +3,10 @@
 import sys
 
 from PyQt5.QtCore import *
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+
+from uitester.config import Config
 
 
 class TableWidget(QWidget):
@@ -18,7 +20,6 @@ class TableWidget(QWidget):
         layout.addWidget(self.dataTableWidget)
         self.setLayout(layout)
         self.checked_cases_message = []
-        self.check_all = False
 
     def get_checked_data(self):
         del self.checked_cases_message[:]
@@ -44,6 +45,7 @@ class DataTableWidget(QTableWidget):
         self.setColumnCount(self.column_count)
         self.set_table_data()
         self.cellClicked.connect(self.cell_clicked)
+        self.check_all = False
 
     def cell_clicked(self, row, column):
         if column != 0:
@@ -58,11 +60,28 @@ class DataTableWidget(QTableWidget):
         self.setItem(row, column, item)
 
     def set_table_header(self):
-        for column in range(0, self.columnCount()):
+        item = QTableWidgetItem()
+        config = Config()
+        item.setIcon(QIcon(QPixmap(config.images + '/check_all.png')))
+        self.setHorizontalHeaderItem(0, item)
+        for column in range(1, self.columnCount()):
             table_header_item = QTableWidgetItem(self.header_text_list[column])
             table_header_item.setFont(QFont("Roman times", 12, QFont.Bold))
             self.setHorizontalHeaderItem(column, table_header_item)
         self.horizontalHeader().setStyleSheet("QHeaderView::section{background:	#ECF5FF;}")
+        self.horizontalHeader().sectionClicked.connect(self.horsection_clicked)  # 表头单击信号
+
+    def horsection_clicked(self, index):
+        if index == 0:
+            if self.check_all:
+                check_status = Qt.Unchecked
+                self.check_all = False
+            else:
+                check_status = Qt.Checked
+                self.check_all = True
+            for row in range(0, self.rowCount()):
+                check_box_item = self.item(row, 0)
+                check_box_item.setCheckState(check_status)
 
     def set_table_data(self):
         self.set_table_header()

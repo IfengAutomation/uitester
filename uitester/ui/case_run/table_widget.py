@@ -4,15 +4,15 @@
 import sys
 
 from PyQt5.QtCore import *
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon, QPixmap
 from PyQt5.QtWidgets import *
 
 from uitester.case_manager.database import DBCommandLineHelper
-from uitester.ui.case_manager.case_editor import EditorWidget
+from uitester.config import Config
 
 
 class RunnerTableWidget(QWidget):
-    def __init__(self,case_list,hide_column_list=None, *args, **kwargs):
+    def __init__(self, case_list, hide_column_list=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.dataTableWidget = DataTableWidget(hide_column_list, case_list)  # init ui table
@@ -43,6 +43,7 @@ class DataTableWidget(QTableWidget):
         self.setRowCount(len(self.case_list))
         self.setColumnCount(self.column_count)
         self.set_table_data()
+        self.check_all = False
         if hide_column_list is not None:
             for column in hide_column_list:
                 self.hideColumn(column)
@@ -55,11 +56,16 @@ class DataTableWidget(QTableWidget):
         self.setItem(row, column, item)
 
     def set_table_header(self):
-        for column in range(0, self.columnCount()):
+        item = QTableWidgetItem()
+        config = Config()
+        item.setIcon(QIcon(QPixmap(config.images + '/check_all.png')))
+        self.setHorizontalHeaderItem(0, item)
+        for column in range(1, self.columnCount()):
             table_header_item = QTableWidgetItem(self.header_text_list[column])
             table_header_item.setFont(QFont("Roman times", 12, QFont.Bold))
             self.setHorizontalHeaderItem(column, table_header_item)
         self.horizontalHeader().setStyleSheet("QHeaderView::section{background:	#ECF5FF;}")
+        self.horizontalHeader().sectionClicked.connect(self.horsection_clicked)  # 表头单击信号
 
     def set_table_data(self):
         # self.itemClicked.connect(self.item_clicked)
@@ -77,9 +83,17 @@ class DataTableWidget(QTableWidget):
         self.resizeColumnsToContents()  # Adjust the width according to the content
         self.horizontalHeader().setStretchLastSection(True)
 
-    def label_clicked(self):
-        print('label clicked')
-
+    def horsection_clicked(self, index):
+        if index == 0:
+            if self.check_all:
+                check_status = Qt.Unchecked
+                self.check_all = False
+            else:
+                check_status = Qt.Checked
+                self.check_all = True
+            for row in range(0, self.rowCount()):
+                check_box_item = self.item(row, 0)
+                check_box_item.setCheckState(check_status)
 
 
 if __name__ == '__main__':
@@ -88,7 +102,7 @@ if __name__ == '__main__':
     case_list = db_helper.query_case_by_tag_names(['我的'])
     # table_widget = RunnerTableWidget(case_list,[0,1])#隐藏第0/1列
     table_widget = RunnerTableWidget(case_list)  # 全部展示
-    dict = table_widget.get_checked_data() # 获取选中的checkbox
+    dict = table_widget.get_checked_data()  # 获取选中的checkbox
     window = QMainWindow()
     window.resize(500, 500)
     window.setCentralWidget(table_widget)
