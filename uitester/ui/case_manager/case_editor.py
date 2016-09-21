@@ -49,6 +49,7 @@ class EditorWidget(QWidget):
         self.set_tag_name_completer()
 
         self.splitter = QSplitter(Qt.Vertical)
+        self.splitter.setHandleWidth(1)   # set handle width
         self.editor_text_edit = TextEdit(self.kw_core)  # case content TextEdit
         self.console = Console()
 

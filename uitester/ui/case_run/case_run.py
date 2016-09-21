@@ -70,6 +70,7 @@ class RunWidget(QWidget):
         if self.splitter:
             self.splitter = None
         self.splitter = QSplitter(Qt.Vertical)
+        self.splitter.setHandleWidth(1)
         # add "case_widget" and "log_area" to splitter
         self.splitter.addWidget(self.case_widget)
         self.splitter.addWidget(self.log_area)
