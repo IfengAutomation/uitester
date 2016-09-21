@@ -190,6 +190,7 @@ class RunWidget(QWidget):
             case = self.dBCommandLineHelper.query_case_by_id(case_id)
             case_list.append(case)
         self.case_widget = RunnerTableWidget(case_list, [0])
+        self.splitter_setting()  # reload splitter
 
     def update_green(self, row_index):
         """
