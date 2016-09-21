@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>577</width>
-    <height>425</height>
+    <width>711</width>
+    <height>377</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Case Editor</string>
@@ -33,6 +39,9 @@
     <layout class="QHBoxLayout" name="case_info_layout">
      <property name="spacing">
       <number>2</number>
+     </property>
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
      </property>
      <item>
       <widget class="QPushButton" name="save_btn">
@@ -63,7 +72,7 @@
      <item>
       <widget class="QPushButton" name="console_btn">
        <property name="text">
-        <string>Show Console</string>
+        <string>Hide Console</string>
        </property>
       </widget>
      </item>
@@ -113,41 +122,20 @@
      <property name="spacing">
       <number>6</number>
      </property>
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
     </layout>
    </item>
    <item>
-    <widget class="QSplitter" name="splitter">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+    <layout class="QVBoxLayout" name="editor_layout">
+     <property name="spacing">
+      <number>0</number>
      </property>
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="handleWidth">
-      <number>2</number>
-     </property>
-     <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="editor_layout">
-       <property name="spacing">
-        <number>0</number>
-       </property>
-      </layout>
-     </widget>
-     <widget class="QTextBrowser" name="console">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </widget>
+    </layout>
    </item>
   </layout>
  </widget>

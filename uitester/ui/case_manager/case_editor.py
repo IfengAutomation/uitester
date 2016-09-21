@@ -4,13 +4,12 @@ import os
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox
+from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox, QTextBrowser, QSplitter
 
 from uitester.case_manager.database import DBCommandLineHelper
-from uitester.ui.case_manager.case_search_edit import TagLineEdit, TagCompleter
+from uitester.ui.case_manager.case_search_edit import TagLineEdit, TagCompleter, SearchButton
 from uitester.ui.case_manager.case_text_edit import TextEdit, Completer
 from uitester.ui.case_manager.highlighter import MyHighlighter
-from uitester.ui.case_manager.tag_manage_button import ChooseButton
 from uitester.ui.case_manager.tag_manage_widget import TagManageWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
 
@@ -34,7 +33,7 @@ class EditorWidget(QWidget):
 
         self.init_ui()
 
-        self.is_log_show = False
+        self.is_log_show = True
         self.is_running = False
         self.tag_list = []
         self.parsed_line_list = []
@@ -44,12 +43,24 @@ class EditorWidget(QWidget):
         self.add_device_widget = None
 
         self.message_box = QMessageBox()
-        self.choose_button = ChooseButton()
-        self.tag_names_line_edit = TagLineEdit("tag_names_line_edit", self.choose_button)
+        self.add_tag_button = SearchButton()
+        self.tag_names_line_edit = TagLineEdit("tag_names_line_edit", self.add_tag_button)
         self.set_tag_name_completer()
 
+        self.splitter = QSplitter(Qt.Vertical)
         self.editor_text_edit = TextEdit(self.kw_core)  # case content TextEdit
-        self.editor_layout.insertWidget(0, self.editor_text_edit)
+        self.console = QTextBrowser()
+
+        # Add the 'editor text edit' and 'console' to splitter
+        self.splitter.addWidget(self.editor_text_edit)
+        self.splitter.addWidget(self.console)
+
+        # Set the initial scale: 4:1
+        self.splitter.setStretchFactor(0, 4)
+        self.splitter.setStretchFactor(1, 1)
+
+        self.editor_layout.addWidget(self.splitter)
+
         self.editor_adapter()  # set completer and highlighter
         self.set_case_edit_data()  # update case
 
@@ -60,7 +71,7 @@ class EditorWidget(QWidget):
         self.save_btn.clicked.connect(self.save_case)
         self.run_btn.clicked.connect(self.run_btn_event)
         self.console_btn.clicked.connect(self.log_show_hide_event)
-        self.choose_button.clicked.connect(self.choose_event)
+        self.add_tag_button.clicked.connect(self.choose_event)
 
     def init_ui(self):
         """
@@ -72,7 +83,6 @@ class EditorWidget(QWidget):
         self.init_btn_icon()
 
         self.id_line_edit.hide()  # hide line_edit
-        self.console.hide()  # hide log
         self.case_name_line_edit.setPlaceholderText("Case Name")
 
     def init_btn_icon(self):
@@ -401,6 +411,11 @@ class EditorWidget(QWidget):
         set completer to tag_names_line_edit
         :return:
         """
+        # change button icon
+        add_icon = QIcon()
+        add_icon.addPixmap(QPixmap(self.config.images + '/add.png'), QIcon.Normal, QIcon.Off)
+        self.add_tag_button.setIcon(add_icon)
+
         self.tag_names_line_edit.setPlaceholderText("Tag Names")
         self.tag_layout.insertWidget(0, self.tag_names_line_edit)
 
