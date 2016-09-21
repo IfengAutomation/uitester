@@ -134,7 +134,7 @@ class ConflictTagsWidget(QWidget):
         again_conflict_data = []
         for item_data in table_data:
             if item_data['name'] != item_data['src_name']:
-                tag = self.case_data_manager.db_command_line_helper.query_tag_by_name(True, item_data['name'])
+                tag = self.case_data_manager.db_helper.query_tag_by_name(item_data['name'])
                 if tag:
                     again_conflict_data.append(item_data['name'])
         return again_conflict_data

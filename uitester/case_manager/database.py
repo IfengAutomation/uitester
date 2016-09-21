@@ -46,7 +46,6 @@ class Case(Base, Model):
     content = Column(TEXT)
     tags = relationship('Tag', secondary=case_tag_table, backref="case")
 
-
 class Tag(Base):
     '''
     tag 信息
@@ -55,7 +54,6 @@ class Tag(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(8), unique=True)
     description = Column(TEXT)
-
 
 class DB:
     db_path = os.path.abspath(os.path.join(config.app_dir, 'casetest.db'))
@@ -99,6 +97,9 @@ class DBCommandLineHelper:
 
     def delete_tag_by_name(self, name):
         '''删除tag'''
+        cases = self.query_case_by_tag_names([name])
+        for case in cases:
+            case.tags.clear()
         DB.session.query(Tag).filter(Tag.name == name).delete()
         DB.session.commit()
 
@@ -165,11 +166,17 @@ class DBCommandLineHelper:
         DB.session.commit()
 
     def delete_case(self, id):
-        DB.session.query(Case).filter(Case.id == id).delete()
+        case = DB.session.query(Case).filter(Case.id == id).first()
+        case.tags.clear()
+        DB.session.delete(case)
         DB.session.commit()
 
     def batch_delete_case(self, ids):
-        DB.session.query(Case).filter(Case.id.in_(ids)).delete(synchronize_session=False)
+        cases = DB.session.query(Case).filter(Case.id.in_(ids)).all()
+        for case in cases:
+            case.tags.clear()
+            DB.session.delete(case)
+        # DB.session.query(Case).filter(Case.id.in_(ids)).delete(synchronize_session=False)
         DB.session.commit()
 
     def get_table_data(self, table_name):
