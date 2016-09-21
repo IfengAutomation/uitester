@@ -72,7 +72,7 @@ class CaseManagerWidget(QWidget):
     def modify_tag(self):
         items = self.tag_list_widget.selectedItems()
         item = items[0]
-        if item.text() == '全部' or item.text() == '未选择':
+        if item.text() == '全部' or item.text() == '无标识':
             QMessageBox.warning(self, 'tag select ', 'please select a tag')
         else:
             self.tag_editor_window = TagEditorWidget(self.refresh_signal, item.text())
@@ -86,10 +86,10 @@ class CaseManagerWidget(QWidget):
         '''
         items = self.tag_list_widget.selectedItems()
         item = items[0]
-        if item.text() == '全部' or item.text() == '未选择':
-            QMessageBox.warning(self, 'Tag Select ', 'tag can\'t be empty')
+        if item.text() == '全部' or item.text() == '无标识':
+            QMessageBox.warning(self, 'Tag Select ', 'please select a tag')
         else:
-            reply = QMessageBox.information(self, "Tag Delete", "Do you want to delete this tag?",
+            reply = QMessageBox.information(self, "Tag Delete", "Do you want to delete ["+item.text()+"]",
                                             QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:  # update case info
                 self.db_helper.delete_tag_by_name(item.text())
@@ -171,7 +171,7 @@ class CaseManagerWidget(QWidget):
         self.data_message_layout.removeWidget(self.table_widget)
         if '全部' == tag_name:
             case_list = self.db_helper.query_case_all()
-        elif '未选择' == tag_name:
+        elif '无标识' == tag_name:
             case_list = self.db_helper.query_no_tag_case()
         else:
             case_list = self.db_helper.query_case_by_tag_names([tag_name])
@@ -192,6 +192,8 @@ class CaseManagerWidget(QWidget):
         if tag_names != '':
             tag_names = tag_names[:len(tag_names)].split(';')
             case_list = self.db_helper.query_case_by_tag_names(tag_names)
+        else:
+            case_list = self.db_helper.query_case_all()
         self.table_widget = TableWidget(self.show_case_editor_signal, self.tester, case_list)
         self.data_message_layout.insertWidget(1, self.table_widget)
 
@@ -202,7 +204,7 @@ class CaseManagerWidget(QWidget):
         '''
         self.tag_list_widget.clear()
         self.tag_list_widget.addItem('全部')
-        self.tag_list_widget.addItem('未选择')
+        self.tag_list_widget.addItem('无标识')
         self.tag_list = self.db_helper.query_tag_all()
         for tag in self.tag_list:
             self.tag_list_widget.addItem(tag.name)
@@ -229,5 +231,13 @@ class CaseManagerWidget(QWidget):
         return tag_model_list
 
     def list_widget_item_clicked(self, tag_list_widget_item):
+        self.tag_names_line_edit.is_completer = False
         self.tag_names_line_edit.clear()
-        self.update_table_data_by_list_view(tag_list_widget_item.text())
+        text = tag_list_widget_item.text()
+        if tag_list_widget_item.text() == '全部' or tag_list_widget_item.text() == '无标识':
+            self.tag_names_line_edit.setText('')
+        else:
+            text = tag_list_widget_item.text()
+            self.tag_names_line_edit.setText(text+';')
+        self.update_table_data_by_list_view(text)
+        self.tag_names_line_edit.is_completer = True

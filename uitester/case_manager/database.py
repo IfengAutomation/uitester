@@ -169,7 +169,7 @@ class DBCommandLineHelper:
         DB.session.commit()
 
     def batch_delete_case(self, ids):
-        DB.session.query(Case).filter(Case.id in ids).delete()
+        DB.session.query(Case).filter(Case.id.in_(ids)).delete(synchronize_session=False)
         DB.session.commit()
 
     def get_table_data(self, table_name):
