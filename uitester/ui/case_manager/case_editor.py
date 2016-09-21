@@ -4,11 +4,12 @@ import os
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox, QTextBrowser, QSplitter
+from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox, QSplitter
 
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.ui.case_manager.case_search_edit import TagLineEdit, TagCompleter, SearchButton
 from uitester.ui.case_manager.case_text_edit import TextEdit, Completer
+from uitester.ui.case_manager.console import Console
 from uitester.ui.case_manager.highlighter import MyHighlighter
 from uitester.ui.case_manager.tag_manage_widget import TagManageWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
@@ -49,7 +50,7 @@ class EditorWidget(QWidget):
 
         self.splitter = QSplitter(Qt.Vertical)
         self.editor_text_edit = TextEdit(self.kw_core)  # case content TextEdit
-        self.console = QTextBrowser()
+        self.console = Console()
 
         # Add the 'editor text edit' and 'console' to splitter
         self.splitter.addWidget(self.editor_text_edit)

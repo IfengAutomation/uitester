@@ -34,7 +34,7 @@ class MyHighlighter(QSyntaxHighlighter):
         brush = QBrush(Qt.darkGreen, Qt.SolidPattern)
         keyword.setForeground(brush)
         keyword.setFontWeight(QFont.Bold)
-        keywords = ["break", "else", "for", "if", "in", "next", "repeat", "return", "switch", "try", "while"]
+        keywords = ["break", "else", "for", "if", "in", "next", "repeat", "return", "switch", "try", "while", "as"]
 
         for word in keywords:
             pattern = QRegExp("\\b" + word + "\\b")

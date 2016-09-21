@@ -1,8 +1,9 @@
 # -*- encoding: UTF-8 -*-
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt5.QtCore import pyqtSignal, Qt, QPoint
+from PyQt5.QtGui import QTextCursor
+
+from PyQt5.QtWidgets import QTextEdit, QCompleter
 
 from uitester.ui.case_manager.completer_widget import CompleterWidget
 
@@ -123,8 +124,8 @@ class TextEdit(QTextEdit):
         if line_content.find('import') != 0:
             try:
                 self.kw_core.parse_line(line_content)
-            except ValueError as e:
-                self.parse_error_info_signal.emit(str(e.args))
+            except Exception as e:
+                self.parse_error_info_signal.emit(str(e))
 
     def update_popup_widget_position(self):
         """
