@@ -58,6 +58,8 @@ class KWCore:
             return
         # parse line to kw line
         kw_line = self._parse_line(line, line_number=self.line_count)
+        if kw_line.comment:
+            return
 
         func = kw_line.items[0]
 
