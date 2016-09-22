@@ -97,10 +97,11 @@ class DBCommandLineHelper:
 
     def delete_tag_by_name(self, name):
         '''删除tag'''
+        tag = DB.session.query(Tag).filter(Tag.name == name).first()
         cases = self.query_case_by_tag_names([name])
         for case in cases:
-            case.tags.clear()
-        DB.session.query(Tag).filter(Tag.name == name).delete()
+            case.tags.remove(tag)
+        DB.session.delete(tag)
         DB.session.commit()
 
     def delete_tag(self, id):
