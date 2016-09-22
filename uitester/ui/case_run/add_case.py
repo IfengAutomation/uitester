@@ -44,14 +44,23 @@ class AddCaseWidget(QWidget):
         """
         self.result_widget.setParent(None)
         self.result_table_layout.removeWidget(self.result_widget)
-        tag_names = self.tag_names_line_edit.text()
-        tag_names = tag_names[0: len(tag_names) - 1]
-        case_list = []
-        if tag_names != '':
-            tag_names = tag_names[:len(tag_names)].split(';')
-            case_list = self.dBCommandLineHelper.query_case_by_tag_names(tag_names)
-        else:
+        tag_names = self.tag_names_line_edit.text().strip()
+        # tag_names is None
+        if not tag_names:
             case_list = self.dBCommandLineHelper.query_case_all()
+            self.result_widget = RunnerTableWidget(case_list, [])
+            self.result_table_layout.insertWidget(0, self.result_widget)
+            return
+
+        # tag_names is not None
+        tag_names = tag_names.split(';')
+        tag_name_set = set()  # handle the repeat tag names
+        for tag_name in tag_names:
+            if not tag_name.strip():  # remove null tag
+                tag_names.remove(tag_name.strip())
+                continue
+            tag_name_set.add(tag_name.strip())
+        case_list = self.dBCommandLineHelper.query_case_by_tag_names(list(tag_name_set))
         self.result_widget = RunnerTableWidget(case_list, [])
         self.result_table_layout.insertWidget(0, self.result_widget)
 
