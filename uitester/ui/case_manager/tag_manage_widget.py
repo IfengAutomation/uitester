@@ -56,7 +56,7 @@ class TagManageWidget(QWidget):
         handle select event
         :return:
         """
-        selected_tag_names = self.tag_names_line_edit.text()
+        selected_tag_names = self.tag_names_line_edit.text().strip()
         if not selected_tag_names:
             self.close()
             return
@@ -90,12 +90,14 @@ class TagManageWidget(QWidget):
         tag_name_set = set()
         selected_tag_names = ""
 
-        selected_line_edit_text = self.tag_names_line_edit.text()
+        selected_line_edit_text = self.tag_names_line_edit.text().strip()
         tag_names_list = selected_line_edit_text.split(";")
+
+        # origin tag names
         for tag_name in tag_names_list:
-            if tag_name:
-                tag_name_set.add(tag_name + ";")
-        tag_name_set.add(tag_list_widget_item.text() + ';')
+            if tag_name.strip():
+                tag_name_set.add(tag_name.strip() + ";")
+        tag_name_set.add(tag_list_widget_item.text() + ';')  # add clicked tag name
 
         for tag_name in tag_name_set:
             selected_tag_names += tag_name
@@ -109,20 +111,21 @@ class TagManageWidget(QWidget):
         check tag name,return unrecognized tag names
         :return:
         """
-        tag_name_list = self.tag_names_line_edit.text().split(";")
+        tag_name_list = self.tag_names_line_edit.text().strip().split(";")
         unrecognized_tag_names = ""
         has_unrecognized = False
         for tag_name in tag_name_list:
-            if not tag_name:
+            if not tag_name.strip():
                 continue
-            tag = self.db_helper.query_tag_by_name(tag_name)
+            tag = self.db_helper.query_tag_by_name(tag_name.strip())
             if not tag:
                 unrecognized_tag_names += "\"" + tag_name + "\"" + "、"
-        if unrecognized_tag_names != "":
-            has_unrecognized = True
-            unrecognized_tag_names = unrecognized_tag_names[:-1]
-            self.message_box.about(self, "Warning", "tag: " + unrecognized_tag_names +
-                                   " unrecognized, please add it first.")
+        if not unrecognized_tag_names:
+            return has_unrecognized
+        has_unrecognized = True
+        unrecognized_tag_names = unrecognized_tag_names[:-1]
+        self.message_box.about(self, "Warning", "Tag name: " + unrecognized_tag_names +
+                               " unrecognized, please add it first.")
         return has_unrecognized
 
     def set_completer(self):

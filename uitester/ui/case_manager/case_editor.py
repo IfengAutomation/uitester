@@ -120,22 +120,24 @@ class EditorWidget(QWidget):
         :param tag_names:
         :return:
         """
-        original_tag_names = self.tag_names_line_edit.text()
+        original_tag_names = self.tag_names_line_edit.text().strip()
+        tag_name_set = set(original_tag_names.split(";"))  # original tag name set
         if not tag_names:
             return
         # handle the repeat tag names
         tag_name_list = tag_names.split(";")
         for tag_name in tag_name_list:
-            if tag_name in original_tag_names:
-                tag_name_list.remove(tag_name)
-        add_tag_names = ""
-        for tag_name in tag_name_list:
-            if not tag_name:
+            if (tag_name.strip() in original_tag_names) or (not tag_name.strip()):
                 continue
-            add_tag_names += tag_name + ";"
+            tag_name_set.add(tag_name.strip())  # add new selected tag name
+        all_tag_names = ""
+        for tag_name in tag_name_set:
+            if not tag_name.strip():
+                continue
+            all_tag_names += tag_name.strip() + ";"
 
         self.tag_names_line_edit.is_completer = False
-        self.tag_names_line_edit.setText(original_tag_names + add_tag_names)
+        self.tag_names_line_edit.setText(all_tag_names)
         self.tag_names_line_edit.is_completer = True
 
     def log_show_hide_event(self):
@@ -243,9 +245,9 @@ class EditorWidget(QWidget):
         tag_name_list = self.tag_names_line_edit.text().strip().split(";")
         tag_set = set()
         for tag_name in tag_name_list:
-            if not tag_name:
+            if not tag_name.strip():
                 continue
-            tag = self.dBCommandLineHelper.query_tag_by_name(tag_name)
+            tag = self.dBCommandLineHelper.query_tag_by_name(tag_name.strip())
             tag_set.add(tag)
         return list(tag_set)
 
@@ -430,23 +432,24 @@ class EditorWidget(QWidget):
 
     def check_tag_name(self):
         """
-        check tag name, return unrecognized tag names
+        check tag name,return unrecognized tag names
         :return:
         """
-        tag_name_list = self.tag_names_line_edit.text().split(";")
+        tag_name_list = self.tag_names_line_edit.text().strip().split(";")
         unrecognized_tag_names = ""
         has_unrecognized = False
         for tag_name in tag_name_list:
-            if not tag_name:
+            if not tag_name.strip():
                 continue
-            tag = self.dBCommandLineHelper.query_tag_by_name(tag_name)
+            tag = self.dBCommandLineHelper.query_tag_by_name(tag_name.strip())
             if not tag:
                 unrecognized_tag_names += "\"" + tag_name + "\"" + "、"
-        if unrecognized_tag_names != "":
-            has_unrecognized = True
-            unrecognized_tag_names = unrecognized_tag_names[:-1]
-            self.message_box.about(self, "Warning", "tag: " + unrecognized_tag_names +
-                                   " unrecognized, please add it first.")
+        if not unrecognized_tag_names:
+            return has_unrecognized
+        has_unrecognized = True
+        unrecognized_tag_names = unrecognized_tag_names[:-1]
+        self.message_box.about(self, "Warning", "Tag name: " + unrecognized_tag_names +
+                               " unrecognized, please add it first.")
         return has_unrecognized
 
 
