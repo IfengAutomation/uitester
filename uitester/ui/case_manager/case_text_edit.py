@@ -65,6 +65,25 @@ class TextEdit(QTextEdit):
         tc.select(QTextCursor.WordUnderCursor)
         return tc.selectedText()
 
+    def dot_text_under_cursor(self):
+        """
+        get the word ends with "."
+        :return:
+        """
+        dot_word = ""
+        tc = self.textCursor()
+        tc.select(QTextCursor.BlockUnderCursor)
+        if not tc.selectedText().strip():
+            return dot_word
+        block_text_list = tc.selectedText().split(" ")
+        last_word = block_text_list[len(block_text_list)-1]
+
+        if not last_word:
+            return dot_word
+        if last_word.endswith("."):
+            dot_word = last_word[:-1]
+        return dot_word
+
     def mousePressEvent(self, event):
         """
         while the mouse pressed and the popup_widget is visible, hide the popup_widget
@@ -93,18 +112,21 @@ class TextEdit(QTextEdit):
         if e.key() in (Qt.Key_Return, Qt.Key_Enter):
             self.parse_content()
 
-        is_shortcut = ((e.modifiers() & Qt.ControlModifier) and e.key() == Qt.Key_E)  # 设置 ctrl + e 快捷键
+        is_shortcut = ((e.modifiers() & Qt.ControlModifier) and e.key() == Qt.Key_E)  # shortcut key:ctrl + e
         if not self.cmp or not is_shortcut:
             super(TextEdit, self).keyPressEvent(e)
 
         ctrl_or_shift = e.modifiers() & (Qt.ControlModifier | Qt.ShiftModifier)
-        eow = "~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-="
+        eow = "~!@#$%^&*()_+{}|:\"<>?,/;'[]\\-="
         has_modifier = (e.modifiers() != Qt.NoModifier) and not ctrl_or_shift
         completion_prefix = self.text_under_cursor()
-
-        if not is_shortcut and (has_modifier or (not e.text()) or len(completion_prefix) < 2 or (e.text()[-1] in eow)):
+        dot_text = self.dot_text_under_cursor()
+        prefix_or_dot = (len(completion_prefix) < 2 or dot_text)
+        if not is_shortcut and (has_modifier or (not e.text()) or prefix_or_dot or (e.text()[-1] in eow)):
             self.popup_widget.hide()
             return
+        if dot_text and (not completion_prefix):
+            completion_prefix = dot_text
         self.cmp.update(completion_prefix, self.popup_widget)
         self.update_popup_widget_position()
         self.activateWindow()

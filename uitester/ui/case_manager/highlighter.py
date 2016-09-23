@@ -16,6 +16,7 @@ class MyHighlighter(QSyntaxHighlighter):
         number = QTextCharFormat()
         comment = QTextCharFormat()
         string = QTextCharFormat()
+        var = QTextCharFormat()
         single_quoted_string = QTextCharFormat()
 
         self.highlightingRules = []
@@ -80,7 +81,7 @@ class MyHighlighter(QSyntaxHighlighter):
 
         # boolean
         boolean.setForeground(brush)
-        keywords = ["TRUE", "FALSE"]
+        keywords = ["True", "False"]
         for word in keywords:
             pattern = QRegExp("\\b" + word + "\\b")
             rule = HighlightingRule(pattern, boolean)
@@ -94,8 +95,15 @@ class MyHighlighter(QSyntaxHighlighter):
         rule = HighlightingRule(pattern, number)
         self.highlightingRules.append(rule)
 
-        # comment
+        # var
         brush = QBrush(Qt.blue, Qt.SolidPattern)
+        pattern = QRegExp("\$[a-zA-Z0-9]+|\d+\s")
+        var.setForeground(brush)
+        rule = HighlightingRule(pattern, var)
+        self.highlightingRules.append(rule)
+
+        # comment
+        brush = QBrush(Qt.gray, Qt.SolidPattern)
         pattern = QRegExp("#[^\n]*")
         comment.setForeground(brush)
         rule = HighlightingRule(pattern, comment)

@@ -163,21 +163,24 @@ class EditorWidget(QWidget):
         init data for update case
         :return:
         """
-        if self.case_id:
-            self.case = self.dBCommandLineHelper.query_case_by_id(self.case_id)
-            self.id_line_edit.setText(self.case_id)
-            self.case_name_line_edit.setText(self.case.name)
-            tags = ''
-            for tag in self.case.tags:
-                tags = tags + tag.name + ";"
-            self.tag_names_line_edit.setText(tags)
-            self.editor_text_edit.setPlainText(self.case.content)
+        if not self.case_id:
+            return
+        self.case = self.dBCommandLineHelper.query_case_by_id(self.case_id)
+        self.id_line_edit.setText(self.case_id)
+        self.case_name_line_edit.setText(self.case.name)
+        tags = ''
+        for tag in self.case.tags:
+            tags = tags + tag.name + ";"
+        self.tag_names_line_edit.setText(tags)
+        self.editor_text_edit.setPlainText(self.case.content)
 
-            init_import_list = set()
-            for cmd in self.case.content.split("\n"):
-                if cmd.strip().find("import") == 0:
-                    init_import_list.add(cmd.strip())
-            self.import_list_signal.emit(init_import_list)
+        # 'import' block in the case content
+        init_import_set = set()
+        for cmd in self.case.content.split("\n"):
+            if cmd.strip().find("import") == 0:
+                init_import_set.add(cmd.strip())
+        # send the init import block to editor's text edit, for init the highlighter and completer
+        self.import_list_signal.emit(init_import_set)
 
     def closeEvent(self, event):
         """
