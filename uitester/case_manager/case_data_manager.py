@@ -157,6 +157,8 @@ class CaseDataManager:
         :param case_id:
         :return:
         '''
+        if case.data_driven_relation:
+            case.case_data_driven = eval(case.data_driven_relation)
         return case
         # case = self.db_helper.query_case_by_id(case_id)
         # if case.data_driven_relation:
@@ -200,5 +202,5 @@ class CaseDataManager:
 if __name__ == '__main__':
     case_data_manager = CaseDataManager()
     case = case_data_manager.db_helper.query_case_by_id(1)
-    case_data_manager.query_case_data_driven_by_case(case = case)
+    case = case_data_manager.query_case_data_driven_by_case(case = case)
     print(case)

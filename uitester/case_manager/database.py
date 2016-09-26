@@ -50,7 +50,7 @@ class Case(Base, Model):
     content = Column(TEXT)
     tags = relationship('Tag', secondary=case_tag_table, backref="case")
     data_driven_relation=Column(TEXT)
-    case_data_driven={}
+    case_data_driven=[]
 
 class Tag(Base):
     '''
