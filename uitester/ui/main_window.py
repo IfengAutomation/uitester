@@ -54,7 +54,8 @@ class MainWindow(QMainWindow):
 
 def start():
     app = QApplication(sys.argv)
-    app.setStyle('Windows')
+    # app.setStyle('Windows')
+    app.setStyle('fusion')
     widget = MainWindow()
     widget.show()
     sys.exit(app.exec_())

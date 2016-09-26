@@ -141,7 +141,9 @@ class CaseManagerWidget(QWidget):
         button.setToolTip(text)
         button.resize(50, 50)
         button.setStyleSheet(
-            'QPushButton{border-width:0px; background:transparent;} ')
+            # 'QPushButton{border-width:0px; background:transparent;} '
+            'border:none; '
+        )
 
     def delete_case(self):
         self.table_widget.get_checked_data()  # todo  尝试能否直接获取到checkboxs 的状态

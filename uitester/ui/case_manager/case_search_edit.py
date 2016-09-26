@@ -34,7 +34,9 @@ class SearchButton(QPushButton):
         self.setCursor(Qt.PointingHandCursor)
         self.setFixedSize(22, 22)
         self.setStyleSheet(
-            "QPushButton{border-width:0px; background:transparent;} ")
+            # "QPushButton{border-width:0px; background:transparent;} "
+            "border:none; "
+        )
 
 
 class TagLineEdit(QLineEdit):
