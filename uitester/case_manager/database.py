@@ -36,6 +36,10 @@ case_tag_table = Table('case_tag', Base.metadata,
                        Column('tag_id', Integer, ForeignKey('tag.id'))
                        )
 
+class DataDriven(Base):
+    __tablename__ = 'case_data_driven'
+    id = Column(Integer, primary_key=True)
+    data = Column(TEXT)
 
 class Case(Base, Model):
     '''
@@ -45,6 +49,8 @@ class Case(Base, Model):
     name = Column(String(20))
     content = Column(TEXT)
     tags = relationship('Tag', secondary=case_tag_table, backref="case")
+    data_driven_relation=Column(TEXT)
+    case_data_driven={}
 
 class Tag(Base):
     '''

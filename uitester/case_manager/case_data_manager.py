@@ -138,15 +138,66 @@ class CaseDataManager:
             case_list.append(case)
         self.db_helper.batch_insert_case_with_tags(case_list)
 
-    def add_tag(self,tag_name,tag_description):
-        #TODO 前端确保标识不存在
-        result={}
+    def add_tag(self, tag_name, tag_description):
+        # TODO 前端确保标识不存在
+        result = {}
         tag = self.db_helper.query_tag_by_name(tag_name)
-        if tag :
-            result['status']=-1
-            result['message']='标识已存在'
+        if tag:
+            result['status'] = -1
+            result['message'] = '标识已存在'
         else:
             self.db_helper.insert_tag(tag_name, tag_description)
             result['status'] = 0
             result['message'] = '标识插入成功'
         return result
+
+    def query_case_data_driven_by_case(self, case):
+        '''
+        get case data driven by case id
+        :param case_id:
+        :return:
+        '''
+        # case = self.db_helper.query_case_by_id(case_id)
+        # if case.data_driven_relation:
+        #     data_driven_relation = eval(case.data_driven_relation)  # 字符串转二维数组
+        #     print("data_driven_relation:{}".format(data_driven_relation))  # todo 可能为空   对空做处理
+        #     if len(data_driven_relation) > 0:
+        #         print("len data_driven_relation:{}".format(len(data_driven_relation)))
+        #         data_driven_column = data_driven_relation[0]
+        #         for row in range(1, len(data_driven_relation)):
+        #             for column in range(0, len(data_driven_column)):
+        #                 data_driven_id = data_driven_relation[row][column]
+        #                 data = self.db_helper.query_case_data_driven_by_id(int(data_driven_id))
+        #                 print("data:{}".format(data))
+        #                 case.case_data_driven[data_driven_column[column]] = data
+
+                    # return case
+
+    def insert_case_data_driven(self):
+        # 如果插入后没保存怎么办，
+        # todo 参数case_id
+        # 更新case 中的 data_driven_relation
+        # 插入 case_data_dirven 数据
+        #
+        self.db_helper.insert_case_data_driven()
+
+    def modify_case_data_driven(self, id):
+        '''
+        modify case data driven
+        :param id:
+        :return:
+        '''
+        self.db_helper.modify_case_data_driven()
+
+    def delete_case_data_driven(self):
+        pass
+
+    def save_case_data_driven(self):
+        pass
+
+
+# if __name__ == '__main__':
+#     case_data_manager = CaseDataManager()
+#     case = case_data_manager.db_helper.query_case_by_id(1)
+#     case_data_manager.query_case_data_driven_by_case(case = case)
+#     print(case)
