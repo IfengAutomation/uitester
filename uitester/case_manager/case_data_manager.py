@@ -151,7 +151,7 @@ class CaseDataManager:
             result['message'] = '标识插入成功'
         return result
 
-    def query_case_data_driven_by_case(self, case):
+    def query_case_data_driven(self, case,id=None):
         '''
         get case data driven by case id
         :param case_id:
@@ -202,5 +202,5 @@ class CaseDataManager:
 if __name__ == '__main__':
     case_data_manager = CaseDataManager()
     case = case_data_manager.db_helper.query_case_by_id(1)
-    case = case_data_manager.query_case_data_driven_by_case(case = case)
+    case = case_data_manager.query_case_data_driven(case = case)
     print(case)
