@@ -157,6 +157,7 @@ class CaseDataManager:
         :param case_id:
         :return:
         '''
+        return case
         # case = self.db_helper.query_case_by_id(case_id)
         # if case.data_driven_relation:
         #     data_driven_relation = eval(case.data_driven_relation)  # 字符串转二维数组
@@ -196,8 +197,8 @@ class CaseDataManager:
         pass
 
 
-# if __name__ == '__main__':
-#     case_data_manager = CaseDataManager()
-#     case = case_data_manager.db_helper.query_case_by_id(1)
-#     case_data_manager.query_case_data_driven_by_case(case = case)
-#     print(case)
+if __name__ == '__main__':
+    case_data_manager = CaseDataManager()
+    case = case_data_manager.db_helper.query_case_by_id(1)
+    case_data_manager.query_case_data_driven_by_case(case = case)
+    print(case)
