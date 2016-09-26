@@ -73,6 +73,7 @@ class EditorWidget(QWidget):
         self.save_btn.clicked.connect(self.save_case)
         self.run_btn.clicked.connect(self.run_btn_event)
         self.console_btn.clicked.connect(self.log_show_hide_event)
+        self.add_data_btn.clicked.connect(self.add_case_data)
         self.add_tag_button.clicked.connect(self.choose_event)
 
     def init_ui(self):
@@ -103,6 +104,17 @@ class EditorWidget(QWidget):
         console_icon = QIcon()
         console_icon.addPixmap(QPixmap(self.config.images + '/console.png'), QIcon.Normal, QIcon.Off)     # console icon
         self.console_btn.setIcon(console_icon)
+
+        add_data_icon = QIcon()
+        add_data_icon.addPixmap(QPixmap(self.config.images + '/add.png'), QIcon.Normal, QIcon.Off)  # console icon
+        self.add_data_btn.setIcon(add_data_icon)
+
+    def add_case_data(self):
+        """
+        show case data widget
+        :return:
+        """
+        pass
 
     def choose_event(self):
         """
@@ -269,8 +281,13 @@ class EditorWidget(QWidget):
         if self.is_running:
             self.stop_case()
             return
-        if self.tester.devices():
+        try:
             devices = self.tester.devices()
+        except Exception as e:
+            self.add_error_info(str(e))
+        if not devices:  # There is no device connected
+            self.message_box.warning(self, "Message", "Please connect the device to your computer.", QMessageBox.Ok)
+            return
         self.device_list_signal.emit(devices)
         self.add_device_widget.show()
 
@@ -422,6 +439,7 @@ class EditorWidget(QWidget):
         add_icon = QIcon()
         add_icon.addPixmap(QPixmap(self.config.images + '/add.png'), QIcon.Normal, QIcon.Off)
         self.add_tag_button.setIcon(add_icon)
+        self.add_tag_button.setToolTip("add tag")
 
         self.tag_names_line_edit.setPlaceholderText("Tag Names")
         self.tag_layout.insertWidget(0, self.tag_names_line_edit)

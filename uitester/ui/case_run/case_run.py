@@ -1,4 +1,5 @@
 # -*- encoding: UTF-8 -*-
+import logging
 import os
 
 from PyQt5 import uic
@@ -13,6 +14,8 @@ from uitester.ui.case_run.add_device import AddDeviceWidget
 from uitester.ui.case_run.case_run_status_listener import CaseRunStatusListener
 from uitester.ui.case_run.console import Console
 from uitester.ui.case_run.table_widget import RunnerTableWidget
+
+logger = logging.getLogger("Tester")
 
 
 class RunWidget(QWidget):
@@ -102,8 +105,13 @@ class RunWidget(QWidget):
         if not self.cases:  # cases is null
             self.message_box.warning(self, "Message", "Please add cases first.", QMessageBox.Ok)
             return
-        if self.tester.devices():
+        try:
             devices = self.tester.devices()
+        except Exception as e:
+            self.add_log("<font color='red'>" + str(e) + "</font>")
+        if not devices:  # There is no device connected
+            self.message_box.warning(self, "Message", "Please connect the device to your computer.", QMessageBox.Ok)
+            return
         self.add_device_widget.show()
         self.device_list_signal.emit(devices)
 
@@ -159,8 +167,8 @@ class RunWidget(QWidget):
             self.add_log(str(e))
         if not devices:
             return
-        self.tester.select_devices(devices)
         try:
+            self.tester.select_devices(devices)
             self.tester.run(kw_case_list)
         except Exception as e:
             self.stop_case()

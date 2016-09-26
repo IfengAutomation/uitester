@@ -31,8 +31,11 @@ class TextEdit(QTextEdit):
         editor content change event
         :return:
         """
-        completion_prefix = self.text_under_cursor()
-        if len(completion_prefix) < 2:
+        completion_prefix = self.text_under_cursor().strip()
+        if not completion_prefix:
+            return
+        prefix_or_special = len(completion_prefix) < 2 and completion_prefix != "$"
+        if prefix_or_special:
             self.popup_widget.hide()
             return
         self.cmp.update(completion_prefix, self.popup_widget)
@@ -61,28 +64,14 @@ class TextEdit(QTextEdit):
         self.setTextCursor(tc)
 
     def text_under_cursor(self):
-        tc = self.textCursor()
-        tc.select(QTextCursor.WordUnderCursor)
-        return tc.selectedText()
-
-    def dot_text_under_cursor(self):
-        """
-        get the word ends with "."
-        :return:
-        """
-        dot_word = ""
+        text = ""
         tc = self.textCursor()
         tc.select(QTextCursor.BlockUnderCursor)
         if not tc.selectedText().strip():
-            return dot_word
+            return text
         block_text_list = tc.selectedText().split(" ")
-        last_word = block_text_list[len(block_text_list)-1]
-
-        if not last_word:
-            return dot_word
-        if last_word.endswith("."):
-            dot_word = last_word[:-1]
-        return dot_word
+        text = block_text_list[len(block_text_list) - 1].strip()
+        return text
 
     def mousePressEvent(self, event):
         """
@@ -113,23 +102,14 @@ class TextEdit(QTextEdit):
             self.parse_content()
 
         is_shortcut = ((e.modifiers() & Qt.ControlModifier) and e.key() == Qt.Key_E)  # shortcut key:ctrl + e
+        completion_prefix = self.text_under_cursor()
+        if is_shortcut:
+            self.cmp.update(completion_prefix, self.popup_widget)
+            self.update_popup_widget_position()
+            self.activateWindow()
+
         if not self.cmp or not is_shortcut:
             super(TextEdit, self).keyPressEvent(e)
-
-        ctrl_or_shift = e.modifiers() & (Qt.ControlModifier | Qt.ShiftModifier)
-        eow = "~!@#$%^&*()_+{}|:\"<>?,/;'[]\\-="
-        has_modifier = (e.modifiers() != Qt.NoModifier) and not ctrl_or_shift
-        completion_prefix = self.text_under_cursor()
-        dot_text = self.dot_text_under_cursor()
-        prefix_or_dot = (len(completion_prefix) < 2 or dot_text)
-        if not is_shortcut and (has_modifier or (not e.text()) or prefix_or_dot or (e.text()[-1] in eow)):
-            self.popup_widget.hide()
-            return
-        if dot_text and (not completion_prefix):
-            completion_prefix = dot_text
-        self.cmp.update(completion_prefix, self.popup_widget)
-        self.update_popup_widget_position()
-        self.activateWindow()
 
     def parse_content(self):
         """
@@ -258,10 +238,19 @@ class Completer(QCompleter):
         string_list = self.get_func_name_list(self.func_dict)
         match_str_list = []
         popup_widget.func_list_widget.clear()
-        for string in string_list:
-            if (completion_text in string) and (completion_text != string):
-                match_str_list.append(string)
-                popup_widget.func_list_widget.addItem(string)
+        # TODO 三种情况
+        if completion_text.startswith("$") and (not completion_text.endswith(".")):
+            # TODO var 提示
+            pass
+        elif completion_text.endswith("."):
+            # TODO var attr 提示
+            var_word = completion_text[1:-1]  # get var word
+            pass
+        else:  # match func name
+            for string in string_list:
+                if completion_text in string and completion_text != string:
+                    match_str_list.append(string)
+                    popup_widget.func_list_widget.addItem(string)
         popup_widget.func_list_widget.sortItems()  # ASC
 
         if len(match_str_list) < 1:

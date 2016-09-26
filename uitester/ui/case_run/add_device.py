@@ -14,7 +14,7 @@ class AddDeviceWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.buttons_or_labels = []
+        self.button_radios = []
 
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, 'add_device.ui')
@@ -34,8 +34,8 @@ class AddDeviceWidget(QWidget):
         :return:
         """
         devices = []
-        for index in range(len(self.buttons_or_labels)):
-            item = self.buttons_or_labels[index]
+        for index in range(len(self.button_radios)):
+            item = self.button_radios[index]
             if type(item) == QLabel:
                 self.message_box.warning(self, "Message", "Please connect the device to your computer.", QMessageBox.Ok)
                 return
@@ -77,26 +77,20 @@ class AddDeviceWidget(QWidget):
         :param devices_list:
         :return:
         """
-        self.clear_button_or_label()
+        self.clear_button_radios()
 
         self.devices_list = devices_list
-        if len(devices_list) == 0:
-            label = QLabel()
-            label.setText("There is no device.")
-            self.buttons_or_labels.append(label)
-            self.devices_layout.addWidget(label)
-            return
         for device in devices_list:
             radio = QRadioButton(device.id)
-            self.buttons_or_labels.append(radio)
+            self.button_radios.append(radio)
             self.devices_layout.addWidget(radio)
 
-    def clear_button_or_label(self):
+    def clear_button_radios(self):
         """
         clear the content of devices_layout
         :return:
         """
-        for item in self.buttons_or_labels:
+        for item in self.button_radios:
             item.setParent(None)
-        self.buttons_or_labels = []
+        self.button_radios = []
 
