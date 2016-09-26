@@ -29,7 +29,7 @@ def get_view(view_id):
     return v
 
 
-def start_app(context, package_name):
+def start_app(package_name):
     """
     Start app by package name
     :param package_name:
@@ -44,7 +44,7 @@ def start_app(context, package_name):
     return response.args[0]
 
 
-def finish_app(context):
+def finish_app():
     """
     Finish all activity
     :return:
@@ -58,7 +58,7 @@ def finish_app(context):
     return response.args[0]
 
 
-def click_on_text(context, text):
+def click_on_text(text):
     """
     Click on text
 
@@ -74,7 +74,7 @@ def click_on_text(context, text):
     return response.args[0]
 
 
-def enter_text(context, view, text):
+def enter_text(view, text):
     """
     Enter text to a editor view
 
@@ -91,7 +91,7 @@ def enter_text(context, view, text):
     return response.args[0]
 
 
-def wait_for_text(context, text):
+def wait_for_text(text):
     """
     Wait text
     :param text:
@@ -106,7 +106,7 @@ def wait_for_text(context, text):
     return response.args[0]
 
 
-def click_on_view(context, view):
+def click_on_view(view):
     """
     Click on view
     :param view:

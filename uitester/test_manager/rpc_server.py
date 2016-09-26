@@ -89,7 +89,7 @@ class RPCAgent:
         self.connection = None
         self.responses = queue.Queue()
 
-    def call(self, method, args=None):
+    def call(self, method, args=None, timeout=Timeout):
         self.msg_id += 1
         msg = RPCMessage()
         msg.msg_id = self.msg_id
@@ -97,7 +97,7 @@ class RPCAgent:
         msg.name = method
         msg.args = args
         self.wfile.write((msg.to_json() + '\n').encode())
-        res = self.responses.get()
+        res = self.responses.get(timeout=timeout)
         return res
 
     def close(self):

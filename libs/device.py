@@ -6,6 +6,7 @@ var_cache = {}
 def keyword(name):
     def _register(func):
         kw_func[name] = func
+        return func
     return _register
 
 
@@ -18,6 +19,7 @@ class View:
         self.hash = 0
 
 
+@keyword('getView')
 def get_view(view_id):
     """
 
@@ -27,6 +29,7 @@ def get_view(view_id):
     return var_cache['proxy'].get_view(view_id)
 
 
+@keyword('clickOnText')
 def click_on_text(text):
     """
 
@@ -36,6 +39,7 @@ def click_on_text(text):
     return var_cache['proxy'].click_on_text(text)
 
 
+@keyword('clickOnView')
 def click_on_view(view):
     """
 
@@ -45,6 +49,7 @@ def click_on_view(view):
     return var_cache['proxy'].click_on_view(view)
 
 
+@keyword('launch_app')
 def launch_app(package_name):
     """
 
