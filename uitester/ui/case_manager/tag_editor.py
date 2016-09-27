@@ -25,7 +25,7 @@ class TagEditorWidget(QWidget):
         self.tag_save_btn.clicked.connect(self.tag_save)
         self.tag_id_line_edit.hide()  # 隐藏line_edit
         self.tag_name_line_edit.setPlaceholderText("Tag Name")  # 设置提示文字
-        self.tag_description_text_edit.setPlaceholderText('tag description')
+        self.tag_description_text_edit.setPlaceholderText('Tag Description')
         if tag_name:
             self.tag = self.db_helper.query_tag_by_name(tag_name)
             self.tag_id_line_edit.setText(str(self.tag.id))
