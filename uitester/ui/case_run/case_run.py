@@ -58,7 +58,7 @@ class RunWidget(QWidget):
         self.splitter_setting()
 
         self.add_device_widget.add_log_signal.connect(self.add_log, Qt.QueuedConnection)
-        self.add_device_widget.run_signal.connect(self.run_case, Qt.QueuedConnection)
+        self.add_device_widget.run_case_signal.connect(self.run_case, Qt.QueuedConnection)
         self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
 
         self.status_listener = CaseRunStatusListener()

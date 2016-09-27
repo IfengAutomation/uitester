@@ -16,7 +16,7 @@ from uitester.ui.case_run.console import Console
 
 
 class EditorWidget(QWidget):
-    device_list_signal = pyqtSignal(list, name="device_list_signal")
+    device_and_data_signal = pyqtSignal(list, int, name="device_list_signal")
     import_list_signal = pyqtSignal(set, name="import_list_signal")
 
     def __init__(self, refresh_signal, tester, case_id=None, *args, **kwargs):
@@ -273,8 +273,8 @@ class EditorWidget(QWidget):
         """
         self.add_device_widget = AddDeviceWidget()  # add device
         self.add_device_widget.setWindowModality(Qt.WindowModal)
-        self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
-        self.add_device_widget.run_signal.connect(self.run_case, Qt.QueuedConnection)
+        self.device_and_data_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
+        self.add_device_widget.run_editor_signal.connect(self.run_case, Qt.QueuedConnection)
         devices = []
         if self.check_null():
             return
@@ -288,10 +288,10 @@ class EditorWidget(QWidget):
         if not devices:  # There is no device connected
             self.message_box.warning(self, "Message", "Please connect the device to your computer.", QMessageBox.Ok)
             return
-        self.device_list_signal.emit(devices)
+        self.device_and_data_signal.emit(devices, 0)   # TODO get data count
         self.add_device_widget.show()
 
-    def run_case(self, devices):
+    def run_case(self, devices, data_line_number):
         # change icon
         stop_icon = QIcon()
         stop_icon.addPixmap(QPixmap(self.config.images + '/stop.png'), QIcon.Normal, QIcon.Off)
@@ -301,6 +301,8 @@ class EditorWidget(QWidget):
         if not devices:
             return
         self.tester.select_devices(devices)
+
+        # TODO data line number
         self.run()   # run
 
     def stop_case(self):

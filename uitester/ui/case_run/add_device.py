@@ -3,18 +3,21 @@ import os
 
 from PyQt5 import uic
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QLabel, QMessageBox, QRadioButton
+from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox, QRadioButton
 
 
 class AddDeviceWidget(QWidget):
-    add_device_signal = pyqtSignal(str, name="add_device_signal")
     add_log_signal = pyqtSignal(str, name="add_log_signal")
-    run_signal = pyqtSignal(list, name="run_signal")
+    run_case_signal = pyqtSignal(list, name="run_signal")
+    run_editor_signal = pyqtSignal(list, int, name="run_editor_signal")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.button_radios = []
+        self.devices_radio_buttons = []
+        self.data_count = None
+        self.selected_data_number = 0  # init data number, '0' refer to all data
+        self.selected_device_list = []
 
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, 'add_device.ui')
@@ -23,43 +26,82 @@ class AddDeviceWidget(QWidget):
         screen = QDesktopWidget().screenGeometry()
         self.resize(screen.width() / 6, screen.height() / 6)
 
-        self.select_device_btn.clicked.connect(self.handle_radio)
+        self.all_data_selected = True
+        self.line_number_line_edit.hide()
+
+        self.select_device_btn.clicked.connect(self.select_event)
         self.cancel_device_btn.clicked.connect(self.close)
+        self.all_radio_btn.clicked.connect(self.data_all_radio_event)
+        self.line_number_radio_btn.clicked.connect(self.data_specified_radio_event)
+
         self.message_box = QMessageBox()
         self.devices_list = []
 
-    def handle_radio(self):
+    def select_event(self):
         """
         handle the select event
         :return:
         """
-        devices = []
-        for index in range(len(self.button_radios)):
-            item = self.button_radios[index]
-            if type(item) == QLabel:
-                self.message_box.warning(self, "Message", "Please connect the device to your computer.", QMessageBox.Ok)
-                return
-            if not item.isChecked():
-                self.message_box.warning(self, "Message", "Please choose a device.", QMessageBox.Ok)
-                return
-            # self.emit_device_info_to_bar(widget.text())  # 主窗口状态栏显示device机身码
-            self.emit_log("<font color='black'>Choose device: " + item.text() + " </font>")
-            device = self.devices_list[index]
-            if device.id == item.text():
-                devices.append(device)
-            self.run_signal.emit(devices)
-            break
+        self.handle_selected_device()
+        self.handle_selected_data()
+
+        if self.data_count is None:
+            # case run
+            self.run_case_signal.emit(self.selected_device_list)
+            self.close()
+            return
+
+        # editor run
+        self.run_editor_signal.emit(self.selected_device_list, self.selected_data_number)
         self.close()
 
-    def emit_device_info_to_bar(self, msg):
+    def handle_selected_device(self):
         """
-        send device info signal
-        :param msg:
+        handle selected device
         :return:
         """
-        if not msg:
+        for index in range(len(self.devices_radio_buttons)):
+            item = self.devices_radio_buttons[index]
+            if not item.isChecked():
+                continue
+            self.emit_log("<font color='black'>Choose device: " + item.text() + " </font>")
+            for device in self.devices_list:
+                if device.id == item.text():
+                    self.selected_device_list.append(device)
+            break
+        if not self.selected_device_list:  # no device is selected
+            self.message_box.warning(self, "Message", "Please choose a device.", QMessageBox.Ok)
             return
-        self.add_device_signal.emit(msg)
+
+    def handle_selected_data(self):
+        """
+        handle selected data
+        :return:
+        """
+        if not self.all_data_selected:
+            self.selected_data_number = self.line_number_line_edit.text().strip()
+            if not self.selected_data_number or type(self.selected_data_number) != int or not (0 < self.selected_data_number <= self.data_count):
+                self.message_box.warning(self, "Message", "Please input the right line number.", QMessageBox.Ok)
+                return
+
+    def data_specified_radio_event(self):
+        """
+        handle the specified_radio's click event
+        :return:
+        """
+        if self.line_number_radio_btn.isChecked():
+            self.all_data_selected = False
+            self.line_number_line_edit.setPlaceholderText("Enter an integer in range: 1 - " + str(self.data_count))
+            self.line_number_line_edit.show()
+
+    def data_all_radio_event(self):
+        """
+        handle the all_radio_btn's click event
+        :return:
+        """
+        if self.all_radio_btn.isChecked():
+            self.all_data_selected = True
+            self.line_number_line_edit.hide()
 
     def emit_log(self, msg):
         """
@@ -71,26 +113,37 @@ class AddDeviceWidget(QWidget):
             return
         self.add_log_signal.emit(msg)
 
-    def add_radio_to_widget(self, devices_list):
+    def add_radio_to_widget(self, devices_list, data_count=None):
         """
         add devices list to "add device" widget
+        :param data_count:
         :param devices_list:
         :return:
         """
-        self.clear_button_radios()
+        self.clear_devices_radio_btn()
 
         self.devices_list = devices_list
         for device in devices_list:
-            radio = QRadioButton(device.id)
-            self.button_radios.append(radio)
+            radio = QRadioButton(device.id)  # TODO 添加设备状态信息
+            self.devices_radio_buttons.append(radio)
             self.devices_layout.addWidget(radio)
 
-    def clear_button_radios(self):
+        if data_count is None:  # Case Run
+            self.data_area.setEnabled(False)
+            self.data_area.hide()
+            return
+        if data_count == 0:  # editor run and data count is 0
+            self.data_area.setEnabled(False)
+            self.data_area.hide()
+        self.data_area.setEnabled(True)
+        self.data_count = data_count
+
+    def clear_devices_radio_btn(self):
         """
         clear the content of devices_layout
         :return:
         """
-        for item in self.button_radios:
+        for item in self.devices_radio_buttons:
             item.setParent(None)
-        self.button_radios = []
+        self.devices_radio_buttons = []
 

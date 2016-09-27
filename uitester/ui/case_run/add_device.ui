@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Add Devices</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <widget class="QWidget" name="device_show_area" native="true">
      <property name="sizePolicy">
@@ -29,8 +29,98 @@
       </sizepolicy>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="bottomMargin">
+      </property>
+      <item>
+       <widget class="QLabel" name="devices_label">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Select Devices:</string>
+        </property>
+       </widget>
+      </item>
       <item>
        <layout class="QVBoxLayout" name="devices_layout"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="data_area" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="topMargin">
+       <number>12</number>
+      </property>
+      <item>
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="data_layout">
+        <property name="topMargin">
+         <number>12</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="data_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Select Data:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="all_radio_btn">
+          <property name="text">
+           <string>All Data</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="line_number_radio_btn">
+          <property name="text">
+           <string>Specified Line Number</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="line_number_line_edit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="readOnly">
+           <bool>false</bool>
+          </property>
+          <property name="placeholderText">
+           <string>Line Number</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -77,7 +167,7 @@
   </layout>
   <zorder>widget</zorder>
   <zorder>device_show_area</zorder>
-  <zorder>layoutWidget</zorder>
+  <zorder>data_area</zorder>
  </widget>
  <resources/>
  <connections/>
