@@ -23,6 +23,9 @@ class RPCServer(ThreadingTCPServer):
     def rm_agent(self, device_id):
         self._agents.pop(device_id)
 
+    def get_agent(self, device_id):
+        return self._agents.get(device_id)
+
 
 class RPCHandler(StreamRequestHandler):
 
@@ -128,8 +131,12 @@ class RPCMessage:
         return json.dumps(self.__dict__)
 
 
+def get_server(port):
+    return RPCServer(('0.0.0.0', port), RPCHandler)
+
+
 def start(port):
-    server = RPCServer(('0.0.0.0', port), RPCHandler)
+    server = get_server(port)
     t = Thread(target=server.serve_forever)
     t.setDaemon(True)
     t.start()

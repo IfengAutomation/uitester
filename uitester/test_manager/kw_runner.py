@@ -59,13 +59,132 @@ class KWRunningStatusListener:
         pass
 
 
+class RunSignal:
+    stop = False
+
+
+class DataRow:
+
+    @classmethod
+    def from_row(cls, headers, data_row):
+        data_dict = {}
+        for index, header in enumerate(headers):
+            data_dict[header] = data_row[index]
+        data = cls()
+        data.__dict__ = data_dict
+        return data
+
+    @classmethod
+    def from_list(cls, headers, data_rows):
+        rows = []
+        for row in data_rows:
+            rows.append(cls.from_row(headers, row))
+        return rows
+
+
 class KWRunner:
+    def __init__(self, status_listener=None):
+        self.listener = status_listener
+        self.run_signal = RunSignal()
 
-    def execute(self):
-        pass
+    def execute(self, cases, agents):
+        self.run_signal.stop = False
+        for agent in agents:
+            t = threading.Thread(target=self._run_cases_on_agent, args=(cases, agent))
+            t.start()
 
-    def task_handler(self, cases, agent):
-        pass
+    def _run_cases_on_agent(self, cases, agent):
+        context.agent = agent
+        for _case in cases:
+            core = KWCore()
+            core.case_id = _case.id
+            if len(_case.data) >= 2:
+                data_rows = DataRow.from_list(_case.data[0], _case.data[1:])
+                for data_row in data_rows:
+                    core.reset()
+                    core.set_data(data_row)
+                    core.parse(_case.content)
+                    core.execute(agent, self.listener)
+            else:
+                core.parse(_case.content)
+                core.execute(agent, self.listener)
+
+    def stop(self):
+        self.run_signal.stop = True
+
+
+class KWDebugRunner:
+    def __init__(self, device_manager, data=None, status_listener=None):
+        self.dm = device_manager
+        self.listener = status_listener
+        self.run_signal = RunSignal()
+        self.core = KWCore(self.run_signal)
+        self.data = data
+
+    @property
+    def data(self):
+        return self.data
+
+    @data.setter
+    def data(self, data):
+        if data is None:
+            return
+        if len(data) < 2:
+            raise ValueError('DebugRunner: Empty data list')
+        self.data = DataRow.from_list(data[0], data[1:])
+
+    def parse(self, script_str):
+        self.core.parse(script_str)
+
+    def execute(self, script_str=None, data_line=0):
+        t = threading.Thread(target=self._thread_execute, args=(script_str, data_line))
+        t.start()
+
+    def _thread_execute(self, script_str=None, data_line=0):
+        if data_line == 0:
+            if self.data is None or len(self.data) < 2:
+                self._execute(script_str=script_str)
+            else:
+                for data_row in self.data[1:]:
+                    self._execute(script_str=script_str, data_row=data_row)
+        else:
+            self._execute(script_str=script_str, data_row=self.data[data_line])
+
+    def _execute(self, script_str=None, data_row=None):
+        self.run_signal.stop = False
+        if script_str:
+            self.core.reset()
+            self.core.set_data(data_row)
+            self.core.parse(script_str)
+        agent = self.dm.selected_devices[0].agent
+        self.core.execute(agent, self.listener, thread=True)
+
+    def stop(self):
+        self.run_signal.stop = True
+
+    def get_var(self, var_name):
+        if var_name == '':
+            return self.core.kw_var.keys()
+        res = []
+        for v_name in self.core.kw_var:
+            if var_name in v_name:
+                res.append(v_name)
+        return res
+
+    def get_func(self, func_name):
+        if func_name == '':
+            return self.core.kw_func
+        res = {}
+        for f_name in self.core.kw_func:
+            if func_name in f_name:
+                res[f_name] = self.core.kw_func[f_name]
+        return res
+
+    def get_property(self, var_name, property_name):
+        var = self.core.kw_var.get(var_name)
+        if not var:
+            return ['id', 'class', 'text']
+        return filter(lambda x: False if x.startswith('__') or property_name not in x else True, var.__dict__.keys())
 
 
 class KWCore:
@@ -75,15 +194,17 @@ class KWCore:
     COMMENT = '#'
     DOT = '.'
     VAR = '$'
+    DATA = 'data'
 
-    def __init__(self):
+    def __init__(self, run_signal=None):
         self.default_func = {'import': self._import, 'check': self._check}
         self.kw_func = {**self.default_func}
         self.kw_var = {}
         self.kw_lines = []
         self.status_listener = None
         self.line_count = 0
-        self.db = []
+        self.case_id = 0
+        self.run_signal = run_signal
 
     def reset(self):
         """
@@ -94,6 +215,11 @@ class KWCore:
         self.kw_lines = []
         self.status_listener = None
         self.line_count = 0
+        if self.run_signal:
+            self.run_signal.stop = False
+
+    def set_data(self, data_row):
+        self.kw_var[self.DATA] = data_row
 
     def parse(self, script_str):
         """
@@ -147,7 +273,8 @@ class KWCore:
             # -- Case start --
             self.status_listener.update(StatusMsg(
                 StatusMsg.CASE_START,
-                device_id=agent.device_id
+                device_id=agent.device_id,
+                case_id=self.case_id
             ))
         for line in self.kw_lines:
             if self.status_listener:
@@ -155,9 +282,13 @@ class KWCore:
                 self.status_listener.update(StatusMsg(
                     StatusMsg.KW_LINE_START,
                     device_id=agent.device_id,
-                    line_number=line.line_number
+                    line_number=line.line_number,
+                    case_id=self.case_id
                 ))
             try:
+                if self.run_signal and self.run_signal.stop:
+                    logger.debug('KWCore._execute : User stop test')
+                    break
                 self._execute_line(line)
             except Exception as e:
                 if self.status_listener:
@@ -166,6 +297,7 @@ class KWCore:
                         StatusMsg.ERROR,
                         device_id=agent.device_id,
                         line_number=line.line_number,
+                        case_id=self.case_id,
                         message=e
                     ))
             if self.status_listener:
@@ -173,13 +305,15 @@ class KWCore:
                 self.status_listener.update(StatusMsg(
                     StatusMsg.KW_LINE_END,
                     device_id=agent.device_id,
-                    line_number=line.line_number
+                    line_number=line.line_number,
+                    case_id=self.case_id
                 ))
         if self.status_listener:
             # -- Case end --
             self.status_listener.update(StatusMsg(
                 StatusMsg.CASE_END,
-                device_id=agent.device_id
+                device_id=agent.device_id,
+                case_id=self.case_id
             ))
 
     def _import(self, module_name):

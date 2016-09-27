@@ -5,3 +5,6 @@ local_context.agent = None
 
 agent = local_context.agent
 
+
+class Context:
+    pass
