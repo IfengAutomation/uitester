@@ -119,11 +119,11 @@ class KWDebugRunner:
         self.listener = status_listener
         self.run_signal = RunSignal()
         self.core = KWCore(self.run_signal)
-        self.data = data
+        self._data = data
 
     @property
     def data(self):
-        return self.data
+        return self._data
 
     @data.setter
     def data(self, data):
@@ -131,7 +131,7 @@ class KWDebugRunner:
             return
         if len(data) < 2:
             raise ValueError('DebugRunner: Empty data list')
-        self.data = DataRow.from_list(data[0], data[1:])
+        self._data = DataRow.from_list(data[0], data[1:])
 
     def parse(self, script_str):
         self.core.parse(script_str)
