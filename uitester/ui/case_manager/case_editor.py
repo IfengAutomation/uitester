@@ -219,12 +219,12 @@ class EditorWidget(QWidget):
         :param event:
         :return:
         """
-        reply = self.message_box.question(self, "Case Editor", "Do you want to save this case?",
-                                          QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+        reply = self.message_box.question(self, "Save Changes?", "The case has been modified, save changes?",
+                                          QMessageBox.Save | QMessageBox.Cancel | QMessageBox.Discard)
 
-        if reply == QMessageBox.Yes:  # update case info
+        if reply == QMessageBox.Save:  # update case info
             self.save_case(event)
-        elif reply == QMessageBox.No:
+        elif reply == QMessageBox.Discard:
             self.close()
             return
         else:
