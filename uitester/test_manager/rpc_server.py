@@ -57,16 +57,16 @@ class RPCHandler(StreamRequestHandler):
         if msg.msg_type == RPCMessage.RPC_CALL and msg.name == 'register':
             if len(msg.args) < 1:
                 res = self._make_error_msg()
-                self.wfile.write(res.to_json().encode())
+                self.wfile.write(res.to_bytes())
             self.agent_proxy = RPCAgent()
             self.agent_proxy.device_id = msg.args[0]
             self.agent_proxy.wfile = self.wfile
             self.agent_proxy.connection = self.connection
             self.server.add_agent(self.agent_proxy)
             self.has_register = True
-            self.wfile.write(self._make_ok_msg().to_json().encode())
+            self.wfile.write(self._make_ok_msg().to_bytes())
         else:
-            self.wfile.write(self._make_error_msg().to_json().encode())
+            self.wfile.write(self._make_error_msg().to_bytes())
 
     def _make_ok_msg(self):
         ok_msg = RPCMessage()
@@ -108,7 +108,7 @@ class RPCAgent:
         msg.msg_type = RPCMessage.RPC_CALL
         msg.name = method
         msg.args = args
-        self.wfile.write((msg.to_json() + '\n').encode())
+        self.wfile.write(msg.to_bytes())
         res = self.responses.get(timeout=timeout)
         return res
 
@@ -138,6 +138,9 @@ class RPCMessage:
 
     def to_json(self):
         return json.dumps(self.__dict__)
+
+    def to_bytes(self):
+        return (self.to_json() + '\n').encode()
 
 
 def get_server(port):
