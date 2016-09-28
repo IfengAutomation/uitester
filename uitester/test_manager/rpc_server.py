@@ -64,9 +64,9 @@ class RPCHandler(StreamRequestHandler):
             self.agent_proxy.connection = self.connection
             self.server.add_agent(self.agent_proxy)
             self.has_register = True
-            self.wfile.write(self._make_ok_msg())
+            self.wfile.write(self._make_ok_msg().to_json().encode())
         else:
-            self.wfile.write(self._make_error_msg())
+            self.wfile.write(self._make_error_msg().to_json().encode())
 
     def _make_ok_msg(self):
         ok_msg = RPCMessage()
