@@ -64,13 +64,22 @@ class RPCHandler(StreamRequestHandler):
             self.agent_proxy.connection = self.connection
             self.server.add_agent(self.agent_proxy)
             self.has_register = True
+            self.wfile.write(self._make_ok_msg())
         else:
             self.wfile.write(self._make_error_msg())
+
+    def _make_ok_msg(self):
+        ok_msg = RPCMessage()
+        ok_msg.msg_type = RPCMessage.RPC_RESULT
+        ok_msg.args = [True]
+        ok_msg.name = 'ok'
+        return ok_msg
 
     def _make_error_msg(self):
         err_msg = RPCMessage()
         err_msg.msg_type = RPCMessage.RPC_RESULT
         err_msg.args = [False]
+        err_msg.name = 'error'
         return err_msg
 
     def handle_unregister(self):

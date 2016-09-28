@@ -52,6 +52,9 @@ class Agent:
         }
         self.sock.sendall((json.dumps(register_msg) + '\n').encode())
         r_buffer = self.sock.makefile(mode='r')
+        register_result = r_buffer.readline()
+        #register success
+        print(register_result)
         while True:
             line = r_buffer.readline()
             logger.debug('receive msg : {}'.format(line))
