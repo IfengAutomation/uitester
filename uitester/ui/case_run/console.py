@@ -15,7 +15,7 @@ class Console(QTextBrowser):
             self.menu = None
         self.menu = self.createStandardContextMenu()
 
-        clear_action = QAction("Clear")
+        clear_action = QAction("Clear", self.menu)
         self.menu.addAction(clear_action)   # add clear action
 
         if not self.toPlainText():   # content is None
