@@ -15,7 +15,7 @@ agents = {}
 def start_agent(device_id):
     _agent = rpc_agent.get_test_agent(device_id)
     agents[device_id] = _agent
-    _agent.start('0.0.0.0', PORT)
+    _agent.start('localhost', PORT)
 
 
 def close_agent(device_id):
