@@ -133,6 +133,11 @@ class KWDebugRunner:
             raise ValueError('DebugRunner: Empty data list')
         self._data = DataRow.from_list(data[0], data[1:])
 
+    def reset(self):
+        self.core.reset()
+        self._data = None
+        self.run_signal.stop = False
+
     def parse(self, script_str):
         self.core.parse(script_str)
 

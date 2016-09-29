@@ -29,13 +29,13 @@ def get_view(view_id):
     return v
 
 
-def start_app(package_name):
+def launch_app(package_name):
     """
     Start app by package name
     :param package_name:
     :return:
     """
-    response = context.agent.call('StartMainActivity', package_name)
+    response = context.agent.call('StartApp', package_name)
     if response.name == 'error':
         raise ValueError(*response.args)
     if len(response.args) == 0:
