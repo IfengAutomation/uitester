@@ -17,7 +17,6 @@ class MyHighlighter(QSyntaxHighlighter):
         comment = QTextCharFormat()
         string = QTextCharFormat()
         var = QTextCharFormat()
-        single_quoted_string = QTextCharFormat()
 
         self.highlightingRules = []
 
@@ -102,15 +101,7 @@ class MyHighlighter(QSyntaxHighlighter):
         rule = HighlightingRule(pattern, var)
         self.highlightingRules.append(rule)
 
-        # comment
-        brush = QBrush(Qt.gray, Qt.SolidPattern)
-        pattern = QRegExp("#[^\n]*")
-        comment.setForeground(brush)
-        rule = HighlightingRule(pattern, comment)
-        self.highlightingRules.append(rule)
-
         # string
-        # brush = QBrush(Qt.darkCyan, Qt.SolidPattern)
         brush = QBrush(QColor(203, 119, 44), Qt.SolidPattern)
         pattern = QRegExp("\".*\"")
         pattern.setMinimal(True)
@@ -118,18 +109,17 @@ class MyHighlighter(QSyntaxHighlighter):
         rule = HighlightingRule(pattern, string)
         self.highlightingRules.append(rule)
 
-        # singleQuotedString
-        pattern = QRegExp("\'.*\'")
-        pattern.setMinimal(True)
-        single_quoted_string.setForeground(brush)
-        rule = HighlightingRule(pattern, single_quoted_string)
+        # comment
+        brush = QBrush(Qt.gray, Qt.SolidPattern)
+        pattern = QRegExp("#[^\n]*")
+        comment.setForeground(brush)
+        rule = HighlightingRule(pattern, comment)
         self.highlightingRules.append(rule)
 
     def highlightBlock(self, text):
         for rule in self.highlightingRules:
             expression = QRegExp(rule.pattern)
             index = expression.indexIn(text)
-            # print("in for: " + text)
             while index >= 0:
                 length = expression.matchedLength()
                 self.setFormat(index, length, rule.format)
