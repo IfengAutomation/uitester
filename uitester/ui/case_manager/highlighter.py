@@ -97,7 +97,7 @@ class MyHighlighter(QSyntaxHighlighter):
 
         # var
         brush = QBrush(Qt.blue, Qt.SolidPattern)
-        pattern = QRegExp("\$[a-zA-Z0-9]+|\d+\s")
+        pattern = QRegExp("\$[a-zA-Z0-9_]+|\d+\s")
         var.setForeground(brush)
         rule = HighlightingRule(pattern, var)
         self.highlightingRules.append(rule)
