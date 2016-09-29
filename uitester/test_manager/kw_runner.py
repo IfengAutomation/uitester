@@ -354,7 +354,7 @@ class KWCore:
         check some_view.text some_text
         if this view's text is not some_text, then this case will be record as failed
         """
-        assert expected == actual
+        assert expected == actual, 'Assert fail. expected={} but actual={}'.format(expected, actual)
 
     def _execute_line(self, kw_line):
         if kw_line.is_comment:
