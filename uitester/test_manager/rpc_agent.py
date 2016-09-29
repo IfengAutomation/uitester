@@ -62,7 +62,7 @@ class Agent:
             method_name = call_obj['name']
             func = self.real_func.get(method_name)
             if func:
-                res = func(*call_obj['args'])
+                res = func(call_obj['args'])
                 response_msg['args'] = [res]
                 response_msg['msg_id'] = call_obj['msg_id']
             else:

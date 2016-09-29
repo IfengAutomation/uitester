@@ -94,6 +94,10 @@ class KWRunner:
             t.start()
 
     def _run_cases_on_agent(self, cases, agent):
+        self.listener.update(StatusMsg(
+                    StatusMsg.TEST_START,
+                    device_id=agent.device_id
+                ))
         context.agent = agent
         for _case in cases:
             core = KWCore()
@@ -108,6 +112,10 @@ class KWRunner:
             else:
                 core.parse(_case.content)
                 core.execute(agent, self.listener)
+        self.listener.update(StatusMsg(
+            StatusMsg.TEST_END,
+            device_id=agent.device_id
+        ))
 
     def stop(self):
         self.run_signal.stop = True
@@ -380,7 +388,7 @@ class KWCore:
     def _parse_line(self, kw_line, line_number=0):
         line = KWLine(raw=kw_line, line_number=line_number)
         if kw_line.strip().startswith(self.COMMENT):
-            line.comment = True
+            line.is_comment = True
             return line
 
         kw_items = []
