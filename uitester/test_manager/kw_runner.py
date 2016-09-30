@@ -237,20 +237,11 @@ class KWCore:
     def parse(self, script_str):
         """
         parse keywords script
+        It will raise exceptions while parse fail
         """
-        try:
-            lines = script_str.split('\n')
-            for line in lines:
-                self.parse_line(line)
-        except Exception as e:
-            if self.status_listener:
-                self.status_listener.update(StatusMsg(
-                    StatusMsg.ERROR,
-                    device_id=context.agent.device_id,
-                    case_id=self.case_id,
-                    line_number=self.line_count,
-                    message=e
-                ))
+        lines = script_str.split('\n')
+        for line in lines:
+            self.parse_line(line)
 
     def parse_line(self, line):
         """
