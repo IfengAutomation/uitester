@@ -102,16 +102,26 @@ class KWRunner:
         for _case in cases:
             core = KWCore()
             core.case_id = _case.id
-            if len(_case.data) >= 2:
-                data_rows = DataRow.from_list(_case.data[0], _case.data[1:])
-                for data_row in data_rows:
-                    core.reset()
-                    core.set_data(data_row)
+            try:
+                if len(_case.data) >= 2:
+                    data_rows = DataRow.from_list(_case.data[0], _case.data[1:])
+                    for data_row in data_rows:
+                        core.reset()
+                        core.set_data(data_row)
+                        core.parse(_case.content)
+                        core.execute(agent, self.listener)
+                else:
                     core.parse(_case.content)
                     core.execute(agent, self.listener)
-            else:
-                core.parse(_case.content)
-                core.execute(agent, self.listener)
+            except Exception as e:
+                if self.listener:
+                    self.listener.update(StatusMsg(
+                        StatusMsg.ERROR,
+                        device_id=context.agent.device_id,
+                        case_id=_case.id,
+                        line_number=core.line_count,
+                        message=e
+                    ))
         self.listener.update(StatusMsg(
             StatusMsg.TEST_END,
             device_id=agent.device_id
@@ -154,14 +164,23 @@ class KWDebugRunner:
         t.start()
 
     def _thread_execute(self, script_str=None, data_line=0):
-        if data_line == 0:
-            if self.data is None or len(self.data) < 2:
-                self._execute(script_str=script_str)
+        try:
+            if data_line == 0:
+                if self.data is None or len(self.data) < 2:
+                    self._execute(script_str=script_str)
+                else:
+                    for data_row in self.data[1:]:
+                        self._execute(script_str=script_str, data_row=data_row)
             else:
-                for data_row in self.data[1:]:
-                    self._execute(script_str=script_str, data_row=data_row)
-        else:
-            self._execute(script_str=script_str, data_row=self.data[data_line])
+                self._execute(script_str=script_str, data_row=self.data[data_line])
+        except Exception as e:
+            if self.listener:
+                self.listener.update(StatusMsg(
+                    StatusMsg.ERROR,
+                    device_id=context.agent.device_id,
+                    line_number=self.core.line_count,
+                    message=e
+                ))
 
     def _execute(self, script_str=None, data_row=None):
         self.run_signal.stop = False
