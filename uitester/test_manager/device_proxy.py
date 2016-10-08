@@ -35,7 +35,7 @@ def launch_app(package_name):
     :param package_name:
     :return:
     """
-    response = context.agent.call('StartApp', package_name)
+    response = context.agent.call('LaunchApp', package_name)
     if response.name == 'error':
         raise ValueError(*response.args)
     if len(response.args) == 0:
