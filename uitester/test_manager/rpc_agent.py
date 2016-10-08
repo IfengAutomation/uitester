@@ -67,6 +67,7 @@ class Agent:
                 response_msg['msg_id'] = call_obj['msg_id']
             else:
                 response_msg['name'] = 'error'
+                response_msg['args'] = ['{}: method not found'.format(method_name)]
             self.sock.sendall((json.dumps(response_msg) + '\n').encode())
 
     def add_func(self, func_name, func):
@@ -117,7 +118,7 @@ def get_test_agent(device_id):
     _agent = Agent(device_id)
     _agent.add_func('hello', hello)
     _agent.add_func('GetView', get_view)
-    _agent.add_func('StartApp', start_app)
+    _agent.add_func('LaunchApp', start_app)
     _agent.add_func('FinishApp', finish_app)
     _agent.add_func('ClickOnText', click_on_text)
     _agent.add_func('EnterText', enter_text)
