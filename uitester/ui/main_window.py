@@ -1,16 +1,19 @@
 # @Time    : 2016/8/17 10:56
 # @Author  : lixintong
+import logging
 import os
 import sys
 
 from PyQt5 import uic
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QMainWindow, QApplication, QDesktopWidget
+from PyQt5.QtWidgets import QMainWindow, QApplication, QDesktopWidget, QMessageBox
 
-from uitester.tester import Tester
+from uitester.test_manager.tester import Tester
 from uitester.ui.case_manager.case_editor import EditorWidget
 from uitester.ui.case_manager.case_manager import CaseManagerWidget
 from uitester.ui.case_run.case_run import RunWidget
+
+logger = logging.getLogger("Tester")
 
 
 class MainWindow(QMainWindow):
@@ -43,6 +46,20 @@ class MainWindow(QMainWindow):
         self.tabWidget.addTab(case_run_widget, "Run")
 
         self.refresh_case_data_signal.connect(case_manager_widget.refresh)
+        self.message_box = QMessageBox()
+        self.start_rpc_server() 
+
+    def start_rpc_server(self):
+        """
+        start rpc server
+        :return:
+        """
+        try:
+            self.tester.start_server()
+        except Exception as e:
+            logger.exception(str(e))
+            self.message_box.warning(self, "Message", "Fail to start RPC-Server, Please restart it in settings.",
+                                     QMessageBox.Ok)
 
     def show_case_editor(self, type, id):
         if type == self.case_editor_add_type:
