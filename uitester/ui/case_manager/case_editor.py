@@ -414,7 +414,7 @@ class EditorWidget(QWidget):
         :return:
         """
         if self.case_id:
-            self.parse_import()
+            self.parse_import_as()
         func_dict = self.debug_runner.core.kw_func  # get default functions
         cmp = Completer(self.debug_runner)
         self.editor_text_edit.set_completer(cmp)
@@ -426,24 +426,31 @@ class EditorWidget(QWidget):
         self.high_lighter = MyHighlighter(self.editor_text_edit, kw_list)
         self.editor_text_edit.set_highlighter(self.high_lighter)
 
-    def parse_import(self):
+    def parse_import_as(self):
         """
-        parse all the 'import' block in the case content
+        parse all the 'import' and 'as' block in the case content
         :return:
         """
-        import_list = set()
+        import_list = set()  # import list
+        as_list = set()  # as list
         content_list = self.dBCommandLineHelper.query_case_by_id(self.case_id).content.split("\n")
         if not content_list:
             return
         for line in content_list:
             if line.strip().find("import") == 0:
                 import_list.add(line.strip())
-
+            elif " as " in line.strip():
+                as_list.add(line.strip())
         self.debug_runner.core.kw_func.clear()
         self.debug_runner.core.kw_func = {**self.debug_runner.core.default_func}
-        for import_cmd in import_list:
+        for import_line in import_list:
             try:
-                self.debug_runner.core.parse_line(import_cmd)
+                self.debug_runner.core.parse_line(import_line)
+            except Exception as e:
+                self.add_info_console("<font color='red'>" + str(e) + "</font>")
+        for as_line in as_list:
+            try:
+                self.debug_runner.core.parse_line(as_line)
             except Exception as e:
                 self.add_info_console("<font color='red'>" + str(e) + "</font>")
 

@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
 
         self.refresh_case_data_signal.connect(case_manager_widget.refresh)
         self.message_box = QMessageBox()
-        self.start_rpc_server() 
+        self.start_rpc_server()
 
     def start_rpc_server(self):
         """
