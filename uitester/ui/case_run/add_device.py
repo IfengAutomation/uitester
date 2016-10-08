@@ -5,6 +5,8 @@ from PyQt5 import uic
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox, QRadioButton
 
+from uitester.test_manager.device_manager import Device
+
 
 class AddDeviceWidget(QWidget):
     add_log_signal = pyqtSignal(str, name="add_log_signal")
@@ -43,8 +45,11 @@ class AddDeviceWidget(QWidget):
         :return:
         """
         self.handle_selected_device()
-        self.handle_selected_data()
+        if not self.selected_device_list:  # no device is selected
+            self.message_box.warning(self, "Message", "Please choose a device.", QMessageBox.Ok)
+            return
 
+        self.handle_selected_data()
         if self.data_count is None:
             # case run
             self.run_case_signal.emit(self.selected_device_list)
@@ -66,12 +71,9 @@ class AddDeviceWidget(QWidget):
                 continue
             self.emit_log("<font color='black'>Choose device: " + item.text() + " </font>")
             for device in self.devices_list:
-                if device.id == item.text():
+                if device.id == item.text().strip().split(" (")[0]:
                     self.selected_device_list.append(device)
             break
-        if not self.selected_device_list:  # no device is selected
-            self.message_box.warning(self, "Message", "Please choose a device.", QMessageBox.Ok)
-            return
 
     def handle_selected_data(self):
         """
@@ -124,7 +126,9 @@ class AddDeviceWidget(QWidget):
 
         self.devices_list = devices_list
         for device in devices_list:
-            radio = QRadioButton(device.id)  # TODO 添加设备状态信息
+            radio = QRadioButton(device.id + " (" + device.description + ")")
+            if device.status != Device.ONLINE:
+                radio.setDisabled(True)
             self.devices_radio_buttons.append(radio)
             self.devices_layout.addWidget(radio)
 

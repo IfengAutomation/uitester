@@ -7,6 +7,8 @@ from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox, QSplitter
 
 from uitester.case_manager.database import DBCommandLineHelper
+from uitester.test_manager import rpc_agent
+from uitester.ui.case_manager.case_editor_run_status_listener import EditorRunStatusListener
 from uitester.ui.case_manager.case_search_edit import TagLineEdit, TagCompleter, SearchButton
 from uitester.ui.case_manager.case_text_edit import TextEdit, Completer
 from uitester.ui.case_manager.highlighter import MyHighlighter
@@ -28,7 +30,7 @@ class EditorWidget(QWidget):
         self.dBCommandLineHelper = DBCommandLineHelper()
         self.tester = tester
         self.config = self.tester.get_config()
-        self.kw_core = self.tester.get_kw_runner()
+        self.debug_runner = self.tester.get_debug_runner()
         self.case_id = case_id
         self.refresh_signal = refresh_signal
 
@@ -50,7 +52,7 @@ class EditorWidget(QWidget):
 
         self.splitter = QSplitter(Qt.Vertical)
         self.splitter.setHandleWidth(1)   # set handle width
-        self.editor_text_edit = TextEdit(self.kw_core)  # case content TextEdit
+        self.editor_text_edit = TextEdit(self.debug_runner.core)  # case content TextEdit
         self.console = Console()
 
         # Add the 'editor text edit' and 'console' to splitter
@@ -67,7 +69,14 @@ class EditorWidget(QWidget):
         self.set_case_edit_data()  # update case
 
         self.import_list_signal.connect(self.editor_text_edit.get_import_from_content, Qt.QueuedConnection)
-        self.editor_text_edit.parse_error_info_signal.connect(self.add_error_info, Qt.QueuedConnection)
+        self.editor_text_edit.parse_error_info_signal.connect(self.add_info_console, Qt.QueuedConnection)
+
+        # run status listener
+        self.status_listener = EditorRunStatusListener()
+        self.status_listener.editor_listener_msg_signal.connect(self.result_handle, Qt.QueuedConnection)
+        self.debug_runner.listener = self.status_listener
+
+        self.data_line = None
 
         # button event
         self.save_btn.clicked.connect(self.save_case)
@@ -162,13 +171,26 @@ class EditorWidget(QWidget):
             self.console.show()
             self.is_log_show = True
 
-    def add_error_info(self, info):
+    def add_info_console(self, info):
         """
         append error massage to console
         :param info:
         :return:
         """
-        self.console.append("<font color='red'>" + info + "</font>")
+        self.console.append(info)
+
+    def result_handle(self, msg, is_passed):
+        """
+        show the debug result in console
+        :param is_passed:
+        :param msg:
+        :return:
+        """
+        if msg.status == 500:  # fail
+            self.add_info_console("<font color='red'> The case is Failed.</font>")
+            self.add_info_console("<font color='red'>" + str(msg.message) + "</font>")
+        if msg.status == 102 and is_passed:
+            self.add_info_console("<font color='green'> The case is Passed.</font>")
 
     def set_case_edit_data(self):
         """
@@ -275,6 +297,7 @@ class EditorWidget(QWidget):
         self.add_device_widget.setWindowModality(Qt.WindowModal)
         self.device_and_data_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.add_device_widget.run_editor_signal.connect(self.run_case, Qt.QueuedConnection)
+        self.debug_runner.reset()
         devices = []
         if self.check_null():
             return
@@ -284,7 +307,7 @@ class EditorWidget(QWidget):
         try:
             devices = self.tester.devices()
         except Exception as e:
-            self.add_error_info(str(e))
+            self.add_info_console("<font color='red'>" + str(e) + "</font>")
         if not devices:  # There is no device connected
             self.message_box.warning(self, "Message", "Please connect the device to your computer.", QMessageBox.Ok)
             return
@@ -302,7 +325,7 @@ class EditorWidget(QWidget):
             return
         self.tester.select_devices(devices)
 
-        # TODO data line number
+        self.data_line = data_line_number
         self.run()   # run
 
     def stop_case(self):
@@ -316,27 +339,20 @@ class EditorWidget(QWidget):
             self.tester.stop()
             self.tester.stop_server()
         except Exception as e:
-            self.add_error_info(str(e))
+            self.add_info_console("<font color='red'>" + str(e) + "</font>")
 
     def run(self):
         """
         run case content
         :return:
         """
-        self.tester.start_server()
         case_content = self.editor_text_edit.toPlainText().strip()
-        kw_list = case_content.split("\n")
-        self.kw_core.parsed_line = []
-        for kw in kw_list:
-            try:
-                self.kw_core.parse_line(kw)
-            except Exception as e:
-                self.add_error_info(str(e))
         try:
-            self.kw_core.execute()
+            self.debug_runner.parse(case_content)
+            self.debug_runner.execute(case_content, self.data_line)
         except Exception as e:
             self.stop_case()
-            self.add_error_info(str(e))
+            self.add_info_console("<font color='red'>" + str(e) + "</font>")
         self.stop_case()
 
     def save_case(self, event=None):
@@ -399,9 +415,8 @@ class EditorWidget(QWidget):
         """
         if self.case_id:
             self.parse_import()
-
-        func_dict = self.kw_core.user_func  # get default functions
-        cmp = Completer(func_dict)
+        func_dict = self.debug_runner.core.kw_func  # get default functions
+        cmp = Completer(self.debug_runner)
         self.editor_text_edit.set_completer(cmp)
 
         # highlighter
@@ -424,13 +439,13 @@ class EditorWidget(QWidget):
             if line.strip().find("import") == 0:
                 import_list.add(line.strip())
 
-        self.kw_core.user_func.clear()
-        self.kw_core.user_func = {**self.kw_core.default_func}
+        self.debug_runner.core.kw_func.clear()
+        self.debug_runner.core.kw_func = {**self.debug_runner.core.default_func}
         for import_cmd in import_list:
             try:
-                self.kw_core.parse_line(import_cmd)
+                self.debug_runner.core.parse_line(import_cmd)
             except Exception as e:
-                self.add_error_info(str(e))
+                self.add_info_console("<font color='red'>" + str(e) + "</font>")
 
     def set_tag_name_completer(self):
         """

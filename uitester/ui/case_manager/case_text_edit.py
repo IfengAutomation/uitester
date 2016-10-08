@@ -9,7 +9,7 @@ from uitester.ui.case_manager.completer_widget import CompleterWidget
 
 
 class TextEdit(QTextEdit):
-    insert_func_name_signal = pyqtSignal(str, name="insert_func_name_signal")
+    insert_func_name_signal = pyqtSignal(str, str, name="insert_func_name_signal")
     parse_error_info_signal = pyqtSignal(str, name="parse_error_info_signal")
 
     def __init__(self, kw_core, parent=None):
@@ -56,21 +56,30 @@ class TextEdit(QTextEdit):
     def set_highlighter(self, high_lighter):
         self.high_lighter = high_lighter
 
-    def insert_completion(self, string):
+    def insert_completion(self, prefix, selected_word):
         tc = self.textCursor()
-        tc.movePosition(QTextCursor.StartOfWord, QTextCursor.KeepAnchor)
-        tc.insertText(string)
+        if prefix.startswith("$") and (not prefix.endswith(".")) and not prefix[1:]:
+            selected_word = "$" + selected_word  # add "$" to the var
+        elif "." in prefix:
+            selected_word = "." + selected_word  # add "." to the attr
+        tc.movePosition(QTextCursor.WordLeft, QTextCursor.KeepAnchor)
+        tc.insertText(selected_word)
         self.popup_widget.hide()   # insert the text into text edit, and hide the popup_widget
         self.setTextCursor(tc)
 
     def text_under_cursor(self):
         text = ""
         tc = self.textCursor()
+        cursor_index = tc.columnNumber() + 1
         tc.select(QTextCursor.BlockUnderCursor)
         if not tc.selectedText().strip():
             return text
-        block_text_list = tc.selectedText().split(" ")
-        text = block_text_list[len(block_text_list) - 1].strip()
+        block_before_cursor_list = []  # block list before cursor
+        if cursor_index < len(tc.selectedText()):
+            block_before_cursor_list = tc.selectedText()[:cursor_index].split(" ")
+        else:
+            block_before_cursor_list = tc.selectedText().split(" ")
+        text = block_before_cursor_list[len(block_before_cursor_list) - 1].strip()
         return text
 
     def mousePressEvent(self, event):
@@ -84,6 +93,7 @@ class TextEdit(QTextEdit):
         super(TextEdit, self).mousePressEvent(event)
 
     def keyPressEvent(self, e):
+        completion_prefix = self.text_under_cursor()
         if self.cmp and self.popup_widget.func_list_widget.isVisible():
             current_row = self.popup_widget.func_list_widget.currentRow()
             if e.key() == Qt.Key_Down:
@@ -95,18 +105,19 @@ class TextEdit(QTextEdit):
                 return
 
             if e.key() in (Qt.Key_Return, Qt.Key_Enter):
-                self.insert_func_name_signal.emit(self.popup_widget.func_list_widget.currentItem().text())
+                selected_word = self.popup_widget.func_list_widget.currentItem().text()
+                self.insert_func_name_signal.emit(completion_prefix, selected_word)
                 return
 
         if e.key() in (Qt.Key_Return, Qt.Key_Enter):
             self.parse_content()
 
         is_shortcut = ((e.modifiers() & Qt.ControlModifier) and e.key() == Qt.Key_E)  # shortcut key:ctrl + e
-        completion_prefix = self.text_under_cursor()
         if is_shortcut:
             self.cmp.update(completion_prefix, self.popup_widget)
             self.update_popup_widget_position()
             self.activateWindow()
+            return
 
         if not self.cmp or not is_shortcut:
             super(TextEdit, self).keyPressEvent(e)
@@ -127,7 +138,7 @@ class TextEdit(QTextEdit):
             try:
                 self.kw_core.parse_line(line_content)
             except Exception as e:
-                self.parse_error_info_signal.emit(str(e))
+                self.parse_error_info_signal.emit("<font color='red'>" + str(e) + "</font>")
 
     def update_popup_widget_position(self):
         """
@@ -166,18 +177,18 @@ class TextEdit(QTextEdit):
         current_import = self.get_import_from_content()
 
         # check the changes between the case content in db and the edit text content
-        is_import_updated = (len(self.import_lines) == len(current_import)) and (set(current_import) == set(self.import_lines))
-        if is_import_updated:
+        is_import_no_updated = (len(self.import_lines) == len(current_import)) and (set(current_import) == set(self.import_lines))
+        if is_import_no_updated:
             return
-        if self.kw_core.user_func != self.kw_core.default_func:
-            self.kw_core.user_func.clear()
-            self.kw_core.user_func = {**self.kw_core.default_func}
+        if self.kw_core.kw_func != self.kw_core.default_func:
+            self.kw_core.kw_func.clear()
+            self.kw_core.kw_func = {**self.kw_core.default_func}
         self.import_lines = current_import
         for import_cmd in self.import_lines:
             try:
                 self.kw_core.parse_line(import_cmd)
             except Exception as e:
-                self.parse_error_info_signal.emit(str(e))
+                self.parse_error_info_signal.emit("<font color='red'>" + str(e) + "</font>")
         self.update_completer_high_lighter()
 
     def update_completer_high_lighter(self):
@@ -185,9 +196,9 @@ class TextEdit(QTextEdit):
         update completer and high lighter
         :return:
         """
-        if not self.kw_core.user_func:
+        if not self.kw_core.kw_func:
             return
-        self.cmp.func_dict = self.kw_core.user_func  # update completer's func_list
+        self.cmp.func_dict = self.kw_core.kw_func  # update completer's func_list
         # update highlighter's kw list
         kw_list = set()
         for func_name, func in self.cmp.func_dict.items():
@@ -212,8 +223,11 @@ class TextEdit(QTextEdit):
             self.popup_widget.func_list_widget.setCurrentRow(current_row)
             return
         self.popup_widget.func_list_widget.setCurrentRow(current_row + 1)
-        func_name = self.popup_widget.func_list_widget.currentItem().text()
-        self.popup_widget.selected_func_name_signal.emit(func_name, self.cmp.func_dict)
+        item_text = self.popup_widget.func_list_widget.currentItem().text()
+        item_desc = ""
+        if item_text in self.cmp.get_func_name_list(self.kw_core.kw_func):
+            item_desc = self.cmp.func_dict[item_text].__doc__
+        self.popup_widget.selected_func_name_signal.emit(item_text, item_desc)
 
     def current_item_up(self, current_row):
         """
@@ -225,42 +239,64 @@ class TextEdit(QTextEdit):
             self.popup_widget.func_list_widget.setCurrentRow(current_row)
             return
         self.popup_widget.func_list_widget.setCurrentRow(current_row - 1)
-        func_name = self.popup_widget.func_list_widget.currentItem().text()
-        self.popup_widget.selected_func_name_signal.emit(func_name, self.cmp.func_dict)
+        item_text = self.popup_widget.func_list_widget.currentItem().text()
+        item_desc = ""
+        if item_text in self.kw_core.kw_func:
+            item_desc = self.cmp.func_dict[item_text].__doc__
+        self.popup_widget.selected_func_name_signal.emit(item_text, item_desc)
 
 
 class Completer(QCompleter):
-    def __init__(self, func_dict, parent=None):
+    def __init__(self, debug_runner, parent=None):
         super(Completer, self).__init__(parent)
-        self.func_dict = func_dict
+        self.debug_runner = debug_runner
+        self.func_dict = self.debug_runner.get_func("")
+        self.popup_widget = None
+        self.func_name_list = self.get_func_name_list(self.func_dict)
 
     def update(self, completion_text, popup_widget):
-        string_list = self.get_func_name_list(self.func_dict)
         match_str_list = []
+        self.popup_widget = popup_widget
         popup_widget.func_list_widget.clear()
-        # TODO 三种情况
-        if completion_text.startswith("$") and (not completion_text.endswith(".")):
-            # TODO var 提示
-            pass
-        elif completion_text.endswith("."):
-            # TODO var attr 提示
-            var_word = completion_text[1:-1]  # get var word
-            pass
+        text_prefix = ""   # the prefix of the word
+        all_completer_word_list = []  # all the word that waiting for matched
+
+        if completion_text.startswith("$") and (not completion_text.endswith(".")):  # match var
+            text_prefix = completion_text[1:]
+            all_completer_word_list = self.debug_runner.get_var(text_prefix)
+        elif "." in completion_text:  # match var property
+            var_word = completion_text[1:].split(".")[0]  # get var word
+            text_prefix = completion_text[1:].split(".")[1]  # get property prefix
+            all_completer_word_list = self.debug_runner.get_property(var_word, text_prefix)
         else:  # match func name
-            for string in string_list:
-                if completion_text in string and completion_text != string:
-                    match_str_list.append(string)
-                    popup_widget.func_list_widget.addItem(string)
+            all_completer_word_list = self.debug_runner.get_func(completion_text)
+            text_prefix = completion_text
+
+        for completer_word in all_completer_word_list:
+            if text_prefix in completer_word and text_prefix != completer_word:
+                match_str_list.append(completer_word)
+                popup_widget.func_list_widget.addItem(completer_word)
         popup_widget.func_list_widget.sortItems()  # ASC
 
         if len(match_str_list) < 1:
             popup_widget.hide()
             return
-        popup_widget.show()
-        popup_widget.setFocusPolicy(Qt.NoFocus)
-        popup_widget.func_list_widget.setCurrentRow(0)
-        func_name = popup_widget.func_list_widget.currentItem().text()
-        popup_widget.selected_func_name_signal.emit(func_name, self.func_dict)
+        self.init_completer_widget()
+
+    def init_completer_widget(self):
+        """
+        init the completer widget's data
+        :return:
+        """
+        self.popup_widget.show()
+        self.popup_widget.setFocusPolicy(Qt.NoFocus)
+        # set the current item
+        self.popup_widget.func_list_widget.setCurrentRow(0)
+        item_text = self.popup_widget.func_list_widget.currentItem().text()
+        item_desc = ""
+        if item_text in self.func_name_list:
+            item_desc = self.func_dict[item_text].__doc__
+        self.popup_widget.selected_func_name_signal.emit(item_text, item_desc)
 
     def get_func_name_list(self, func_dict):
         """

@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QWidget, QMessageBox, QSplitter
 
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.kw.kw_runner import KWCase
+from uitester.test_manager import rpc_agent
 from uitester.ui.case_run.add_case import AddCaseWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
 from uitester.ui.case_run.case_run_status_listener import CaseRunStatusListener
@@ -49,17 +50,12 @@ class RunWidget(QWidget):
         self.run_stop_btn.clicked.connect(self.click_run_stop_btn)
 
         self.add_case_widget = None
-        self.add_device_widget = AddDeviceWidget()
-        self.add_device_widget.setWindowModality(Qt.ApplicationModal)
+        self.add_device_widget = None
 
         self.splitter = None
         self.case_widget = RunnerTableWidget([], [0])
         self.log_area = Console()
         self.splitter_setting()
-
-        self.add_device_widget.add_log_signal.connect(self.add_log, Qt.QueuedConnection)
-        self.add_device_widget.run_case_signal.connect(self.run_case, Qt.QueuedConnection)
-        self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
 
         self.status_listener = CaseRunStatusListener()
         self.status_listener.listener_msg_signal.connect(self.update_case_name_color, Qt.QueuedConnection)
@@ -112,7 +108,13 @@ class RunWidget(QWidget):
         if not devices:  # There is no device connected
             self.message_box.warning(self, "Message", "Please connect the device to your computer.", QMessageBox.Ok)
             return
+        self.add_device_widget = AddDeviceWidget()
+        self.add_device_widget.setWindowModality(Qt.ApplicationModal)
+        self.add_device_widget.add_log_signal.connect(self.add_log, Qt.QueuedConnection)
+        self.add_device_widget.run_case_signal.connect(self.run_case, Qt.QueuedConnection)
+        self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.add_device_widget.show()
+
         self.device_list_signal.emit(devices)
 
     def add_log(self, log_info):
@@ -133,6 +135,8 @@ class RunWidget(QWidget):
         """
         for row_index in range(self.case_widget.dataTableWidget.rowCount()):
             case_id_item = self.case_widget.dataTableWidget.item(row_index, 1)  # get case id from dataTableWidget
+            if msg.status == 2:
+                self.stop_case()
             if case_id_item.text() != str(msg.case_id):
                 continue
             self.case_widget.dataTableWidget.selectRow(row_index)
@@ -140,9 +144,8 @@ class RunWidget(QWidget):
                 self.update_green(row_index)
             elif msg.status == 500:
                 self.update_red(row_index)
+                self.add_log("<font color='red'> Case Failed, case id: " + str(msg.case_id) + "</font>")
                 self.add_log("<pre><font color='red'>" + str(msg.message) + "</font></pre>")
-            elif msg.status == 2:
-                self.stop_case()
 
     def run_case(self, devices):
         kw_case_list = []
@@ -154,6 +157,7 @@ class RunWidget(QWidget):
             kw_case.id = case.id
             kw_case.name = case.name
             kw_case.content = case.content
+            kw_case.data = case.data
             kw_case_list.append(kw_case)
         # set icon
         stop_icon = QIcon()
@@ -161,10 +165,6 @@ class RunWidget(QWidget):
         self.run_stop_btn.setIcon(stop_icon)
         self.run_stop_btn.setText("Stop")
         self.running = True
-        try:
-            self.tester.start_server()    # start rpc server
-        except Exception as e:
-            self.add_log(str(e))
         if not devices:
             return
         try:

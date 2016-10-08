@@ -10,7 +10,7 @@ from uitester.ui.case_manager.func_list_widget import FuncNameListWidget
 
 class CompleterWidget(QWidget):
     select_signal = pyqtSignal(str, name="select_signal")
-    selected_func_name_signal = pyqtSignal(str, dict, name="selected_func_name_signal")
+    selected_func_name_signal = pyqtSignal(str, str, name="selected_func_name_signal")
 
     def __init__(self, parent=None):
         super(CompleterWidget, self).__init__(parent)
@@ -28,21 +28,20 @@ class CompleterWidget(QWidget):
 
         self.func_list_widget.setFocusPolicy(Qt.NoFocus)
 
-    def update_desc(self, text, func_dict):
+    def update_desc(self, text, func_doc):
         """
         update the description according to the selected function name
-        :param func_dict:
+        :param func_doc:
         :param text:
         :return:
         """
         if not text:
             return
-        func_doc = func_dict[text].__doc__
         if not func_doc:  # desc is None
-            self.desc_text_browser.setText("<pre> <font color='red'>" +
-                                           "This function has no description." + "</font></pre>")
+            self.desc_text_browser.setText("<pre> <font color='red'>\"" + text +
+                                           "\" has no description." + "</font></pre>")
             return
-        func_doc = func_dict[text].__doc__.split("\n")
+        func_doc = func_doc.split("\n")
         func_desc = ''
         for line in func_doc:
             func_desc = func_desc + line.lstrip() + "\n"
