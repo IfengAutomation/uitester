@@ -126,7 +126,7 @@ class RunWidget(QWidget):
             return
         self.log_area.append(log_info)
 
-    def update_case_name_color(self, msg):
+    def update_case_name_color(self, msg, is_passed):
         """
         update case's font color according to the case's result
         pass: green; fail: red
@@ -135,8 +135,11 @@ class RunWidget(QWidget):
         """
         for row_index in range(self.case_widget.dataTableWidget.rowCount()):
             case_id_item = self.case_widget.dataTableWidget.item(row_index, 1)  # get case id from dataTableWidget
-            if msg.status == 2:
+            if msg.status == 2:  # test end
+                if is_passed:
+                    self.add_log("<font color='green'> All cases are Passed.</font>")
                 self.stop_case()
+                break
             if case_id_item.text() != str(msg.case_id):
                 continue
             self.case_widget.dataTableWidget.selectRow(row_index)
