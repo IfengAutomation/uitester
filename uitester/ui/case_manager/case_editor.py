@@ -187,10 +187,11 @@ class EditorWidget(QWidget):
         :return:
         """
         if msg.status == 500:  # fail
-            self.add_info_console("<font color='red'> The case is Failed.</font>")
             self.add_info_console("<font color='red'>" + str(msg.message) + "</font>")
         if msg.status == 102 and is_passed:
             self.add_info_console("<font color='green'> The case is Passed.</font>")
+        elif msg.status == 102 and not is_passed:
+            self.add_info_console("<font color='red'> The case is Failed.</font>")
 
     def set_case_edit_data(self):
         """
