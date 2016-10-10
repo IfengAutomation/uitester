@@ -130,6 +130,7 @@ class RunWidget(QWidget):
         """
         update case's font color according to the case's result
         pass: green; fail: red
+        :param is_passed:
         :param msg:
         :return:
         """

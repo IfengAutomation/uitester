@@ -80,6 +80,7 @@ class TagManageWidget(QWidget):
         if not item:
             return
         item.setSelected(True)
+        self.set_completer()   # reset completer's tag name list
 
     def list_widget_item_clicked(self, tag_list_widget_item):
         """
