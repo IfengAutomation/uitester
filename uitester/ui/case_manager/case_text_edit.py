@@ -1,5 +1,5 @@
 # -*- encoding: UTF-8 -*-
-
+import re
 from PyQt5.QtCore import pyqtSignal, Qt, QPoint
 from PyQt5.QtGui import QTextCursor
 
@@ -22,7 +22,6 @@ class TextEdit(QTextEdit):
         self.popup_widget = CompleterWidget()
 
         self.insert_func_name_signal.connect(self.insert_completion, Qt.QueuedConnection)
-        self.popup_widget.func_list_widget.select_signal.connect(self.insert_completion, Qt.QueuedConnection)
         self.popup_widget.selected_func_name_signal.connect(self.popup_widget.update_desc, Qt.QueuedConnection)
         self.textChanged.connect(self.text_change)
 
@@ -58,14 +57,43 @@ class TextEdit(QTextEdit):
 
     def insert_completion(self, prefix, selected_word):
         tc = self.textCursor()
-        if prefix.startswith("$") and (not prefix.endswith(".")) and not prefix[1:]:
-            selected_word = "$" + selected_word  # add "$" to the var
-        elif "." in prefix:
-            selected_word = "." + selected_word  # add "." to the attr
-        tc.movePosition(QTextCursor.WordLeft, QTextCursor.KeepAnchor)
+        is_char_after_cursor = self.is_char(tc)
+        if not tc.atBlockEnd() and (not is_char_after_cursor):
+            if prefix.startswith("$") and (not prefix.endswith(".")) and not prefix[1:]:
+                selected_word = "$" + selected_word  # add "$" to the var
+            elif "." in prefix:
+                selected_word = "." + selected_word  # add "." to the attr
+        tc.movePosition(QTextCursor.StartOfWord, QTextCursor.KeepAnchor)
         tc.insertText(selected_word)
         self.popup_widget.hide()   # insert the text into text edit, and hide the popup_widget
         self.setTextCursor(tc)
+
+    def line_text(self, line_number):
+        """
+        get the specify line text
+        :param line_number:
+        :return:
+        """
+        case_content = self.toPlainText()
+        content_list = case_content.split("\n")
+        return content_list[line_number]
+
+    def is_char(self, tc):
+        """
+        is validate char after the cursor
+        :param tc:
+        :return:
+        """
+        line_number = tc.blockNumber()
+        column_number = tc.columnNumber()
+        line_text = self.line_text(line_number)
+        is_char_after_cursor = False
+        if line_text[column_number:column_number+1]:
+            regex = "[a-zA-Z0-9_]"
+            match = re.search(regex, line_text[column_number:column_number+1])
+            if match:
+                is_char_after_cursor = True
+        return is_char_after_cursor
 
     def text_under_cursor(self):
         text = ""

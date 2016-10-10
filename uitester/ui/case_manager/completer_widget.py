@@ -5,8 +5,6 @@ from PyQt5 import uic
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QListWidget, QTextBrowser
 
-from uitester.ui.case_manager.func_list_widget import FuncNameListWidget
-
 
 class CompleterWidget(QWidget):
     select_signal = pyqtSignal(str, name="select_signal")
@@ -21,7 +19,7 @@ class CompleterWidget(QWidget):
 
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool)
 
-        self.func_list_widget = FuncNameListWidget()
+        self.func_list_widget = QListWidget()
         self.func_list_widget.setSizeAdjustPolicy(QListWidget.AdjustToContents)
         self.func_list_layout.insertWidget(0, self.func_list_widget)
         self.desc_text_browser.setSizeAdjustPolicy(QTextBrowser.AdjustToContents)
