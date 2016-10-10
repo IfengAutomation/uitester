@@ -306,7 +306,6 @@ class EditorWidget(QWidget):
         self.add_device_widget.setWindowModality(Qt.WindowModal)
         self.device_and_data_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.add_device_widget.run_editor_signal.connect(self.run_case, Qt.QueuedConnection)
-        self.debug_runner.reset()
         devices = []
         if self.check_null():
             return
@@ -357,6 +356,7 @@ class EditorWidget(QWidget):
         """
         case_content = self.editor_text_edit.toPlainText().strip()
         try:
+            self.debug_runner.reset()
             self.debug_runner.parse(case_content)
             self.debug_runner.execute(case_content, self.data_line)
         except Exception as e:
