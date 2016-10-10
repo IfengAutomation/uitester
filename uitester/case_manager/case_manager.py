@@ -5,10 +5,11 @@ import zipfile
 
 import pandas as pd
 
+from uitester.case_data_manager.case_data_manager import CaseDataManager
 from uitester.case_manager.database import DBCommandLineHelper, Case
 
 
-class CaseDataManager:
+class CaseManager:
     CASE_TABLE_NAME = "case"
     TAG_TABLE_NAME = "tag"
     CASE_TAG_TABLE_NAME = "case_tag"
@@ -21,6 +22,31 @@ class CaseDataManager:
     case_file_data = []
     conflict_tag_name = []
     conflict_tag_message_dict = []
+
+    def __init__(self):
+        self.case_data_manager = CaseDataManager()
+
+
+    def update_case(self,case_id,case_data_list,
+                                          delete_data_ids):
+        '''
+        更新case
+        :return:
+        '''
+        self.db_helper.update_case()
+        self.case_data_manager.save_case_data(case_id, case_data_list,
+                                                               delete_data_ids)
+
+    def insert_case(self, case_name, content, tags, case_data_list,
+                    delete_data_ids):
+        '''
+        插入case
+        :return:
+        '''
+        case = self.db_helper.insert_case_with_tags(case_name, content, tags)
+        self.case_data_manager.save_case_data(case.id, case_data_list,
+                                                               delete_data_ids)
+        return case
 
     # 解压zip文件
     def unzip(self, path):
@@ -151,56 +177,73 @@ class CaseDataManager:
             result['message'] = '标识插入成功'
         return result
 
-    def query_case_data(self, case, id=None):
+    def query_case_data(self, case=None, case_id=None):
         '''
-        get case data driven by case id
+        get case data driven
         :param case_id:
         :return:
         '''
-        if case.data_driven_relation:
-            case.case_data_driven = eval(case.data_driven_relation)
+
+        if case == None:
+            case = self.db_helper.query_case_by_id(case_id)
+        if case and case.data_relation:
+            del case.data[:]
+            data_relation_list = eval(case.data_relation)
+            case.data.append(data_relation_list[0])
+            if len(data_relation_list) > 1:
+                for data_relation in data_relation_list[1:]:
+                    data_list = []
+                    for data_id in data_relation:
+                        if data_id != '-1':
+                            case_data = self.db_helper.query_case_data(id=data_id)
+                            data_list.append(case_data.data)
+                        else:
+                            data_list.append('')
+                    case.data.append(data_list)
         return case
-        # case = self.db_helper.query_case_by_id(case_id)
-        # if case.data_driven_relation:
-        #     data_driven_relation = eval(case.data_driven_relation)  # 字符串转二维数组
-        #     print("data_driven_relation:{}".format(data_driven_relation))  # todo 可能为空   对空做处理
-        #     if len(data_driven_relation) > 0:
-        #         print("len data_driven_relation:{}".format(len(data_driven_relation)))
-        #         data_driven_column = data_driven_relation[0]
-        #         for row in range(1, len(data_driven_relation)):
-        #             for column in range(0, len(data_driven_column)):
-        #                 data_driven_id = data_driven_relation[row][column]
-        #                 data = self.db_helper.query_case_data_driven_by_id(int(data_driven_id))
-        #                 print("data:{}".format(data))
-        #                 case.case_data_driven[data_driven_column[column]] = data
 
-                    # return case
+    def update_data_header(self, oper_type, case, old_header_name, new_header_name):
+        if oper_type == 'add':
+            case.data[0].append(new_header_name)
+            data_relation_list = eval(case.data_relation)
+            data_relation_list[0].append(new_header_name)
+            for data in data_relation_list[1:]:
+                data.append('-1')
+            case.data_relation = self.list_to_str(data_relation_list)
+        elif oper_type == 'modify':
+            index = case.data[0].index(old_header_name)
+            case.data[0][index] = new_header_name
+            case.data_relation.replace(old_header_name, new_header_name)
+        elif oper_type == 'delete':
+            index = case.data[0].index(old_header_name)
+            for data in case.data:
+                del data[index]
+            data_relation_list = eval(case.data_relation)
+            index = data_relation_list[0].index(old_header_name)
+            for data_relation in data_relation_list:
+                del data_relation[index]
+            case.data_relation = self.list_to_str(data_relation_list)
+        self.db_helper.update_case()
 
-    def insert_case_data_driven(self):
-        # 如果插入后没保存怎么办，
-        # todo 参数case_id
-        # 更新case 中的 data_driven_relation
-        # 插入 case_data_dirven 数据
-        #
-        self.db_helper.insert_case_data_driven()
-
-    def modify_case_data_driven(self, id):
+    def list_to_str(self, data_list):
         '''
-        modify case data driven
-        :param id:
+        two-dimensional array to string
+        string [[],[],[]]
         :return:
         '''
-        self.db_helper.modify_case_data_driven()
-
-    def delete_case_data_driven(self):
-        pass
-
-    def save_case_data_driven(self):
-        pass
+        data_relation_str = '['
+        for data in data_list:
+            data_relation_str += '['
+            for column in data:
+                data_relation_str = data_relation_str + '\'' + column + '\','
+            data_relation_str = data_relation_str[:len(data_relation_str) - 1]
+            data_relation_str += '],'
+        data_relation_str = data_relation_str[:len(data_relation_str) - 1]
+        data_relation_str += ']'
+        return data_relation_str
 
 
 if __name__ == '__main__':
-    case_data_manager = CaseDataManager()
+    case_data_manager = CaseManager()
     case = case_data_manager.db_helper.query_case_by_id(1)
-    case = case_data_manager.query_case_data(case = case)
-    print(case)
+    case = case_data_manager.query_case_data(case=case)

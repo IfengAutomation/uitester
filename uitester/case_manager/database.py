@@ -41,6 +41,7 @@ class CaseData(Base):
     __tablename__ = 'case_data'
     id = Column(Integer, primary_key=True)
     data = Column(TEXT)
+    init_data = ''
 
 
 class Case(Base, Model):
@@ -210,3 +211,27 @@ class DBCommandLineHelper:
         tag_result = DB.session.execute(tag_sql)
         result['tag'] = tag_result
         return result
+
+    def query_case_data(self, id):
+        case_data = DB.session.query(CaseData).filter(CaseData.id == id).one()
+        return case_data
+
+    def update_case_data(self, id, data):
+        case_data = DB.session.query(CaseData).filter(CaseData.id == id).one()
+        case_data.data = data
+        DB.session.commit()
+
+    def insert_case_data(self, data):
+        case_data = CaseData()
+        case_data.data = data
+        DB.session.add(case_data)
+        DB.session.commit()
+        return case_data
+
+    def delete_case_data(self, id):
+        DB.session.query(CaseData).filter(CaseData.id == id).delete()
+        DB.session.commit()
+
+    def batch_delete_case_data(self, delete_data_ids):
+        DB.session.query(CaseData).filter(CaseData.id.in_(delete_data_ids)).delete(synchronize_session=False)
+        DB.session.commit()

@@ -6,7 +6,9 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox, QSplitter
 
+from uitester.case_manager.case_manager import CaseManager
 from uitester.case_manager.database import DBCommandLineHelper
+from uitester.ui.case_data.case_data import CaseDataWidget
 from uitester.ui.case_manager.case_search_edit import TagLineEdit, TagCompleter, SearchButton
 from uitester.ui.case_manager.case_text_edit import TextEdit, Completer
 from uitester.ui.case_manager.highlighter import MyHighlighter
@@ -49,7 +51,7 @@ class EditorWidget(QWidget):
         self.set_tag_name_completer()
 
         self.splitter = QSplitter(Qt.Vertical)
-        self.splitter.setHandleWidth(1)   # set handle width
+        self.splitter.setHandleWidth(1)  # set handle width
         self.editor_text_edit = TextEdit(self.kw_core)  # case content TextEdit
         self.console = Console()
 
@@ -75,6 +77,8 @@ class EditorWidget(QWidget):
         self.console_btn.clicked.connect(self.log_show_hide_event)
         self.add_data_btn.clicked.connect(self.add_case_data)
         self.add_tag_button.clicked.connect(self.choose_event)
+        # case data
+        self.case_manager = CaseManager()
 
     def init_ui(self):
         """
@@ -94,15 +98,15 @@ class EditorWidget(QWidget):
         :return:
         """
         save_icon = QIcon()
-        save_icon.addPixmap(QPixmap(self.config.images + '/save.png'), QIcon.Normal, QIcon.Off)           # save icon
+        save_icon.addPixmap(QPixmap(self.config.images + '/save.png'), QIcon.Normal, QIcon.Off)  # save icon
         self.save_btn.setIcon(save_icon)
 
         run_icon = QIcon()
-        run_icon.addPixmap(QPixmap(self.config.images + '/run.png'), QIcon.Normal, QIcon.Off)             # run icon
+        run_icon.addPixmap(QPixmap(self.config.images + '/run.png'), QIcon.Normal, QIcon.Off)  # run icon
         self.run_btn.setIcon(run_icon)
 
         console_icon = QIcon()
-        console_icon.addPixmap(QPixmap(self.config.images + '/console.png'), QIcon.Normal, QIcon.Off)     # console icon
+        console_icon.addPixmap(QPixmap(self.config.images + '/console.png'), QIcon.Normal, QIcon.Off)  # console icon
         self.console_btn.setIcon(console_icon)
 
         add_data_icon = QIcon()
@@ -114,7 +118,8 @@ class EditorWidget(QWidget):
         show case data widget
         :return:
         """
-        pass
+        self.case_data_widget = CaseDataWidget(self.case_id)
+        self.case_data_widget.show()
 
     def choose_event(self):
         """
@@ -245,7 +250,8 @@ class EditorWidget(QWidget):
         tag_list = self.get_tag_list()
         # tag names in db
         db_tag_list = case_db.tags
-        is_tags_names_modify = list(set(db_tag_list).difference(set(tag_list))) != list(set(tag_list).difference(set(db_tag_list)))
+        is_tags_names_modify = list(set(db_tag_list).difference(set(tag_list))) != list(
+            set(tag_list).difference(set(db_tag_list)))
 
         if is_name_modified or is_content_modified or is_tags_names_modify:
             is_case_modified = True
@@ -288,7 +294,7 @@ class EditorWidget(QWidget):
         if not devices:  # There is no device connected
             self.message_box.warning(self, "Message", "Please connect the device to your computer.", QMessageBox.Ok)
             return
-        self.device_and_data_signal.emit(devices, 0)   # TODO get data count
+        self.device_and_data_signal.emit(devices, 0)  # TODO get data count
         self.add_device_widget.show()
 
     def run_case(self, devices, data_line_number):
@@ -303,7 +309,7 @@ class EditorWidget(QWidget):
         self.tester.select_devices(devices)
 
         # TODO data line number
-        self.run()   # run
+        self.run()  # run
 
     def stop_case(self):
         # set icon
@@ -352,21 +358,32 @@ class EditorWidget(QWidget):
             return
         tags = self.get_tag_list()
 
-        if self.check_tag_name():   # check unrecognized tag names
+        if self.check_tag_name():  # check unrecognized tag names
             return
 
         if self.case_id:
             self.case.name = case_name
             self.case.content = content
             self.case.tags = tags
-            self.dBCommandLineHelper.update_case()
+            if hasattr(self, 'case_data_widget') and self.case_data_widget.isVisible():
+                self.case_manager.update_case(self.case_id, self.case_data_widget.case_data_list,
+                                              self.case_data_widget.delete_data_ids)
+                del self.case_data_widget.delete_data_ids[:]
+            else:
+                self.dBCommandLineHelper.update_case()
             self.message_box.information(self, "Update case", "Update case success.", QMessageBox.Ok)
         else:
-            case = self.dBCommandLineHelper.insert_case_with_tags(case_name, content, tags)
+            if hasattr(self, 'case_data_widget') and self.case_data_widget.isVisible():
+                case = self.case_manager.insert_case(case_name, content, tags, self.case_data_widget.case_data_list,
+                                                     self.case_data_widget.delete_data_ids)
+                del self.case_data_widget.delete_data_ids[:]
+            else:
+                case = self.dBCommandLineHelper.insert_case_with_tags(case_name, content, tags)
             self.id_line_edit.setText(str(case.id))
             self.case_id = self.id_line_edit.text().strip()
             self.set_case_edit_data()
             self.message_box.information(self, "Add case", "Add case success.", QMessageBox.Ok)
+
         self.refresh_signal.emit()
 
     def check_null(self):
@@ -474,6 +491,3 @@ class EditorWidget(QWidget):
         self.message_box.about(self, "Warning", "Tag name: " + unrecognized_tag_names +
                                " unrecognized, please add it first.")
         return has_unrecognized
-
-
-

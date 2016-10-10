@@ -7,7 +7,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import *
 
-from uitester.case_manager.case_data_manager import CaseDataManager
+from uitester.case_manager.case_manager import CaseManager
 from uitester.case_manager.database import DBCommandLineHelper
 from uitester.config import Config
 from uitester.ui.case_manager.case_search_edit import TagCompleter, TagLineEdit, SearchButton
@@ -23,7 +23,7 @@ class CaseManagerWidget(QWidget):
         super().__init__(*args, **kwargs)
         self.show_case_editor_signal = show_case_editor_signal
         self.db_helper = DBCommandLineHelper()
-        self.case_data_manager = CaseDataManager()
+        self.case_data_manager = CaseManager()
         ui_dir_path = os.path.dirname(__file__)
         ui_file_path = os.path.join(ui_dir_path, 'case_manager.ui')
         uic.loadUi(ui_file_path, self)

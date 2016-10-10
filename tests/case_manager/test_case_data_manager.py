@@ -4,12 +4,12 @@ import datetime
 import os
 import unittest
 
-from uitester.case_manager.case_data_manager import CaseDataManager
+from uitester.case_manager.case_manager import CaseManager
 
 
 class TestCaseDataManager(unittest.TestCase):
     def setUp(self):
-        self.case_data_manager = CaseDataManager()
+        self.case_data_manager = CaseManager()
         self.package_name = ''
 
     def test_export_and_import_data(self):
