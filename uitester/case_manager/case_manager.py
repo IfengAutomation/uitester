@@ -13,9 +13,13 @@ class CaseManager:
     CASE_TABLE_NAME = "case"
     TAG_TABLE_NAME = "tag"
     CASE_TAG_TABLE_NAME = "case_tag"
+    CASE_DATA_TABLE_NAME = "case_data"
+
     CASE_TABLE_NAME_FILE = CASE_TABLE_NAME + ".csv"
     TAG_TABLE_NAME_FILE = TAG_TABLE_NAME + ".csv"
     CASE_TAG_TABLE_NAME_FILE = CASE_TAG_TABLE_NAME + ".csv"
+    CASE_DATA_TABLE_NAME_FILE = CASE_DATA_TABLE_NAME + ".csv"
+
     db_helper = DBCommandLineHelper()
     tag_file_data = []
     case_tag_file_data = []
@@ -64,6 +68,8 @@ class CaseManager:
         f.write(self.CASE_TABLE_NAME_FILE)
         f.write(self.TAG_TABLE_NAME_FILE)
         f.write(self.CASE_TAG_TABLE_NAME_FILE)
+        f.write(self.CASE_DATA_TABLE_NAME_FILE)
+
         f.close()
         self.remove_data_file()
 
@@ -91,6 +97,12 @@ class CaseManager:
                                            columns=result[self.CASE_TAG_TABLE_NAME].keys())
         case_tag_data_frame.to_csv(os.path.join(os.getcwd(), self.CASE_TAG_TABLE_NAME_FILE), encoding="utf-8",
                                    index=False)
+
+        case_data_data_frame = pd.DataFrame(data=list(result[self.CASE_DATA_TABLE_NAME]),
+                                           columns=result[self.CASE_DATA_TABLE_NAME].keys())
+
+        case_data_data_frame.to_csv(os.path.join(os.getcwd(), self.CASE_DATA_TABLE_NAME_FILE), encoding="utf-8",
+                               index=False)
 
     # 导入数据
     def import_data(self, path):

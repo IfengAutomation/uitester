@@ -210,6 +210,10 @@ class DBCommandLineHelper:
                   ' where  tag.id = case_tag.tag_id and case_id in (#cases_id#)'.replace('#cases_id#', cases_id)
         tag_result = DB.session.execute(tag_sql)
         result['tag'] = tag_result
+        case_data_sql = "SELECT cd.* FROM case_data cd,  (SELECT data_relation FROM 'case' WHERE id in (#cases_id#))t WHERE t.data_relation  like  '%'''  || cd.id || '''%'  ".replace(
+            '#cases_id#', cases_id)
+        case_data_result = DB.session.execute(case_data_sql)
+        result['case_data'] = case_data_result
         return result
 
     def query_case_data(self, id):

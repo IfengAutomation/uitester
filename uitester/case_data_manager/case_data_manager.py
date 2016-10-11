@@ -8,6 +8,18 @@ class CaseDataManager:
     def __init__(self):
         self.db_helper = DBCommandLineHelper()
 
+    def get_case_data_count(self, case_id):
+        case = self.db_helper.query_case_by_id(case_id)
+        count = 0
+        if case.data_relation:
+            data_relation_list = eval(case.data_relation)
+            for data_relation in data_relation_list[1:]:
+                for data in data_relation:
+                    if data:
+                        count += 1
+                        break
+        return count
+
     def get_case_data(self, case_id):
         case_data_list = []
         case = self.db_helper.query_case_by_id(case_id)
