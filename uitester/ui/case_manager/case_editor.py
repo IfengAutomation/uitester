@@ -320,10 +320,13 @@ class EditorWidget(QWidget):
         if not devices:  # There is no device connected
             self.message_box.warning(self, "Message", "Please connect the device to your computer.", QMessageBox.Ok)
             return
+
+        # get case data count
         case_data_manage = CaseDataManager()
         case_data_count = 0
         if self.case_id is not None:
             case_data_count = case_data_manage.get_case_data_count(self.case_id)
+
         self.device_and_data_signal.emit(devices, case_data_count)
         self.add_device_widget.show()
 

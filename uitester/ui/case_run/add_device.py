@@ -124,17 +124,8 @@ class AddDeviceWidget(QWidget):
         :param devices_list:
         :return:
         """
-        self.clear_devices_radio_btn()
-
-        self.devices_list = devices_list
-        for device in devices_list:
-            radio = QRadioButton(device.id + " (" + device.description + ")")
-            if device.status != Device.ONLINE:
-                radio.setDisabled(True)
-            self.devices_radio_buttons.append(radio)
-            self.devices_layout.addWidget(radio)
-
-        if data_count is None:  # Case Run
+        self.add_device_radio_to_widget(devices_list)
+        if data_count is None:  # Case Run, hide the case data
             self.data_area.setEnabled(False)
             self.data_area.hide()
             return
@@ -143,6 +134,27 @@ class AddDeviceWidget(QWidget):
             self.data_area.hide()
         self.data_area.setEnabled(True)
         self.data_count = data_count
+
+    def add_device_radio_to_widget(self, devices_list):
+        """
+        add device radio to widget
+        :param devices_list:
+        :return:
+        """
+        self.clear_devices_radio_btn()
+        self.devices_list = devices_list
+        for device in devices_list:
+            radio = QRadioButton(device.id + " (" + device.description + ")")
+            if device.status != Device.ONLINE:
+                radio.setDisabled(True)
+            self.devices_radio_buttons.append(radio)
+            self.devices_layout.addWidget(radio)
+
+        # set default checked radio
+        for device_radio in self.devices_radio_buttons:
+            if Device.ONLINE[1] in device_radio.text():
+                device_radio.setChecked(True)
+                break
 
     def clear_devices_radio_btn(self):
         """
