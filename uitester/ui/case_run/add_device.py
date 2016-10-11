@@ -49,7 +49,16 @@ class AddDeviceWidget(QWidget):
             self.message_box.warning(self, "Message", "Please choose a device.", QMessageBox.Ok)
             return
 
-        self.handle_selected_data()
+        # case data handle
+        if not self.all_data_selected:
+            input_number = self.line_number_line_edit.text().strip()
+            if not input_number or (not input_number.isdigit()):
+                self.message_box.warning(self, "Message", "Please input the right line number.", QMessageBox.Ok)
+                return
+            if not (0 < int(input_number) <= self.data_count):
+                self.message_box.warning(self, "Message", "Please input the right line number.", QMessageBox.Ok)
+                return
+            self.selected_data_number = int(input_number)
         if self.data_count is None:
             # case run
             self.run_case_signal.emit(self.selected_device_list)
@@ -75,17 +84,6 @@ class AddDeviceWidget(QWidget):
                     self.selected_device_list.append(device)
             break
 
-    def handle_selected_data(self):
-        """
-        handle selected data
-        :return:
-        """
-        if not self.all_data_selected:
-            self.selected_data_number = self.line_number_line_edit.text().strip()
-            if not self.selected_data_number or type(self.selected_data_number) != int or not (0 < self.selected_data_number <= self.data_count):
-                self.message_box.warning(self, "Message", "Please input the right line number.", QMessageBox.Ok)
-                return
-
     def data_specified_radio_event(self):
         """
         handle the specified_radio's click event
@@ -93,7 +91,11 @@ class AddDeviceWidget(QWidget):
         """
         if self.line_number_radio_btn.isChecked():
             self.all_data_selected = False
-            self.line_number_line_edit.setPlaceholderText("Enter an integer in range: 1 - " + str(self.data_count))
+            if self.data_count == 1:
+                message = "Enter an integer: 1"
+            else:
+                message = "Enter an integer in range: 1 - " + str(self.data_count)
+            self.line_number_line_edit.setPlaceholderText(message)
             self.line_number_line_edit.show()
 
     def data_all_radio_event(self):

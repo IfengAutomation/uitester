@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QMessageBox, QSplitter
 
+from uitester.case_data_manager.case_data_manager import CaseDataManager
 from uitester.case_manager.case_manager import CaseManager
 from uitester.case_manager.database import DBCommandLineHelper
 
@@ -319,7 +320,11 @@ class EditorWidget(QWidget):
         if not devices:  # There is no device connected
             self.message_box.warning(self, "Message", "Please connect the device to your computer.", QMessageBox.Ok)
             return
-        self.device_and_data_signal.emit(devices, 0)  # TODO get data count
+        case_data_manage = CaseDataManager()
+        case_data_count = 0
+        if self.case_id is not None:
+            case_data_count = case_data_manage.get_case_data_count(self.case_id)
+        self.device_and_data_signal.emit(devices, case_data_count)
         self.add_device_widget.show()
 
     def run_case(self, devices, data_line_number):
