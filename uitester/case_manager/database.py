@@ -52,7 +52,7 @@ class Case(Base, Model):
     name = Column(String(20))
     content = Column(TEXT)
     tags = relationship('Tag', secondary=case_tag_table, backref="case")
-    data_relation = Column(TEXT)
+    data_relation = Column(TEXT,default='')
     data = []
 
 

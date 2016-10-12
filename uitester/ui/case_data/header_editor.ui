@@ -35,7 +35,7 @@
      <item>
       <widget class="QPushButton" name="save_btn">
        <property name="text">
-        <string>save</string>
+        <string>submit</string>
        </property>
       </widget>
      </item>

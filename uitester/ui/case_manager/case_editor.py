@@ -130,6 +130,8 @@ class EditorWidget(QWidget):
         show case data widget
         :return:
         """
+        if hasattr(self,'case_data_widget'):
+            self.case_data_widget.close()
         self.case_data_widget = CaseDataWidget(self.case_id)
         self.case_data_widget.show()
 
