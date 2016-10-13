@@ -119,9 +119,9 @@ class AddDeviceWidget(QWidget):
 
     def add_radio_to_widget(self, devices_list, data_count=None):
         """
-        add devices list to "add device" widget
-        :param data_count:
+        add devices list and case data selection to "add device" widget
         :param devices_list:
+        :param data_count:
         :return:
         """
         self.add_device_radio_to_widget(devices_list)

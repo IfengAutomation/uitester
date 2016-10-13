@@ -158,7 +158,7 @@ class TextEdit(QTextEdit):
         self.parse_import()
 
         content_list = self.toPlainText().split("\n")
-        row_index = self.textCursor().blockNumber()  # 光标所在行号
+        row_index = self.textCursor().blockNumber()  # row number of the text cursor
         line_content = content_list[row_index].strip()
         if not line_content:
             return

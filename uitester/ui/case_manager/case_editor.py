@@ -276,8 +276,7 @@ class EditorWidget(QWidget):
         tag_list = self.get_tag_list()
         # tag names in db
         db_tag_list = case_db.tags
-        is_tags_names_modify = list(set(db_tag_list).difference(set(tag_list))) != list(
-            set(tag_list).difference(set(db_tag_list)))
+        is_tags_names_modify = set(db_tag_list).difference(set(tag_list)) != set(tag_list).difference(set(db_tag_list))
 
         if is_name_modified or is_content_modified or is_tags_names_modify:
             is_case_modified = True
