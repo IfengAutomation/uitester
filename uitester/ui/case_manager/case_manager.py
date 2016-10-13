@@ -152,9 +152,8 @@ class CaseManagerWidget(QWidget):
             reply = QMessageBox.information(self, 'delete reminder', infor_message, QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
                 case_ids = []
-                for i in range(0, len(self.table_widget.checked_cases_message)):
-                    case_message = self.table_widget.checked_cases_message[i]
-                    self.table_widget.dataTableWidget.removeRow(int(case_message['row_num']) - i)  # 删除行后 行数会变 所以-i
+                for index,case_message in enumerate(self.table_widget.checked_cases_message):
+                    self.table_widget.dataTableWidget.removeRow(int(case_message['row_num']) - index)  # 删除行后 行数会变 所以-i
                     case_ids.append(int(case_message['case_id']))
                 self.db_helper.batch_delete_case(case_ids)
                 del self.table_widget.checked_cases_message[:]  # todo statusbar 应该提示

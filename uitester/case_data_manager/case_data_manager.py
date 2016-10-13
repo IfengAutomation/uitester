@@ -35,7 +35,6 @@ class CaseDataManager:
                         case_data.id = temp_case_data.id
                         case_data.data = temp_case_data.data
                         case_data.init_data = temp_case_data.data
-                        # case_data_manager = copy.copy(temp_case_data)
                     temp_data_list.append(case_data)
                 case_data_list.append(temp_data_list)
         return case_data_list

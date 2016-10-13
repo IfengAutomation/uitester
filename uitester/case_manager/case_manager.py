@@ -24,22 +24,22 @@ class CaseManager:
     tag_file_data = []
     case_tag_file_data = []
     case_file_data = []
+    case_data_file_data = []
     conflict_tag_name = []
     conflict_tag_message_dict = []
 
     def __init__(self):
         self.case_data_manager = CaseDataManager()
 
-
-    def update_case(self,case_id,case_data_list,
-                                          delete_data_ids):
+    def update_case(self, case_id, case_data_list,
+                    delete_data_ids):
         '''
         更新case
         :return:
         '''
         self.db_helper.update_case()
         self.case_data_manager.save_case_data(case_id, case_data_list,
-                                                               delete_data_ids)
+                                              delete_data_ids)
 
     def insert_case(self, case_name, content, tags, case_data_list,
                     delete_data_ids):
@@ -49,7 +49,7 @@ class CaseManager:
         '''
         case = self.db_helper.insert_case_with_tags(case_name, content, tags)
         self.case_data_manager.save_case_data(case.id, case_data_list,
-                                                               delete_data_ids)
+                                              delete_data_ids)
         return case
 
     # 解压zip文件
@@ -69,7 +69,6 @@ class CaseManager:
         f.write(self.TAG_TABLE_NAME_FILE)
         f.write(self.CASE_TAG_TABLE_NAME_FILE)
         f.write(self.CASE_DATA_TABLE_NAME_FILE)
-
         f.close()
         self.remove_data_file()
 
@@ -77,6 +76,7 @@ class CaseManager:
         os.remove(os.path.join(os.getcwd(), self.CASE_TABLE_NAME_FILE))
         os.remove(os.path.join(os.getcwd(), self.TAG_TABLE_NAME_FILE))
         os.remove(os.path.join(os.getcwd(), self.CASE_TAG_TABLE_NAME_FILE))
+        os.remove(os.path.join(os.getcwd(), self.CASE_DATA_TABLE_NAME_FILE))
 
     def export_data(self, path, case_id_list):
         cases_id = ','.join(case_id_list)
@@ -99,17 +99,20 @@ class CaseManager:
                                    index=False)
 
         case_data_data_frame = pd.DataFrame(data=list(result[self.CASE_DATA_TABLE_NAME]),
-                                           columns=result[self.CASE_DATA_TABLE_NAME].keys())
+                                            columns=result[self.CASE_DATA_TABLE_NAME].keys())
 
         case_data_data_frame.to_csv(os.path.join(os.getcwd(), self.CASE_DATA_TABLE_NAME_FILE), encoding="utf-8",
-                               index=False)
+                                    index=False)
 
     # 导入数据
     def import_data(self, path):
         self.unzip(path)
         self.tag_file_data = pd.read_csv(os.path.join(os.getcwd(), self.TAG_TABLE_NAME_FILE))
         self.case_tag_file_data = pd.read_csv(os.path.join(os.getcwd(), self.CASE_TAG_TABLE_NAME_FILE))
+        self.case_tag_file_data['has_changed'] = False
         self.case_file_data = pd.read_csv(os.path.join(os.getcwd(), self.CASE_TABLE_NAME_FILE))
+        self.case_data_file_data = pd.read_csv(os.path.join(os.getcwd(), self.CASE_DATA_TABLE_NAME_FILE))
+
         self.remove_data_file()
         self.check_data()
         if self.conflict_tag_message_dict:
@@ -159,7 +162,19 @@ class CaseManager:
                 tag_description = self.tag_file_data["description"][i]
                 tag = self.db_helper.insert_tag(tag_name, tag_description)
             new_tag_id = tag.id
-            self.case_tag_file_data.loc[self.case_tag_file_data['tag_id'] == old_tag_id, 'tag_id'] = new_tag_id
+            self.case_tag_file_data.loc[
+                (self.case_tag_file_data['tag_id'] == old_tag_id) & (self.case_tag_file_data['has_changed'] == False), [
+                    'tag_id', 'has_changed']] = [new_tag_id, True]
+
+        # 插入case data：
+        data_id_dict = {}
+        for i in range(len(self.case_data_file_data)):
+            old_data_id = self.case_data_file_data['id'][i]
+            data = self.case_data_file_data['data'][i]
+            case_data = self.db_helper.insert_case_data(data)
+            new_data_id = case_data.id
+            data_id_dict[old_data_id] = new_data_id
+
         # 插入case 插入case_tag
         case_list = []
         for i in range(len(self.case_file_data)):
@@ -173,7 +188,20 @@ class CaseManager:
             case.name = self.case_file_data["name"][i]
             case.content = self.case_file_data["content"][i]
             case.tags = tags
+            # data_relation 更新
+            if self.case_file_data["data_relation"][i] and type(self.case_file_data["data_relation"][i]) is str:
+                data_relation_list = eval(self.case_file_data["data_relation"][i])
+                if len(data_relation_list) > 1:
+                    for data_relation in data_relation_list[1:]:
+                        for data_id in data_relation:
+                            if data_id and data_id_dict[int(data_id)]:
+                                index = data_relation.index(data_id)
+                                data_relation[index] = str(data_id_dict[int(data_id)])
+                    case.data_relation = self.case_data_manager.list_to_str(data_relation_list)
+                    self.case_file_data["data_relation"][i] = case.data_relation
+
             case_list.append(case)
+
         self.db_helper.batch_insert_case_with_tags(case_list)
 
     def add_tag(self, tag_name, tag_description):
@@ -253,9 +281,3 @@ class CaseManager:
         data_relation_str = data_relation_str[:len(data_relation_str) - 1]
         data_relation_str += ']'
         return data_relation_str
-
-
-if __name__ == '__main__':
-    case_data_manager = CaseManager()
-    case = case_data_manager.db_helper.query_case_by_id(1)
-    case = case_data_manager.query_case_data(case=case)
