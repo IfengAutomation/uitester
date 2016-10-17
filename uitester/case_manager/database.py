@@ -52,7 +52,8 @@ class Case(Base, Model):
     name = Column(String(20))
     content = Column(TEXT)
     tags = relationship('Tag', secondary=case_tag_table, backref="case")
-    data_relation = Column(TEXT,default='')
+    header_relation = Column(TEXT, default='')
+    data_relation = Column(TEXT, default='')
     data = []
 
 
@@ -180,6 +181,12 @@ class DBCommandLineHelper:
     def delete_case(self, id):
         case = DB.session.query(Case).filter(Case.id == id).first()
         case.tags.clear()
+        data_relation_list = eval(case.data_relation) if case.data_relation else []
+        data_ids = []
+        for data_ids in data_relation_list:
+            for data_id in data_ids:
+                data_ids.append(int(data_id))
+        DB.session.query(CaseData).filter(CaseData.id.in_(data_ids)).delete(synchronize_session=False)
         DB.session.delete(case)
         DB.session.commit()
 
@@ -188,6 +195,14 @@ class DBCommandLineHelper:
         for case in cases:
             case.tags.clear()
             DB.session.delete(case)
+            data_ids = []
+            data_relation_list = eval(case.data_relation) if case.data_relation else []
+            for data_relation in data_relation_list:
+                for data_id in data_relation:
+                    if data_id:
+                        data_ids.append(int(data_id))
+            if data_ids:
+                DB.session.query(CaseData).filter(CaseData.id.in_(data_ids)).delete(synchronize_session=False)
         # DB.session.query(Case).filter(Case.id.in_(ids)).delete(synchronize_session=False)
         DB.session.commit()
 

@@ -188,20 +188,19 @@ class CaseManager:
             case.name = self.case_file_data["name"][i]
             case.content = self.case_file_data["content"][i]
             case.tags = tags
+            case.header_relation = self.case_file_data["header_relation"][i]
             # data_relation 更新
             if self.case_file_data["data_relation"][i] and type(self.case_file_data["data_relation"][i]) is str:
                 data_relation_list = eval(self.case_file_data["data_relation"][i])
-                if len(data_relation_list) > 1:
-                    for data_relation in data_relation_list[1:]:
-                        for data_id in data_relation:
-                            if data_id and data_id_dict[int(data_id)]:
-                                index = data_relation.index(data_id)
-                                data_relation[index] = str(data_id_dict[int(data_id)])
-                    case.data_relation = self.case_data_manager.list_to_str(data_relation_list)
-                    self.case_file_data["data_relation"][i] = case.data_relation
-
+                # if len(data_relation_list) > 1:
+                for data_relation in data_relation_list:
+                    for index,data_id in enumerate(data_relation):
+                        if data_id and data_id_dict[int(data_id)]:
+                            # index = data_relation.index(data_id)
+                            data_relation[index] = str(data_id_dict[int(data_id)])
+                case.data_relation = self.case_data_manager.list_to_str(data_relation_list,2)
+                # self.case_file_data["data_relation"][i] = case.data_relation
             case_list.append(case)
-
         self.db_helper.batch_insert_case_with_tags(case_list)
 
     def add_tag(self, tag_name, tag_description):

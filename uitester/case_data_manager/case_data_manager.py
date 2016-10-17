@@ -11,22 +11,23 @@ class CaseDataManager:
     def get_case_data_count(self, case_id):
         case = self.db_helper.query_case_by_id(case_id)
         count = 0
-        if case.data_relation:
-            data_relation_list = eval(case.data_relation)
-            for data_relation in data_relation_list[1:]:
-                for data in data_relation:
-                    if data:
-                        count += 1
-                        break
+        data_relation_list = eval(case.data_relation) if case.data_relation else []
+        for data_relation in data_relation_list:
+            for data in data_relation:
+                if data:
+                    count += 1
+                    break
         return count
 
     def get_case_data(self, case_id):
         case_data_list = []
         case = self.db_helper.query_case_by_id(case_id)
+        header_relation_list = eval(case.header_relation) if case.header_relation else []
+        case_data_list.append(header_relation_list)
         if case.data_relation is not None and case.data_relation:
             data_relation_list = eval(case.data_relation)
-            case_data_list.append(data_relation_list[0])
-            for data_relation in data_relation_list[1:]:
+            # case_data_list.append(data_relation_list[0])
+            for data_relation in data_relation_list:
                 temp_data_list = []
                 for data_id in data_relation:
                     case_data = CaseData()
@@ -62,21 +63,22 @@ class CaseDataManager:
     def save_case_data(self, case_id, case_data_list, delete_data_ids):
         case = self.db_helper.query_case_by_id(case_id)
         case_relation_list = []
-        for case_data in case_data_list:
+        header_relation_list = case_data_list[0]
+        for case_data in case_data_list[1:]:
             for case_data_detail in case_data:
-                if type(case_data_detail) == CaseData:
-                    if case_data_detail.id and case_data_detail.data != case_data_detail.init_data and case_data_detail.data != '':  # 修改
-                        self.db_helper.update_case_data(case_data_detail.id, case_data_detail.data)
-                    elif case_data_detail.data == '' or case_data_detail.data is None and case_data_detail.id:  # 删除
-                        self.db_helper.delete_case_data(id=case_data_detail.id)
-                        case_data_detail.id = None
-                        case_data_detail.data = ''
-                    elif case_data_detail.id is None and case_data_detail.data:  # 添加 检验id 值
-                        add_case_data = self.db_helper.insert_case_data(data=case_data_detail.data)
-                        case_data_detail.id = add_case_data.id
-                    case_data_detail.init_data = case_data_detail.data
+                # if type(case_data_detail) == CaseData:
+                if case_data_detail.id and case_data_detail.data != case_data_detail.init_data and case_data_detail.data != '':  # 修改
+                    self.db_helper.update_case_data(case_data_detail.id, case_data_detail.data)
+                elif case_data_detail.data == '' or case_data_detail.data is None and case_data_detail.id:  # 删除
+                    self.db_helper.delete_case_data(id=case_data_detail.id)
+                    case_data_detail.id = None
+                    case_data_detail.data = ''
+                elif case_data_detail.id is None and case_data_detail.data:  # 添加 检验id 值
+                    add_case_data = self.db_helper.insert_case_data(data=case_data_detail.data)
+                    case_data_detail.id = add_case_data.id
+                case_data_detail.init_data = case_data_detail.data
         # 获取 case relation
-        for case_data in case_data_list:
+        for case_data in case_data_list[1:]:
             temp_list = []
             for case_data_detail in case_data:
                 if type(case_data_detail) == CaseData:
@@ -85,25 +87,37 @@ class CaseDataManager:
                 else:
                     temp_list.append(case_data_detail)
             case_relation_list.append(temp_list)
-        case.data_relation = self.list_to_str(case_relation_list)
+        case.data_relation = self.list_to_str(case_relation_list, 2)
+        case.header_relation = self.list_to_str(header_relation_list, 1)
         self.db_helper.update_case()
         # 删除 case data
         if delete_data_ids:
             self.db_helper.batch_delete_case_data(delete_data_ids)
 
-    def list_to_str(self, data_list):
+    def list_to_str(self, data_list, dimension):
         '''
         two-dimensional array to string
         string [[],[],[]]
         :return:
         '''
-        data_relation_str = '['
-        for data in data_list:
-            data_relation_str += '['
-            for column in data:
+
+        if dimension == 1:  # 一维数组
+            data_relation_str = '['
+            for column in data_list:
                 data_relation_str = data_relation_str + '\'' + column + '\','
             data_relation_str = data_relation_str[:len(data_relation_str) - 1]
-            data_relation_str += '],'
-        data_relation_str = data_relation_str[:len(data_relation_str) - 1]
-        data_relation_str += ']'
-        return data_relation_str
+            data_relation_str += ']'
+            return data_relation_str
+        elif dimension == 2:  # 二维数组
+            data_relation_str = '['
+            for data in data_list:
+                data_relation_str += '['
+                for column in data:
+                    data_relation_str = data_relation_str + '\'' + column + '\','
+                data_relation_str = data_relation_str[:len(data_relation_str) - 1]
+                data_relation_str += '],'
+            data_relation_str = data_relation_str[:len(data_relation_str) - 1]
+            data_relation_str += ']'
+            return data_relation_str
+        else:
+            pass
