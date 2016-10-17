@@ -61,6 +61,24 @@ class MainWindow(QMainWindow):
             self.message_box.warning(self, "Message", "Fail to start RPC-Server, Please restart it in settings.",
                                      QMessageBox.Ok)
 
+    def closeEvent(self, event):
+        """
+        close window event
+        :return:
+        """
+        if not self.case_edit_window.isVisible():
+            self.close()
+            return
+
+        reply = self.message_box.question(self, "Confirm Close?", "The editor is opened, still close?",
+                                          QMessageBox.Yes | QMessageBox.Cancel)
+
+        if reply == QMessageBox.Yes:
+            self.case_edit_window.close()
+            self.close()
+        else:
+            event.ignore()
+
     def show_case_editor(self, type, id):
         if type == self.case_editor_add_type:
             self.case_edit_window = EditorWidget(self.refresh_case_data_signal, self.tester)
