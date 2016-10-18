@@ -1,4 +1,5 @@
 # -*- encoding: UTF-8 -*-
+import logging
 import os
 
 from PyQt5 import uic
@@ -19,6 +20,8 @@ from uitester.ui.case_manager.highlighter import MyHighlighter
 from uitester.ui.case_manager.tag_manage_widget import TagManageWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
 from uitester.ui.case_run.console import Console
+
+logger = logging.getLogger("Tester")
 
 
 class EditorWidget(QWidget):
@@ -87,10 +90,12 @@ class EditorWidget(QWidget):
         self.save_btn.clicked.connect(self.save_case)
         self.run_btn.clicked.connect(self.run_btn_event)
         self.console_btn.clicked.connect(self.log_show_hide_event)
-        self.add_data_btn.clicked.connect(self.add_case_data)
+        self.edit_data_btn.clicked.connect(self.add_case_data)
         self.add_tag_button.clicked.connect(self.choose_event)
         # case data
         self.case_manager = CaseManager()
+        self.case_data_manage = CaseDataManager()
+        self.case_data_count = 0  # init case data count
 
     def init_ui(self):
         """
@@ -121,9 +126,9 @@ class EditorWidget(QWidget):
         console_icon.addPixmap(QPixmap(self.config.images + '/console.png'), QIcon.Normal, QIcon.Off)  # console icon
         self.console_btn.setIcon(console_icon)
 
-        add_data_icon = QIcon()
-        add_data_icon.addPixmap(QPixmap(self.config.images + '/add.png'), QIcon.Normal, QIcon.Off)  # console icon
-        self.add_data_btn.setIcon(add_data_icon)
+        edit_data_icon = QIcon()
+        edit_data_icon.addPixmap(QPixmap(self.config.images + '/edit.png'), QIcon.Normal, QIcon.Off)  # console icon
+        self.edit_data_btn.setIcon(edit_data_icon)
 
     def add_case_data(self):
         """
@@ -281,6 +286,9 @@ class EditorWidget(QWidget):
         is_tags_names_modify = set(db_tag_list).difference(set(tag_list)) != set(tag_list).difference(set(db_tag_list))
 
         if is_name_modified or is_content_modified or is_tags_names_modify:
+            logger.debug('case changed. case name: {}, tags: {}, content: {}'.format(is_name_modified,
+                                                                                     is_tags_names_modify,
+                                                                                     is_content_modified))
             is_case_modified = True
         return is_case_modified
 
@@ -323,12 +331,10 @@ class EditorWidget(QWidget):
             return
 
         # get case data count
-        case_data_manage = CaseDataManager()
-        case_data_count = 0
         if self.case_id is not None:
-            case_data_count = case_data_manage.get_case_data_count(self.case_id)
+            self.case_data_count = self.case_data_manage.get_case_data_count(self.case_id)
 
-        self.device_and_data_signal.emit(devices, case_data_count)
+        self.device_and_data_signal.emit(devices, self.case_data_count)
         self.add_device_widget.show()
 
     def run_case(self, devices, data_line_number):
@@ -353,6 +359,7 @@ class EditorWidget(QWidget):
         self.run_btn.setText("Run")
         self.is_running = False
         try:
+            logger.debug("Debug stop")
             self.tester.stop()
             self.tester.stop_server()
         except Exception as e:
@@ -364,12 +371,19 @@ class EditorWidget(QWidget):
         :return:
         """
         case_content = self.editor_text_edit.toPlainText().strip()
+
+        case_data = None
         try:
+            if self.case_id is not None and self.case_data_count > 0:  # case data exist
+                case_data = self.case_data_manage.get_case_data(self.case_id)  # get all case data
+
             self.debug_runner.reset()
+            self.debug_runner.data = case_data  # set case data
             self.debug_runner.parse(case_content)
+            logger.debug("Debug beginning")
             self.debug_runner.execute(case_content, self.data_line)
         except Exception as e:
-            self.stop_case()
+            logger.exception(str(e))
             self.add_info_console("<font color='red'>" + str(e) + "</font>")
         self.stop_case()
 
@@ -393,28 +407,37 @@ class EditorWidget(QWidget):
             self.case.name = case_name
             self.case.content = content
             self.case.tags = tags
-            if hasattr(self, 'case_data_widget') and self.case_data_widget.isVisible():
-                self.case_manager.update_case(self.case_id, self.case_data_widget.case_data_list,
-                                              self.case_data_widget.delete_data_ids)
-                del self.case_data_widget.delete_data_ids[:]
-                self.case_data_widget.has_modify = False
-            else:
-                self.dBCommandLineHelper.update_case()
-            self.message_box.information(self, "Update case", "Update case success.", QMessageBox.Ok)
+            try:
+                # update case and case data
+                if hasattr(self, 'case_data_widget') and self.case_data_widget.isVisible():
+                    self.case_manager.update_case(self.case_id, self.case_data_widget.case_data_list,
+                                                  self.case_data_widget.delete_data_ids)
+                    del self.case_data_widget.delete_data_ids[:]
+                    self.case_data_widget.has_modify = False
+                else:
+                    self.dBCommandLineHelper.update_case()
+            except Exception as e:
+                logger.exception(str(e))
+                self.message_box.information(self, "Update Case Error", "Update case Fail.\nError Info:\n" + str(e),
+                                             QMessageBox.Ok)
         else:
-            if hasattr(self, 'case_data_widget') and self.case_data_widget.isVisible():
-                case = self.case_manager.insert_case(case_name, content, tags, self.case_data_widget.case_data_list,
-                                                     self.case_data_widget.delete_data_ids)
-                del self.case_data_widget.delete_data_ids[:]
-                self.case_data_widget.has_modify = False
-            else:
-                case = self.dBCommandLineHelper.insert_case_with_tags(case_name, content, tags)
-            self.id_line_edit.setText(str(case.id))
-            self.case_id = self.id_line_edit.text().strip()
-            self.set_case_edit_data()
-            self.message_box.information(self, "Add case", "Add case success.", QMessageBox.Ok)
-
-        self.refresh_signal.emit()
+            try:
+                # insert case and save case data
+                if hasattr(self, 'case_data_widget') and self.case_data_widget.isVisible():
+                    case = self.case_manager.insert_case(case_name, content, tags, self.case_data_widget.case_data_list,
+                                                         self.case_data_widget.delete_data_ids)
+                    del self.case_data_widget.delete_data_ids[:]
+                    self.case_data_widget.has_modify = False
+                else:
+                    case = self.dBCommandLineHelper.insert_case_with_tags(case_name, content, tags)
+                self.id_line_edit.setText(str(case.id))
+                self.case_id = self.id_line_edit.text().strip()
+                self.set_case_edit_data()
+            except Exception as e:
+                logger.exception(str(e))
+                self.message_box.information(self, "Add Case Error", "Add case Fail.\nError Info:\n" + str(e),
+                                             QMessageBox.Ok)
+        self.refresh_signal.emit()  # refresh the main table
 
     def check_null(self):
         """

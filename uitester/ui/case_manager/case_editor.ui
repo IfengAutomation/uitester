@@ -77,9 +77,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="add_data_btn">
+      <widget class="QPushButton" name="edit_data_btn">
        <property name="text">
-        <string>Add Data</string>
+        <string>Edit Data</string>
        </property>
       </widget>
      </item>
