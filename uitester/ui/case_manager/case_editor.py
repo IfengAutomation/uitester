@@ -96,6 +96,7 @@ class EditorWidget(QWidget):
         self.case_manager = CaseManager()
         self.case_data_manage = CaseDataManager()
         self.case_data_count = 0  # init case data count
+        self.is_case_data_modify = False
 
     def init_ui(self):
         """
@@ -241,11 +242,16 @@ class EditorWidget(QWidget):
         case_name = self.case_name_line_edit.text().strip()  # Case Name
         content = self.editor_text_edit.toPlainText().strip()  # Case Content
         tag_list = self.get_tag_list()
-        if not self.case_id:
+        # check case data widget isVisible
+        if hasattr(self, 'case_data_widget') and self.case_data_widget.isVisible() and (
+                not self.case_data_widget.has_modify):
+            self.case_data_widget.close()
+
+        if not self.case_id:  # new case
             if (not case_name) and (not content) and (not tag_list):
                 self.close()
                 return
-        else:
+        elif self.case_id:  # update case
             if not self.check_modify():
                 self.close()
                 return
@@ -262,7 +268,13 @@ class EditorWidget(QWidget):
 
         if reply == QMessageBox.Save:  # update case info
             self.save_case(event)
+            # check case data widget isVisible
+            if hasattr(self, 'case_data_widget') and self.case_data_widget.isVisible():
+                self.case_data_widget.close()
         elif reply == QMessageBox.Discard:
+            # check case data widget isVisible
+            if hasattr(self, 'case_data_widget') and self.case_data_widget.isVisible():
+                self.case_data_widget.close()
             self.close()
             return
         else:
@@ -285,10 +297,13 @@ class EditorWidget(QWidget):
         db_tag_list = case_db.tags
         is_tags_names_modify = set(db_tag_list).difference(set(tag_list)) != set(tag_list).difference(set(db_tag_list))
 
-        if is_name_modified or is_content_modified or is_tags_names_modify:
-            logger.debug('case changed. case name: {}, tags: {}, content: {}'.format(is_name_modified,
-                                                                                     is_tags_names_modify,
-                                                                                     is_content_modified))
+        # check the case data
+        if hasattr(self, 'case_data_widget') and self.case_data_widget.isVisible():
+            self.is_case_data_modify = self.case_data_widget.has_modify
+
+        if is_name_modified or is_content_modified or is_tags_names_modify or self.is_case_data_modify:
+            logger.debug('case changed. case name: {}, tags: {}, content: {}, case data: {}'
+                         .format(is_name_modified, is_tags_names_modify, is_content_modified, self.is_case_data_modify))
             is_case_modified = True
         return is_case_modified
 
