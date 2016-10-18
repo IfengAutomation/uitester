@@ -56,7 +56,7 @@ class EditorWidget(QWidget):
 
         self.splitter = QSplitter(Qt.Vertical)
 
-        self.splitter.setHandleWidth(1)   # set handle width
+        self.splitter.setHandleWidth(1)  # set handle width
         self.editor_text_edit = TextEdit(self.debug_runner.core)  # case content TextEdit
         self.console = Console()
 
@@ -130,7 +130,7 @@ class EditorWidget(QWidget):
         show case data widget
         :return:
         """
-        if hasattr(self,'case_data_widget'):
+        if hasattr(self, 'case_data_widget'):
             self.case_data_widget.close()
         self.case_data_widget = CaseDataWidget(self.case_id)
         self.case_data_widget.show()
@@ -343,7 +343,7 @@ class EditorWidget(QWidget):
         self.tester.select_devices(devices)
 
         self.data_line = data_line_number
-        self.run()   # run
+        self.run()  # run
 
     def stop_case(self):
         # set icon
@@ -397,6 +397,7 @@ class EditorWidget(QWidget):
                 self.case_manager.update_case(self.case_id, self.case_data_widget.case_data_list,
                                               self.case_data_widget.delete_data_ids)
                 del self.case_data_widget.delete_data_ids[:]
+                self.case_data_widget.has_modify = False
             else:
                 self.dBCommandLineHelper.update_case()
             self.message_box.information(self, "Update case", "Update case success.", QMessageBox.Ok)
@@ -405,6 +406,7 @@ class EditorWidget(QWidget):
                 case = self.case_manager.insert_case(case_name, content, tags, self.case_data_widget.case_data_list,
                                                      self.case_data_widget.delete_data_ids)
                 del self.case_data_widget.delete_data_ids[:]
+                self.case_data_widget.has_modify = False
             else:
                 case = self.dBCommandLineHelper.insert_case_with_tags(case_name, content, tags)
             self.id_line_edit.setText(str(case.id))

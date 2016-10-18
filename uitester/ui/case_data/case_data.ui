@@ -11,9 +11,12 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Case Data Editor</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <property name="accessibleName">
+   <string/>
+  </property>
+  <layout class="QVBoxLayout" name="_2">
    <property name="spacing">
     <number>0</number>
    </property>

@@ -27,6 +27,7 @@ class CaseDataWidget(QWidget):
         self.message_box = QMessageBox()
         self.delete_data_ids = []
         self.del_column_num = -1
+        self.has_modify = False
 
     def create_menu(self):
         self.pop_menu = QMenu()
@@ -79,10 +80,12 @@ class CaseDataWidget(QWidget):
         if row == 0:  # 修改字段名
             self.data_header_editor = DataHeaderQWidget(self.refresh_table_item_signal,
                                                         row, column, table_item.text())
+            self.data_header_editor.setWindowModality(Qt.ApplicationModal)
             self.data_header_editor.show()
         else:  # 修改数据
             self.data_editor = DataEditorQWidget(self.refresh_table_item_signal,
                                                  row, column, table_item.text())
+            self.data_editor.setWindowModality(Qt.ApplicationModal)
             self.data_editor.show()
 
     def refresh_table_item(self, row, column, text):
@@ -93,6 +96,7 @@ class CaseDataWidget(QWidget):
             case_data_detail.data = text
         else:
             self.case_data_list[row][column] = text
+        self.has_modify = True
 
 
 class DataHeaderQWidget(QWidget):
@@ -103,17 +107,19 @@ class DataHeaderQWidget(QWidget):
         ui_file_path = os.path.join(ui_dir_path, 'header_editor.ui')
         uic.loadUi(ui_file_path, self)
         self.new_name_line_edit.setText(old_header_name)
-        self.save_btn.clicked.connect(self.save_data_header)
         self.message_box = QMessageBox()
         self.refresh_table_item_signal = refresh_table_item_signal
         self.row = row
         self.column = column
+        self.old_header_name = old_header_name
 
-    def save_data_header(self):
-        new_header_name = self.new_name_line_edit.text()
-        new_header_name = new_header_name.strip()
-        self.refresh_table_item_signal.emit(self.row, self.column, new_header_name)
+    def closeEvent(self, QCloseEvent):
+        new_header_name = self.new_name_line_edit.text().strip()
+        if self.old_header_name != new_header_name:
+            self.refresh_table_item_signal.emit(self.row, self.column, new_header_name)
         self.close()
+
+
 
 class DataEditorQWidget(QWidget):
     def __init__(self, refresh_table_item_signal, row, column,
@@ -123,12 +129,14 @@ class DataEditorQWidget(QWidget):
         ui_file_path = os.path.join(ui_dir_path, 'data_editor.ui')
         uic.loadUi(ui_file_path, self)
         self.data_text_edit.setPlainText(old_data)
-        self.save_btn.clicked.connect(self.save_data)
         self.refresh_table_item_signal = refresh_table_item_signal
         self.row = row
         self.column = column
+        self.old_data = old_data
 
-    def save_data(self):
+
+    def closeEvent(self, QCloseEvent):
         new_data = self.data_text_edit.toPlainText().strip()
-        self.refresh_table_item_signal.emit(self.row, self.column, new_data)
+        if self.old_data != new_data:
+            self.refresh_table_item_signal.emit(self.row, self.column, new_data)
         self.close()
