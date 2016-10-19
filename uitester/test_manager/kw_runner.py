@@ -172,7 +172,9 @@ class KWDebugRunner:
                     for data_row in self.data:
                         self._execute(script_str=script_str, data_row=data_row)
             else:
-                self._execute(script_str=script_str, data_row=self.data[data_line])
+                # data_line_number = data_line-1
+                # run single data line
+                self._execute(script_str=script_str, data_row=self.data[data_line-1])
         except Exception as e:
             if self.listener:
                 self.listener.update(StatusMsg(
