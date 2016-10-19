@@ -17,6 +17,7 @@ class TextEdit(QTextEdit):
         self.kw_core = kw_core
         self.cmp = None
         self.high_lighter = None
+        self.setPlaceholderText("Case Content")
         self.import_lines = set()
 
         self.popup_widget = CompleterWidget()
