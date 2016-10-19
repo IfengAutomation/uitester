@@ -169,7 +169,7 @@ class KWDebugRunner:
                 if self.data is None or len(self.data) < 2:
                     self._execute(script_str=script_str)
                 else:
-                    for data_row in self.data[1:]:
+                    for data_row in self.data:
                         self._execute(script_str=script_str, data_row=data_row)
             else:
                 self._execute(script_str=script_str, data_row=self.data[data_line])
