@@ -67,6 +67,12 @@ class CaseDataManager:
         return data_dict
 
     def get_format_data_row(self, data_relation_list, key_name):
+        '''
+        获取运行 case data 格式化
+        :param data_relation_list:
+        :param key_name:
+        :return:
+        '''
         case_data_list = []
         for new_data_relation in data_relation_list:
             case_data_dict = {}
@@ -87,6 +93,13 @@ class CaseDataManager:
             return True
 
     def get_format_case_data(self, row_count, column_count, case_id):
+        '''
+        table 展示case data 格式化
+        :param row_count:
+        :param column_count:
+        :param case_id:
+        :return:
+        '''
         case_data_list = []
         db_case_data_list = []
         if case_id:
