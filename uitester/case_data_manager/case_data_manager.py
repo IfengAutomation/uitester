@@ -9,15 +9,8 @@ class CaseDataManager:
         self.db_helper = DBCommandLineHelper()
 
     def get_case_data_count(self, case_id):
-        case = self.db_helper.query_case_by_id(case_id)
-        count = 0
-        data_relation_list = eval(case.data_relation) if case.data_relation else []
-        for data_relation in data_relation_list:
-            for data in data_relation:
-                if data:
-                    count += 1
-                    break
-        return count
+        case_data_list = self.get_run_format_data(case_id)
+        return len(case_data_list)
 
     def get_case_data(self, case_id):
         case_data_list = []
@@ -26,7 +19,6 @@ class CaseDataManager:
         case_data_list.append(header_relation_list)
         if case.data_relation is not None and case.data_relation:
             data_relation_list = eval(case.data_relation)
-            # case_data_list.append(data_relation_list[0])
             for data_relation in data_relation_list:
                 temp_data_list = []
                 for data_id in data_relation:
@@ -39,6 +31,60 @@ class CaseDataManager:
                     temp_data_list.append(case_data)
                 case_data_list.append(temp_data_list)
         return case_data_list
+
+    def get_run_format_data(self, case_id):
+        case_data_list = []
+        data_dict = self.filter_data(case_id)
+        new_data_relation_list = data_dict['new_data_relation']
+        key_name = data_dict['key_name']
+        if new_data_relation_list:  # 格式化过滤后的数据
+            case_data_list = self.get_format_data_row(new_data_relation_list, key_name)
+        return case_data_list
+
+    def filter_data(self, case_id):
+        data_dict = {}
+        new_data_relation_list = []
+        case = self.db_helper.query_case_by_id(case_id)
+        key_name = []
+        key_index = []
+        if case.header_relation and case.data_relation:
+            data_relation_list = eval(case.data_relation)
+            header_relation_list = eval(case.header_relation)
+            # 获取header
+            for index, key in enumerate(header_relation_list):
+                if key:
+                    key_index.append(index)
+                    key_name.append(key)
+            if key_index and data_relation_list:
+                for data_relation in data_relation_list:
+                    new_data_relation = []
+                    for index in key_index:
+                        new_data_relation.append(data_relation[index])
+                    if not self.is_empty_list(new_data_relation):  # 去除空行
+                        new_data_relation_list.append(new_data_relation)
+        data_dict['key_name'] = key_name
+        data_dict['new_data_relation'] = new_data_relation_list
+        return data_dict
+
+    def get_format_data_row(self, data_relation_list, key_name):
+        case_data_list = []
+        for new_data_relation in data_relation_list:
+            case_data_dict = {}
+            for index, data_id in enumerate(new_data_relation):
+                if data_id:
+                    case_data = self.db_helper.query_case_data(id=int(data_id))
+                    case_data_dict[key_name[index]] = case_data.data
+                else:
+                    case_data_dict[key_name[index]] = ''
+            case_data_list.append(case_data_dict)
+        return case_data_list
+
+    def is_empty_list(self, list):
+        str = ''.join(list)
+        if str:
+            return False
+        else:
+            return True
 
     def get_format_case_data(self, row_count, column_count, case_id):
         case_data_list = []
