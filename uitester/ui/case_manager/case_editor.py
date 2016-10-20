@@ -328,7 +328,7 @@ class EditorWidget(QWidget):
         :return:
         """
         self.add_device_widget = AddDeviceWidget()  # add device
-        self.add_device_widget.setWindowModality(Qt.WindowModal)
+        self.add_device_widget.setWindowModality(Qt.ApplicationModal)
         self.device_and_data_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.add_device_widget.run_editor_signal.connect(self.run_case, Qt.QueuedConnection)
         devices = []
@@ -389,7 +389,7 @@ class EditorWidget(QWidget):
 
         case_data = None
         try:
-            if self.case_id is not None and self.case_data_count > 0:  # case data exist
+            if (self.case_id is not None) and (self.case_data_count > 0):  # case data exist
                 case_data = self.case_data_manage.get_case_data(self.case_id)  # get all case data
 
             self.debug_runner.reset()
