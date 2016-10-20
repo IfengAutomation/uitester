@@ -67,6 +67,13 @@ class CaseDataManager:
         data_dict['new_data_relation'] = new_data_relation_list
         return data_dict
 
+    def is_empty_list(self, data_list):
+        data_str = ''.join(data_list)
+        if data_str:
+            return False
+        else:
+            return True
+
     def get_format_data_row(self, data_relation_list, key_name):
         '''
         获取运行 case data 格式化
@@ -87,13 +94,6 @@ class CaseDataManager:
                 data.__dict__ = case_data_dict
             case_data_list.append(data)
         return case_data_list
-
-    def is_empty_list(self, list):
-        str = ''.join(list)
-        if str:
-            return False
-        else:
-            return True
 
     def get_format_case_data(self, row_count, column_count, case_id):
         '''
@@ -183,6 +183,3 @@ class CaseDataManager:
             return data_relation_str
         else:
             pass
-if __name__ == '__main__':
-    case_data_manager = CaseDataManager()
-    list = case_data_manager.get_run_format_data(2)
