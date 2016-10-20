@@ -2,6 +2,7 @@
 # @Author  : lixintong
 
 from uitester.case_manager.database import DBCommandLineHelper, CaseData
+from uitester.test_manager.kw_runner import DataRow
 
 
 class CaseDataManager:
@@ -82,7 +83,9 @@ class CaseDataManager:
                     case_data_dict[key_name[index]] = case_data.data
                 else:
                     case_data_dict[key_name[index]] = ''
-            case_data_list.append(case_data_dict)
+                data = DataRow()
+                data.__dict__ = case_data_dict
+            case_data_list.append(data)
         return case_data_list
 
     def is_empty_list(self, list):
@@ -180,3 +183,6 @@ class CaseDataManager:
             return data_relation_str
         else:
             pass
+if __name__ == '__main__':
+    case_data_manager = CaseDataManager()
+    list = case_data_manager.get_run_format_data(2)
