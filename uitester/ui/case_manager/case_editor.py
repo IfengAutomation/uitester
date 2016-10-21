@@ -73,11 +73,11 @@ class EditorWidget(QWidget):
 
         self.editor_layout.addWidget(self.splitter)
 
-        self.editor_adapter()  # set completer and highlighter
-        self.set_case_edit_data()  # update case
-
         self.import_list_signal.connect(self.editor_text_edit.get_import_from_content, Qt.QueuedConnection)
         self.editor_text_edit.parse_error_info_signal.connect(self.add_info_console, Qt.QueuedConnection)
+
+        self.editor_adapter()  # set completer and highlighter
+        self.set_case_edit_data()  # update case
 
         # run status listener
         self.status_listener = EditorRunStatusListener()
@@ -390,7 +390,7 @@ class EditorWidget(QWidget):
         case_data = None
         try:
             if (self.case_id is not None) and (self.case_data_count > 0):  # case data exist
-                case_data = self.case_data_manage.get_case_data(self.case_id)  # get all case data
+                case_data = self.case_data_manage.get_run_format_data(self.case_id)  # get all case data
 
             self.debug_runner.reset()
             self.debug_runner.data = case_data  # set case data
