@@ -76,18 +76,11 @@ class MainWindow(QMainWindow):
         close window event
         :return:
         """
-        if hasattr(self, 'case_edit_window'):
-            if not self.case_edit_window.isVisible():
-                self.close()
-                return
 
         reply = self.message_box.question(self, "Confirm Close?", "The editor is opened, still close?",
                                           QMessageBox.Yes | QMessageBox.Cancel)
-
         if reply == QMessageBox.Yes:
-            if hasattr(self, 'case_edit_window'):
-                if self.case_edit_window.isVisible():
-                    self.case_edit_window.close()
+            self.case_edit_window.close()
             self.close()
         else:
             event.ignore()
