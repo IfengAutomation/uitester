@@ -254,3 +254,6 @@ class DBCommandLineHelper:
     def batch_delete_case_data(self, delete_data_ids):
         DB.session.query(CaseData).filter(CaseData.id.in_(delete_data_ids)).delete(synchronize_session=False)
         DB.session.commit()
+
+    def query_cases_by_ids(self, ids):
+        return DB.session.query(Case).filter(Case.id.in_(ids)).all()

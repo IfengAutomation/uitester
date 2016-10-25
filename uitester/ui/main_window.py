@@ -11,7 +11,9 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QDesktopWidget, QMessageB
 from uitester.test_manager.tester import Tester
 from uitester.ui.case_manager.case_editor import EditorWidget
 from uitester.ui.case_manager.case_manager import CaseManagerWidget
+from uitester.ui.case_report.case_report import ReportWidget
 from uitester.ui.case_run.case_run import RunWidget
+from uitester.ui.case_setting.case_setting import SettingWidget
 
 logger = logging.getLogger("Tester")
 
@@ -44,6 +46,14 @@ class MainWindow(QMainWindow):
         # Add tab "Run"
         case_run_widget = RunWidget(self.tester)
         self.tabWidget.addTab(case_run_widget, "Run")
+
+        # Add tab "Report"
+        case_report_widget = ReportWidget()
+        self.tabWidget.addTab(case_report_widget, "Report")
+
+        # Add tab "Setting"
+        case_setting_widget = SettingWidget()
+        self.tabWidget.addTab(case_setting_widget, "Setting")
 
         self.refresh_case_data_signal.connect(case_manager_widget.refresh)
         self.message_box = QMessageBox()
