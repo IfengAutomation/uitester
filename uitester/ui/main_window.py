@@ -58,6 +58,7 @@ class MainWindow(QMainWindow):
         self.refresh_case_data_signal.connect(case_manager_widget.refresh)
         self.message_box = QMessageBox()
         self.start_rpc_server()
+        self.is_editor_close_cancel = False
 
     def start_rpc_server(self):
         """
@@ -83,14 +84,29 @@ class MainWindow(QMainWindow):
             self.close()
             return
 
+        # signal for case_edit_window's closeEvent
+        self.case_edit_window.close_cancel_signal.connect(self.editor_close_ignore, Qt.DirectConnection)
+
         # case_edit_window is visible
         reply = self.message_box.question(self, "Confirm Close?", "The editor is opened, still close?",
                                           QMessageBox.Yes | QMessageBox.Cancel)
         if reply == QMessageBox.Yes:
+            self.is_editor_close_cancel = False
             self.case_edit_window.close()
+            if self.is_editor_close_cancel:   # editor close is canceled
+                event.ignore()
+                return
             self.close()
         else:
             event.ignore()
+
+    def editor_close_ignore(self):
+        """
+        signal emit handle
+        signal show editor window close cancel
+        :return:
+        """
+        self.is_editor_close_cancel = True
 
     def show_case_editor(self, type, id):
         if type == self.case_editor_add_type:

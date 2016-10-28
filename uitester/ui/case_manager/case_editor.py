@@ -27,6 +27,7 @@ logger = logging.getLogger("Tester")
 class EditorWidget(QWidget):
     device_and_data_signal = pyqtSignal(list, int, name="device_list_signal")
     import_list_signal = pyqtSignal(set, name="import_list_signal")
+    close_cancel_signal = pyqtSignal(name="close_cancel_signal")
 
     def __init__(self, refresh_signal, tester, case_id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -278,6 +279,7 @@ class EditorWidget(QWidget):
             self.close()
             return
         else:
+            self.close_cancel_signal.emit()
             event.ignore()
 
     def check_modify(self):
