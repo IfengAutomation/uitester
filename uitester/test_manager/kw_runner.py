@@ -2,9 +2,13 @@ import threading
 import time
 import sys
 from os.path import dirname, abspath, pardir, join
-from uitester.test_manager import device_proxy
 import logging
+import socket
+from uitester.test_manager import device_proxy
 from uitester.test_manager import context
+from uitester.test_manager import adb
+from uitester.test_manager import path_helper
+
 
 
 logger = logging.getLogger('Tester')
@@ -12,6 +16,14 @@ logger = logging.getLogger('Tester')
 script_dir = dirname(abspath(__file__))
 libs_dir = join(join(join(script_dir, pardir), pardir), 'libs')
 sys.path.append(libs_dir)
+
+
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("google.com", 80))
+    ip = s.getsockname()[0]
+    s.close()
+    return ip
 
 
 class StatusMsg:
@@ -22,6 +34,12 @@ class StatusMsg:
     KW_LINE_START = 201
     KW_LINE_END = 202
     ERROR = 500
+    INSTALL_START = 601
+    INSTALL_FINISH = 602
+    INSTALL_FAIL = 603
+    AGENT_START = 701
+    AGENT_STOP = 702
+    AGENT_ERROR = 703
 
     __status_str__ = {
         TEST_START: 'TEST START',
@@ -30,7 +48,13 @@ class StatusMsg:
         CASE_END: 'CASE END',
         KW_LINE_START: 'KW LINE START',
         KW_LINE_END: 'KW LINE END',
-        ERROR: 'ERROR'
+        ERROR: 'ERROR',
+        INSTALL_START: 'INSTALL START',
+        INSTALL_FINISH: 'INSTALL FINISH',
+        INSTALL_FAIL: 'INSTALL FAIL',
+        AGENT_START: 'AGENT START',
+        AGENT_STOP: 'AGENT STOP',
+        AGENT_ERROR: 'AGENT ERROR'
     }
 
     def __init__(self, status, device_id=None, case_id=0, line_number=0, message=None):
@@ -83,22 +107,60 @@ class DataRow:
 
 
 class KWRunner:
-    def __init__(self, status_listener=None):
+    def __init__(self, status_listener=None, device_manager=None):
         self.listener = status_listener
         self.run_signal = RunSignal()
+        self.dm = device_manager
 
-    def execute(self, cases, agents):
+    def execute(self, cases, devices):
         self.run_signal.stop = False
-        for agent in agents:
-            t = threading.Thread(target=self._run_cases_on_agent, args=(cases, agent))
+
+        for device in devices:
+            instrument_thread = threading.Thread(target=self._setup_agent, args=(device,))
+            instrument_thread.start()
+            t = threading.Thread(target=self._run_cases_on_device, args=(cases, device))
             t.start()
 
-    def _run_cases_on_agent(self, cases, agent):
+    def _setup_agent(self, device):
+        self.listener.update(StatusMsg(StatusMsg.INSTALL_START, device_id=device.id))
+        res, output = adb.install(path_helper.agent_apk)
+        if res:
+            self.listener.update(StatusMsg(StatusMsg.INSTALL_FINISH, device_id=device.id))
+        else:
+            self.listener.update(StatusMsg(StatusMsg.INSTALL_FAIL, device_id=device.id, message=output))
+            return
+
+        self.listener.update(StatusMsg(StatusMsg.AGENT_START, device_id=device.id))
+        instrument_res, instrument_output = adb.start_agent(get_local_ip(), 11800)
+        if instrument_res:
+            self.listener.update(StatusMsg(StatusMsg.AGENT_STOP, device_id=device.id))
+        else:
+            self.listener.update(StatusMsg(StatusMsg.AGENT_ERROR, device_id=device.id, message=instrument_output))
+
+    def _run_cases_on_device(self, cases, device):
+
+        wait_count = 0
+        while True:
+            if wait_count > 30:
+                self.listener.update(
+                    StatusMsg(
+                        StatusMsg.AGENT_ERROR,
+                        device_id=device.id,
+                        message='agent not register'))
+                return
+            if device.agent:
+                break
+            else:
+                time.sleep(1)
+                wait_count += 1
+
+        context.agent = device.agent
+
         self.listener.update(StatusMsg(
                     StatusMsg.TEST_START,
-                    device_id=agent.device_id
+                    device_id=device.id
                 ))
-        context.agent = agent
+
         for _case in cases:
             core = KWCore()
             core.case_id = _case.id
@@ -109,22 +171,22 @@ class KWRunner:
                         core.reset()
                         core.set_data(data_row)
                         core.parse(_case.content)
-                        core.execute(agent, self.listener)
+                        core.execute(context.agent, self.listener)
                 else:
                     core.parse(_case.content)
-                    core.execute(agent, self.listener)
+                    core.execute(context.agent, self.listener)
             except Exception as e:
                 if self.listener:
                     self.listener.update(StatusMsg(
                         StatusMsg.ERROR,
-                        device_id=context.agent.device_id,
+                        device_id=device.id,
                         case_id=_case.id,
                         line_number=core.line_count,
                         message=e
                     ))
         self.listener.update(StatusMsg(
             StatusMsg.TEST_END,
-            device_id=agent.device_id
+            device_id=device.id
         ))
 
     def stop(self):
@@ -160,11 +222,63 @@ class KWDebugRunner:
         self.core.parse(script_str)
 
     def execute(self, script_str=None, data_line=0):
+        setup_t = threading.Thread(target=self._setup_devices)
+        setup_t.start()
         t = threading.Thread(target=self._thread_execute, args=(script_str, data_line))
         t.start()
 
+    def _setup_devices(self):
+        self.listener.update(StatusMsg(
+            StatusMsg.INSTALL_START,
+            device_id=self.dm.selected_devices[0].id
+        ))
+        res, output = adb.install(path_helper.agent_apk)
+        if res:
+            self.listener.update(StatusMsg(
+                StatusMsg.INSTALL_FINISH,
+                device_id=self.dm.selected_devices[0].id
+            ))
+        else:
+            self.listener.update(StatusMsg(
+                StatusMsg.INSTALL_FAIL,
+                device_id=self.dm.selected_devices[0].id,
+                message=output
+            ))
+
+        self.listener.update(StatusMsg(
+            StatusMsg.AGENT_START,
+            device_id=self.dm.selected_devices[0].id
+        ))
+        instrument_res, instrument_output = adb.start_agent(get_local_ip(), 11800)
+        if instrument_res:
+            self.listener.update(StatusMsg(
+                StatusMsg.AGENT_STOP,
+                device_id=self.dm.selected_devices[0].id
+            ))
+        else:
+            self.listener.update(StatusMsg(
+                StatusMsg.AGENT_ERROR,
+                device_id=self.dm.selected_devices[0].id,
+                message=instrument_output
+            ))
+
     def _thread_execute(self, script_str=None, data_line=0):
         try:
+            wait_agent_time_count = 0
+            while True:
+                if wait_agent_time_count > 30:
+                    self.listener.update(StatusMsg(
+                        StatusMsg.AGENT_ERROR,
+                        device_id=self.dm.selected_devices[0].id,
+                        message='Start test failed, Not found agent, timeout'
+                    ))
+                    return
+                if self.dm.selected_devices[0].agent:
+                    break
+                else:
+                    time.sleep(1)
+                    wait_agent_time_count += 1
+
             if data_line == 0:
                 if self.data is None or len(self.data) < 2:
                     self._execute(script_str=script_str)

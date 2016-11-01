@@ -1,4 +1,4 @@
-from uitester.android_tools.adb import ADB
+from uitester.test_manager import adb
 from uitester.test_manager import rpc_server
 from threading import Thread
 from queue import Queue
@@ -32,7 +32,6 @@ class DeviceManager:
         self.selected_devices = []
         self.server = None
         self.server_thread = None
-        self.adb = ADB(context)
         self.msg_queue = Queue()
 
     @property
@@ -45,8 +44,7 @@ class DeviceManager:
         update android devices by adb
         :return:
         """
-        self.adb.update()
-        device_info_list = self.adb.devices()
+        device_info_list = adb.devices()
 
         new_devices = []
         for device_info in device_info_list:

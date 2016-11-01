@@ -57,6 +57,28 @@ def start_agent(host, port):
         return True, _output
 
 
+def devices():
+    cmd = [
+        _adb,
+        'devices'
+    ]
+    p = subprocess.run(cmd, stdout=subprocess.PIPE)
+    _output = p.stdout.decode()
+    device_lines = _output.splitlines()
+    if len(device_lines) <= 0:
+        raise ValueError('Get devices list failed, can\'t read adb log')
+    if not device_lines[0].startswith('List'):
+        raise ValueError('device list error\n{}'.format(device_lines[0]))
+
+    _devices = []
+    if len(device_lines) > 1:
+        for line in device_lines:
+            device = line.split('\t')
+            if len(device) == 2:
+                _devices.append(device)
+    return _devices
+
+
 if __name__ == '__main__':
     res, output = install('/Users/zhaoye/github/uitester/apk/agent.apk')
     print('TEST INSTALL:', res, '\n', output)
@@ -64,3 +86,5 @@ if __name__ == '__main__':
     print('TEST INSTRUMENT', res, '\n', output)
     res, output = uninstall('com.ifeng.at.testagent.test')
     print('TEST UNINSTALL', res, '\n', output)
+    device_list = devices()
+    print(device_list)

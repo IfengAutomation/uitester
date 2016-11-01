@@ -13,3 +13,4 @@ win_adb = os.path.abspath(os.path.join(root_dir, 'adb/windows/adb.exe'))
 
 osx_adb = os.path.abspath(os.path.join(root_dir, 'adb/osx/adb'))
 
+agent_apk = os.path.abspath(os.path.join(root_dir, 'apk/agent.apk'))

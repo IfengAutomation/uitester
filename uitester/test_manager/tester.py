@@ -56,7 +56,7 @@ class Tester:
 
     @handle_error
     def run(self, cases):
-        self.runner.execute(cases, [device.agent for device in self.dm.selected_devices])
+        self.runner.execute(cases, self.dm.selected_devices)
 
     @handle_error
     def stop(self):
