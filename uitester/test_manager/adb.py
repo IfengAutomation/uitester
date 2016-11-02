@@ -36,7 +36,7 @@ def uninstall(package_name):
         return False, _output
 
 
-def start_agent(host, port):
+def start_agent(host, port, device_id):
     cmd = [
         _adb,
         'shell',
@@ -46,6 +46,7 @@ def start_agent(host, port):
         '-r',
         '-e', 'host', host,
         '-e', 'port', str(port),
+        '-e', 'id', device_id,
         '-e', 'class', 'com.ifeng.at.testagent.Agent#start',
         'com.ifeng.at.testagent.test/android.support.test.runner.AndroidJUnitRunner']
 

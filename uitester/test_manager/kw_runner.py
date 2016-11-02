@@ -131,7 +131,7 @@ class KWRunner:
             return
 
         self.listener.update(StatusMsg(StatusMsg.AGENT_START, device_id=device.id))
-        instrument_res, instrument_output = adb.start_agent(get_local_ip(), 11800)
+        instrument_res, instrument_output = adb.start_agent(get_local_ip(), 11800, device.id)
         if instrument_res:
             self.listener.update(StatusMsg(StatusMsg.AGENT_STOP, device_id=device.id))
         else:
@@ -148,13 +148,13 @@ class KWRunner:
                         device_id=device.id,
                         message='agent not register'))
                 return
-            if device.agent:
+            if self.dm.selected_devices[0].agent:
                 break
             else:
                 time.sleep(1)
                 wait_count += 1
 
-        context.agent = device.agent
+        context.agent = self.dm.selected_devices[0].agent
 
         self.listener.update(StatusMsg(
                     StatusMsg.TEST_START,
@@ -228,37 +228,39 @@ class KWDebugRunner:
         t.start()
 
     def _setup_devices(self):
+        device = self.dm.selected_devices[0]
+
         self.listener.update(StatusMsg(
             StatusMsg.INSTALL_START,
-            device_id=self.dm.selected_devices[0].id
+            device_id=device.id
         ))
         res, output = adb.install(path_helper.agent_apk)
         if res:
             self.listener.update(StatusMsg(
                 StatusMsg.INSTALL_FINISH,
-                device_id=self.dm.selected_devices[0].id
+                device_id=device.id
             ))
         else:
             self.listener.update(StatusMsg(
                 StatusMsg.INSTALL_FAIL,
-                device_id=self.dm.selected_devices[0].id,
+                device_id=device.id,
                 message=output
             ))
 
         self.listener.update(StatusMsg(
             StatusMsg.AGENT_START,
-            device_id=self.dm.selected_devices[0].id
+            device_id=device.id
         ))
-        instrument_res, instrument_output = adb.start_agent(get_local_ip(), 11800)
+        instrument_res, instrument_output = adb.start_agent(get_local_ip(), 11800, device.id)
         if instrument_res:
             self.listener.update(StatusMsg(
                 StatusMsg.AGENT_STOP,
-                device_id=self.dm.selected_devices[0].id
+                device_id=device.id
             ))
         else:
             self.listener.update(StatusMsg(
                 StatusMsg.AGENT_ERROR,
-                device_id=self.dm.selected_devices[0].id,
+                device_id=device.id,
                 message=instrument_output
             ))
 
