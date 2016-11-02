@@ -55,6 +55,7 @@ class Case(Base, Model):
     header_relation = Column(TEXT, default='')
     data_relation = Column(TEXT, default='')
     data = []
+    # report = relationship("Report", back_populates="case")
 
 
 class Tag(Base):
@@ -65,6 +66,34 @@ class Tag(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(8), unique=True)
     description = Column(TEXT)
+
+
+class RunnerEventStats(Base):
+    __tablename__ = 'runner_event_stats'
+    id = Column(Integer, primary_key=True)
+    start_time = Column(DateTime(timezone=True), default=datetime.datetime.now)
+    end_time = Column(DateTime(timezone=True), default=datetime.datetime.now)
+    total_count = Column(Integer, default=0)
+    pass_count = Column(Integer, default=0)
+    fail_count = Column(Integer, default=0)
+    reports = relationship("Report", back_populates="runner_event_stats")
+
+
+class Report(Base):
+    __tablename__ = 'report'
+    pass_flag = 0
+    fail_flag = -1
+    id = Column(Integer, primary_key=True)
+    # event_id = Column(Integer, index=True)
+    event_id = Column(Integer, ForeignKey('runner_event_stats.id'))
+    runner_event_stats = relationship("RunnerEventStats", back_populates="reports")
+    case_id = Column(Integer, ForeignKey('case.id'))
+    case = relationship("Case")
+    device_id = Column(TEXT, index=True)
+    start_time = Column(DateTime(timezone=True), default=datetime.datetime.now)
+    end_time = Column(DateTime(timezone=True), default=datetime.datetime.now)
+    status = Column(Integer, default=pass_flag)
+    message = Column(TEXT, default='')
 
 
 class DB:
@@ -257,3 +286,37 @@ class DBCommandLineHelper:
 
     def query_cases_by_ids(self, ids):
         return DB.session.query(Case).filter(Case.id.in_(ids)).all()
+
+    @staticmethod
+    def insert_runner_event():
+        runner_event_stats = RunnerEventStats()
+        DB.session.add(runner_event_stats)
+        DB.session.commit()
+        return runner_event_stats
+
+    @staticmethod
+    def insert_report(event_id, case_id, device_id, start_time, end_time, status, message):
+        report = Report()
+        report.event_id = event_id
+        report.case_id = case_id
+        report.device_id = device_id
+        report.start_time = start_time
+        report.end_time = end_time
+        report.status = status
+        report.message = message
+        DB.session.add(report)
+        DB.session.commit()
+        return report
+
+    @staticmethod
+    def query_report_by_case_id(case_id):
+        report = DB.session.query(Report).filter(Report.case_id == case_id).one()
+        return report
+
+    @staticmethod
+    def get_runner_event():
+        return DB.session.query(RunnerEventStats).all()
+
+    @staticmethod
+    def update_data(cls):
+        DB.session.commit()
