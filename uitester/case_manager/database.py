@@ -318,5 +318,5 @@ class DBCommandLineHelper:
         return DB.session.query(RunnerEventStats).all()
 
     @staticmethod
-    def update_data(cls):
+    def update_data():
         DB.session.commit()
