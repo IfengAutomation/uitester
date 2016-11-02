@@ -29,10 +29,19 @@ class DeviceManager:
     def __init__(self, context):
         self.context = context
         self._devices = {}
-        self.selected_devices = []
+        self._selected_devices = []
         self.server = None
         self.server_thread = None
         self.msg_queue = Queue()
+
+    @property
+    def selected_devices(self):
+        self.update_devices()
+        return self._selected_devices
+
+    @selected_devices.setter
+    def selected_devices(self, devices):
+        self._selected_devices = devices
 
     @property
     def devices(self):
