@@ -37,7 +37,7 @@ class DeviceManager:
     @property
     def devices(self):
         self.update_devices()
-        return self._devices.items()
+        return list(self._devices.values())
 
     def update_devices(self):
         """
