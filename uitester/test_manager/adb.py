@@ -13,7 +13,7 @@ else:
 
 
 def install(apk_file):
-    cmd = [_adb, 'install', apk_file]
+    cmd = [_adb, 'install', '-r', apk_file]
     p = subprocess.run(cmd, stdout=subprocess.PIPE)
     _output = p.stdout.decode()
     if 'Success' in _output:
