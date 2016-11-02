@@ -28,7 +28,7 @@ class DeviceManager:
     """
     def __init__(self, context):
         self.context = context
-        self.__devices = []
+        self._devices = {}
         self.selected_devices = []
         self.server = None
         self.server_thread = None
@@ -37,27 +37,35 @@ class DeviceManager:
     @property
     def devices(self):
         self.update_devices()
-        return self.__devices
+        return self._devices.items()
 
     def update_devices(self):
         """
         update android devices by adb
         :return:
         """
-        device_info_list = adb.devices()
+        devices_info = adb.devices()
 
-        new_devices = []
-        for device_info in device_info_list:
-            device = Device(device_info[0])
-            if device_info[1].strip() == 'device':
-                agent = self.server.get_agent(device.id)
-                if agent:
-                    device.agent = agent
-                device.status = Device.ONLINE
-            else:
-                device.status = Device.OFFLINE
-            new_devices.append(device)
-        self.__devices = new_devices
+        # update device status
+        for device_id in devices_info:
+            device_status = devices_info[device_id]
+            if device_id not in self._devices:
+                self._devices[device_id] = Device(device_id)
+            self._update_device_status(self._devices[device_id], device_status)
+
+        # remove not exist device
+        for device_id in self._devices:
+            if device_id not in devices_info:
+                self._devices.pop(device_id)
+
+    def _update_device_status(self, device, device_status):
+        if device_status == 'device':
+            agent = self.server.get_agent(device.id)
+            if agent:
+                device.agent = agent
+            device.status = Device.ONLINE
+        else:
+            device.status = Device.OFFLINE
 
     def start_rpc_server(self):
         self.server = rpc_server.get_server(self.context.config.port)

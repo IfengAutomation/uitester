@@ -48,11 +48,13 @@ def start_agent(host, port, device_id):
         '-e', 'port', str(port),
         '-e', 'id', device_id,
         '-e', 'class', 'com.ifeng.at.testagent.Agent#start',
-        'com.ifeng.at.testagent.test/android.support.test.runner.AndroidJUnitRunner']
+        'com.ifeng.newvideo.test/android.support.test.runner.AndroidJUnitRunner']
 
     p = subprocess.run(cmd, stdout=subprocess.PIPE)
     _output = p.stdout.decode()
     if '\nFAILURES!!!' in _output:
+        return False, _output
+    elif 'INSTRUMENTATION_STATUS: Error' in _output:
         return False, _output
     else:
         return True, _output
@@ -71,19 +73,19 @@ def devices():
     if not device_lines[0].startswith('List'):
         raise ValueError('device list error\n{}'.format(device_lines[0]))
 
-    _devices = []
+    _devices = {}
     if len(device_lines) > 1:
         for line in device_lines:
             device = line.split('\t')
             if len(device) == 2:
-                _devices.append(device)
+                _devices[device[0].strip()] = device[1].strip()
     return _devices
 
 
 if __name__ == '__main__':
     res, output = install('/Users/zhaoye/github/uitester/apk/agent.apk')
     print('TEST INSTALL:', res, '\n', output)
-    res, output = start_agent('172.30.20.51', 11800)
+    res, output = start_agent('172.30.20.51', 11800, '123')
     print('TEST INSTRUMENT', res, '\n', output)
     res, output = uninstall('com.ifeng.at.testagent.test')
     print('TEST UNINSTALL', res, '\n', output)

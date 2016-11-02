@@ -27,7 +27,7 @@ class Tester:
         error_handlers.append(DefaultErrorHandler())
         self.dm = DeviceManager(self.context)
         self.selected_device = None
-        self.runner = KWRunner()
+        self.runner = KWRunner(device_manager=self.dm)
 
     @handle_error
     def get_config(self):
