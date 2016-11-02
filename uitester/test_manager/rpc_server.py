@@ -101,7 +101,7 @@ class RPCAgent:
         self.connection = None
         self.responses = queue.Queue()
 
-    def call(self, method, args=None, timeout=Timeout):
+    def call(self, method, timeout=Timeout, *args):
         self.msg_id += 1
         msg = RPCMessage()
         msg.msg_id = self.msg_id
@@ -129,7 +129,7 @@ class RPCMessage:
 
     @classmethod
     def from_json(cls, json_str):
-        msg_dict = json.loads(json_str)
+        msg_dict = json.loads(decode(json_str))
         if type(msg_dict) is not dict:
             raise TypeError('Json is not a dict, can\'t create rpc message')
         instance = cls()
@@ -137,7 +137,7 @@ class RPCMessage:
         return instance
 
     def to_json(self):
-        return json.dumps(self.__dict__)
+        return encode(json.dumps(self.__dict__))
 
     def to_bytes(self):
         return (self.to_json() + '\n').encode()
@@ -154,3 +154,23 @@ def start(port):
     t.start()
     logger.debug('RPC Server started')
     return server
+
+
+def encode(msg):
+    """转译，规则为：
+        % -> %e
+        \n -> %n
+    """
+    msg = msg.replace("%", "%e")
+    msg = msg.replace("\n", "%n")
+    return msg
+
+
+def decode(msg):
+    """反转译，规则为：
+        %n -> \n
+        %e -> %
+    """
+    msg = msg.replace("%n", "\n")
+    msg = msg.replace("%e", "%")
+    return msg
