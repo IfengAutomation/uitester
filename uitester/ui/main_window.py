@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QDesktopWidget, QMessageB
 from uitester.test_manager.tester import Tester
 from uitester.ui.case_manager.case_editor import EditorWidget
 from uitester.ui.case_manager.case_manager import CaseManagerWidget
-from uitester.ui.case_report.runner_event import RunnerEventWidget
+from uitester.ui.case_report.task_record_stats import RunnerEventWidget
 from uitester.ui.case_run.case_run import RunWidget
 from uitester.ui.case_setting.case_setting import SettingWidget
 

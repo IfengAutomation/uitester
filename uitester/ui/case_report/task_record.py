@@ -4,24 +4,23 @@ import os
 
 from PyQt5 import uic
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget,QAbstractItemView,QTableWidgetItem
 
-from uitester.ui.case_report.case_table_widget import QAbstractItemView, QTableWidgetItem
 from uitester.ui.case_report.report_detail import ReportDetailWidget
 
 
-class ReportWidget(QWidget):
-    def __init__(self, reports, *args, **kwargs):
+class TaskRecordWidget(QWidget):
+    def __init__(self, task_records, *args, **kwargs):
         super().__init__(*args, **kwargs)
         ui_dir_path = os.path.dirname(__file__)
-        ui_file_path = os.path.join(ui_dir_path, 'report.ui')
+        ui_file_path = os.path.join(ui_dir_path, 'task_record.ui')
         uic.loadUi(ui_file_path, self)
-        self.reports = reports
+        self.task_records = task_records
         self.set_table_widget()
 
     def set_table_widget(self):
         header_text_list = ['case_id', 'case名称', '设备id', '开始时间', '结束时间', '运行结果']
-        row_count = len(self.reports) if self.reports else 0
+        row_count = len(self.task_records) if self.task_records else 0
         column_count = len(header_text_list)
         self.report_table_widget.setColumnCount(column_count)
         self.report_table_widget.setRowCount(row_count)
@@ -31,8 +30,8 @@ class ReportWidget(QWidget):
             table_header_item = QTableWidgetItem(header_text_list[column])
             table_header_item.setFont(QFont("Roman times", 12, QFont.Bold))
             self.report_table_widget.setHorizontalHeaderItem(column, table_header_item)
-        if self.reports:
-            for i, report in enumerate(self.reports):
+        if self.task_records:
+            for i, report in enumerate(self.task_records):
                 case_id = str(report.case_id) if report.case_id else ''
                 case_name = report.case.name if report.case else ''
                 self.report_table_widget.setItem(i, 0, QTableWidgetItem(case_id))
@@ -49,5 +48,5 @@ class ReportWidget(QWidget):
         self.report_table_widget.horizontalHeader().setStretchLastSection(True)
 
     def cell_clicked(self, row, column):
-        self.report_detail = ReportDetailWidget(self.reports[row].message)
+        self.report_detail = ReportDetailWidget(self.task_records[row].message)
         self.report_detail.show()
