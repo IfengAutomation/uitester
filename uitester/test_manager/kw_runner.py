@@ -451,6 +451,16 @@ class KWCore:
                         case_id=self.case_id,
                         message=e
                     ))
+                # if case line execute failed. stop this case and run next one
+                if self.status_listener:
+                    # -- Line end --
+                    self.status_listener.update(StatusMsg(
+                        StatusMsg.KW_LINE_END,
+                        device_id=agent.device_id,
+                        line_number=line.line_number,
+                        case_id=self.case_id
+                    ))
+                break
             if self.status_listener:
                 # -- Line end --
                 self.status_listener.update(StatusMsg(
