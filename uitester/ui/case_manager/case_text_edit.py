@@ -293,7 +293,7 @@ class Completer(QCompleter):
         if completion_text.startswith("$") and (not completion_text.endswith(".")):  # match var
             text_prefix = completion_text[1:]
             all_completer_word_list = self.debug_runner.get_var(text_prefix)
-        elif "." in completion_text:  # match var property
+        elif completion_text.startswith("$") and (completion_text.endswith(".")):  # match var property
             var_word = completion_text[1:].split(".")[0]  # get var word
             text_prefix = completion_text[1:].split(".")[1]  # get property prefix
             all_completer_word_list = self.debug_runner.get_property(var_word, text_prefix)

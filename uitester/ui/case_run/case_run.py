@@ -114,8 +114,10 @@ class RunWidget(QWidget):
         self.add_device_widget.run_case_signal.connect(self.run_case, Qt.QueuedConnection)
         self.device_list_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.add_device_widget.show()
-
-        self.device_list_signal.emit(devices)
+        try:
+            self.device_list_signal.emit(devices)
+        except Exception as e:
+            self.add_log("<font color='red'><pre>" + str(e) + "</pre></font>")
 
     def add_log(self, log_info):
         """
@@ -134,6 +136,20 @@ class RunWidget(QWidget):
         :param msg:
         :return:
         """
+        if msg.status == 601:
+            self.add_log("<font color='green'> Start to install agent.</font>")
+        elif msg.status == 602:
+            self.add_log("<font color='green'> Install agent success.</font>")
+        elif msg.status == 603:
+            self.add_log("<font color='red'> Install agent Fail." + "\r Error Info:\r<pre>" + msg.message +
+                         "</pre></font>")
+        elif msg.status == 701:
+            self.add_log("<font color='green'> Start agent.</font>")
+        elif msg.status == 702:
+            self.add_log("<font color='green'> Stop agent.</font>")
+        elif msg.status == 703:
+            self.add_log("<font color='red'> Agent error." + "\r Error Info:\r<pre>" + msg.message + "</pre></font>")
+
         for row_index in range(self.case_widget.dataTableWidget.rowCount()):
             case_id_item = self.case_widget.dataTableWidget.item(row_index, 1)  # get case id from dataTableWidget
             if msg.status == 2:  # test end

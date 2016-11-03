@@ -28,3 +28,5 @@ class CaseRunStatusListener(KWRunningStatusListener, QObject):
             self.listener_msg_signal.emit(msg, True)  # pass
         elif msg.status == 2 and 500 in self.status_list:
             self.listener_msg_signal.emit(msg, False)  # fail
+        elif msg.status in (601, 602, 603, 701, 702, 703):  # install/agent status
+            self.listener_msg_signal.emit(msg, True)

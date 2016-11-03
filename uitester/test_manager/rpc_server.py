@@ -101,7 +101,7 @@ class RPCAgent:
         self.connection = None
         self.responses = queue.Queue()
 
-    def call(self, method, timeout=Timeout, *args):
+    def call(self, method, *args, timeout=Timeout):
         self.msg_id += 1
         msg = RPCMessage()
         msg.msg_id = self.msg_id

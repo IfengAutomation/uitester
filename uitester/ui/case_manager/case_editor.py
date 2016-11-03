@@ -1,4 +1,5 @@
 # -*- encoding: UTF-8 -*-
+import datetime
 import logging
 import os
 
@@ -203,8 +204,23 @@ class EditorWidget(QWidget):
         :param msg:
         :return:
         """
+
+        if msg.status == 601:
+            self.add_info_console("<font color='green'> Start to install agent.</font>")
+        elif msg.status == 602:
+            self.add_info_console("<font color='green'> Install agent success.</font>")
+        elif msg.status == 603:
+            self.add_info_console("<font color='red'> Install agent Fail." + "\r Error Info:\r<pre>" + msg.message +
+                                  "</pre></font>")
+        elif msg.status == 701:
+            self.add_info_console("<font color='green'> Start agent.</font>")
+        elif msg.status == 702:
+            self.add_info_console("<font color='green'> Stop agent.</font>")
+        elif msg.status == 703:
+            self.add_info_console("<font color='red'> Agent error." + "\r Error Info:\r<pre>" + msg.message +
+                                  "</pre></font>")
         if msg.status == 500:  # fail
-            self.add_info_console("<font color='red'>" + str(msg.message) + "</font>")
+            self.add_info_console("<font color='red'> <pre>" + str(msg.message) + "</pre></font>")
         if msg.status == 102 and is_passed:
             self.add_info_console("<font color='green'> The case is Passed.</font>")
         elif msg.status == 102 and not is_passed:
@@ -376,7 +392,6 @@ class EditorWidget(QWidget):
         self.run_btn.setText("Run")
         self.is_running = False
         try:
-            logger.debug("Debug stop")
             self.tester.stop()
             self.tester.stop_server()
         except Exception as e:
@@ -395,7 +410,7 @@ class EditorWidget(QWidget):
                 case_data = self.case_data_manage.get_run_format_data(self.case_id)  # get all case data
 
             self.debug_runner.reset()
-            self.debug_runner.data = case_data  # set case data
+            self.debug_runner._data = case_data  # set case data
             self.debug_runner.parse(case_content)
             logger.debug("Debug beginning")
             self.debug_runner.execute(case_content, self.data_line)
@@ -454,6 +469,7 @@ class EditorWidget(QWidget):
                 logger.exception(str(e))
                 self.message_box.information(self, "Add Case Error", "Add case Fail.\nError Info:\n" + str(e),
                                              QMessageBox.Ok)
+        self.case.last_modify_time = datetime.datetime.now()  # update time
         self.refresh_signal.emit()  # refresh the main table
 
     def check_null(self):

@@ -25,4 +25,6 @@ class EditorRunStatusListener(KWRunningStatusListener, QObject):
             self.editor_listener_msg_signal.emit(msg, True)  # pass
         elif msg.status == 102 and 500 in self.status_list:
             self.editor_listener_msg_signal.emit(msg, False)  # fail
+        elif msg.status in (601, 602, 603, 701, 702, 703):  # install/agent status
+            self.editor_listener_msg_signal.emit(msg, True)
 
