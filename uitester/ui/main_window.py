@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QDesktopWidget, QMessageB
 from uitester.test_manager.tester import Tester
 from uitester.ui.case_manager.case_editor import EditorWidget
 from uitester.ui.case_manager.case_manager import CaseManagerWidget
-from uitester.ui.case_report.case_report import ReportWidget
+from uitester.ui.case_report.runner_event import RunnerEventWidget
 from uitester.ui.case_run.case_run import RunWidget
 from uitester.ui.case_setting.case_setting import SettingWidget
 
@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
         self.tabWidget.addTab(case_run_widget, "Run")
 
         # Add tab "Report"
-        case_report_widget = ReportWidget()
+        case_report_widget = RunnerEventWidget()
         self.tabWidget.addTab(case_report_widget, "Report")
 
         # Add tab "Setting"

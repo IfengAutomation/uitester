@@ -6,11 +6,7 @@ from uitester.case_manager.database import DBCommandLineHelper
 
 
 class CaseReportManager:
-    def __init__(self):
-        self.db_helper = DBCommandLineHelper()
-
-    def get_cases_by_ids(self, ids):
-        return self.db_helper.query_cases_by_ids(ids)
+    event_id = -1
 
     @staticmethod
     def get_init_event_id():
@@ -19,10 +15,10 @@ class CaseReportManager:
         :return:
         '''
         runner_event_stats = DBCommandLineHelper.insert_runner_event()
-        return runner_event_stats.id
+        CaseReportManager.event_id = runner_event_stats.id
 
     @staticmethod
-    def add_case_report(event_id, case_id, device_id, start_time, end_time, status, message):
+    def add_case_report(case_id, device_id, start_time, status, **kwargs):
         '''
         插入report
         :param event_id:
@@ -34,12 +30,9 @@ class CaseReportManager:
         :param message:
         :return:
         '''
-        DBCommandLineHelper.insert_report(event_id, case_id, device_id, start_time, end_time,
+        DBCommandLineHelper.insert_report(CaseReportManager.event_id, case_id, device_id, start_time,
                                           status,
-                                          str(message))
-
-
-        # 删除数据-- 删除case 的时候
+                                          str(kwargs))
 
     @staticmethod
     def get_report_by_case_id(case_id):
@@ -52,12 +45,12 @@ class CaseReportManager:
         return report
 
     @staticmethod
-    def runner_event_stats():
+    def update_runner_event_stats():
         '''
         更新event 统计数据
         :return:
         '''
-        events = DBCommandLineHelper.get_runner_event()
+        events = DBCommandLineHelper.get_runner_event([0])
         if events:
             for event in events:
                 total_count = 0
@@ -73,11 +66,19 @@ class CaseReportManager:
                 event.total_count = total_count
                 event.pass_count = pass_count
                 event.fail_count = fail_count
+                event.end_time = event.reports[len(event.reports) - 1].end_time if len(
+                    event.reports) > 0 else event.end_time
             DBCommandLineHelper.update_data()
 
-# if __name__ == '__main__':
-    # event_id = CaseReportManager.get_init_event_id()
-    # CaseReportManager.add_case_report(2, 1, 'device_xxxx', datetime.datetime.now(), datetime.datetime.now(), 0,
-    #                                   {'expect': 'xxxx'})
-    # CaseReportManager.runner_event_stats()
+    @staticmethod
+    def get_runner_event_stats():
+        CaseReportManager.update_runner_event_stats()
+        events = DBCommandLineHelper.get_runner_event()
+        return events
 
+
+# if __name__ == '__main__':
+#     CaseReportManager.get_init_event_id()
+#     CaseReportManager.add_case_report(1, 'device_xxxx', datetime.datetime.now(), -1,
+#                                       expect='xxxx', log='abc')
+#     CaseReportManager.update_runner_event_stats()

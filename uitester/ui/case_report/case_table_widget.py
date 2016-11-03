@@ -12,7 +12,7 @@ class CaseTableWidget(QWidget):
     def __init__(self, case_list, result, hide_column_list=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.dataTableWidget = DataTableWidget(hide_column_list, case_list,result)  # init ui table
+        self.dataTableWidget = DataTableWidget(hide_column_list, case_list, result)  # init ui table
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.dataTableWidget)
@@ -30,10 +30,10 @@ class CaseTableWidget(QWidget):
 
 
 class DataTableWidget(QTableWidget):
-    header_text_list = ['', 'id', '名称', '最后修改时间', '标识', '运行结果']
+    header_text_list = ['', 'case_id', 'case名称', '设备id', '开始时间', '结束时间', '运行结果']
     column_count = len(header_text_list)
 
-    def __init__(self, hide_column_list, case_list,result, *args):
+    def __init__(self, hide_column_list, case_list, result, *args):
         super().__init__(*args)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setObjectName("data_table_widget")

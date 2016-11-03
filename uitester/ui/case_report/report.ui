@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>617</width>
+    <height>331</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,7 +27,11 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QTableWidget" name="report_table_widget"/>
+    <layout class="QVBoxLayout" name="main_layout">
+     <item>
+      <widget class="QTableWidget" name="report_table_widget"/>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

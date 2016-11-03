@@ -55,6 +55,7 @@ class Case(Base, Model):
     header_relation = Column(TEXT, default='')
     data_relation = Column(TEXT, default='')
     data = []
+    reports = relationship("Report", back_populates="case")
     # report = relationship("Report", back_populates="case")
 
 
@@ -70,9 +71,12 @@ class Tag(Base):
 
 class RunnerEventStats(Base):
     __tablename__ = 'runner_event_stats'
+    has_stats = 1
+    not_stats = 0
     id = Column(Integer, primary_key=True)
     start_time = Column(DateTime(timezone=True), default=datetime.datetime.now)
     end_time = Column(DateTime(timezone=True), default=datetime.datetime.now)
+    status = Column(Integer,index=True, default=not_stats)
     total_count = Column(Integer, default=0)
     pass_count = Column(Integer, default=0)
     fail_count = Column(Integer, default=0)
@@ -88,7 +92,7 @@ class Report(Base):
     event_id = Column(Integer, ForeignKey('runner_event_stats.id'))
     runner_event_stats = relationship("RunnerEventStats", back_populates="reports")
     case_id = Column(Integer, ForeignKey('case.id'))
-    case = relationship("Case")
+    case = relationship("Case", back_populates="reports")
     device_id = Column(TEXT, index=True)
     start_time = Column(DateTime(timezone=True), default=datetime.datetime.now)
     end_time = Column(DateTime(timezone=True), default=datetime.datetime.now)
@@ -295,13 +299,12 @@ class DBCommandLineHelper:
         return runner_event_stats
 
     @staticmethod
-    def insert_report(event_id, case_id, device_id, start_time, end_time, status, message):
+    def insert_report(event_id, case_id, device_id, start_time, status, message):
         report = Report()
         report.event_id = event_id
         report.case_id = case_id
         report.device_id = device_id
         report.start_time = start_time
-        report.end_time = end_time
         report.status = status
         report.message = message
         DB.session.add(report)
@@ -314,8 +317,8 @@ class DBCommandLineHelper:
         return report
 
     @staticmethod
-    def get_runner_event():
-        return DB.session.query(RunnerEventStats).all()
+    def get_runner_event(status=[0, 1]):
+        return DB.session.query(RunnerEventStats).filter(RunnerEventStats.status.in_(status)).all()
 
     @staticmethod
     def update_data():
