@@ -52,8 +52,8 @@ def get_task_recorder():
     return TaskRecorder()
 
 
-if __name__ == '__main__':
-    runner_task = get_task_recorder()
-    runner_task.add_record(1, 'device_xxxx', datetime.datetime.now(), -1,
-                           expect='xxxx', log='abc')
-    update_task_record_stats()
+# if __name__ == '__main__':
+#     runner_task = get_task_recorder()
+#     runner_task.add_record(1, 'device_xxxx', datetime.datetime.now(), -1,
+#                            expect='xxxx', log='abc')
+#     update_task_record_stats()
