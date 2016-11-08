@@ -7,7 +7,7 @@ import queue
 
 logger = logging.getLogger('Tester')
 
-Timeout = 5
+Timeout = 30
 Port = 11800
 
 
@@ -101,16 +101,42 @@ class RPCAgent:
         self.connection = None
         self.responses = queue.Queue()
 
-    def call(self, method, *args, timeout=Timeout):
+    def call(self, name, *args, timeout=Timeout, **kwargs):
+        """
+        kwargs:
+        1) version
+           version=1 use normal rpc call
+           version=2 use reflection rpc call
+           default is version=1
+
+        reflection rpc call:
+        name('call', 'call_static', 'new', 'delete') : reflection method name
+        *args:
+            'call' method need at least 2 arguments. 1)instance 2)method name 3)method arguments
+            'call_static' need at least 2 arguments. 1)class name 2)method name 3)method arguments
+            'new' need at least 1 argument. 1)class name 2)constructor arguments
+            'delete' need at least 1 argument. 1)instance
+
+        :return RemoteObject remote object contains 2 attr : hash and class . If remote object is android View,
+        it have attr :'res-id' and 'content-des'. If remote object is TextView ,it have attr 'text'.
+
+        Timeout:
+            RPC Call has 30 sec timeout by default. You'll get a TimeoutError after 30sec.
+        """
         self.msg_id += 1
         msg = RPCMessage()
         msg.msg_id = self.msg_id
         msg.msg_type = RPCMessage.RPC_CALL
-        msg.name = method
+        msg.name = name
         msg.args = args
+        if 'version' in kwargs:
+            msg.version = kwargs['version']
         self.wfile.write(msg.to_bytes())
-        res = self.responses.get(timeout=timeout)
-        return res
+        try:
+            res = self.responses.get(timeout=timeout)
+            return res
+        except queue.Empty:
+            raise TimeoutError("RPC Call timeout")
 
     def close(self):
         self.connection.close()
