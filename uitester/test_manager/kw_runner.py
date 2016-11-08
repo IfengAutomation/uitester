@@ -5,6 +5,7 @@ from os.path import dirname, abspath, pardir, join
 import logging
 import socket
 from uitester.test_manager import device_proxy
+from uitester.test_manager import reflection_proxy
 from uitester.test_manager import context
 from uitester.test_manager import adb
 from uitester.test_manager import path_helper
@@ -493,6 +494,7 @@ class KWCore:
         m = __import__(module_name)
         if hasattr(m, 'var_cache'):
             m.var_cache['proxy'] = device_proxy
+            m.var_cache['reflection'] = reflection_proxy
         self.kw_func.update(m.kw_func)
 
     def _check(self, expected, actual):
