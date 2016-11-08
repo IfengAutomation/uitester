@@ -442,11 +442,13 @@ class EditorWidget(QWidget):
             try:
                 # update case and case data
                 if hasattr(self, 'case_data_widget') and self.case_data_widget.isVisible():
+                    self.case.last_modify_time = datetime.datetime.now()  # update time
                     self.case_manager.update_case(self.case_id, self.case_data_widget.case_data_list,
                                                   self.case_data_widget.delete_data_ids)
                     del self.case_data_widget.delete_data_ids[:]
                     self.case_data_widget.has_modify = False
                 else:
+                    self.case.last_modify_time = datetime.datetime.now()  # update time
                     self.dBCommandLineHelper.update_case()
             except Exception as e:
                 logger.exception(str(e))
@@ -469,7 +471,6 @@ class EditorWidget(QWidget):
                 logger.exception(str(e))
                 self.message_box.information(self, "Add Case Error", "Add case Fail.\nError Info:\n" + str(e),
                                              QMessageBox.Ok)
-        self.case.last_modify_time = datetime.datetime.now()  # update time
         self.refresh_signal.emit()  # refresh the main table
 
     def check_null(self):
