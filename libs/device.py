@@ -57,3 +57,55 @@ def launch_app(package_name):
     :return:
     """
     return var_cache['proxy'].launch_app(package_name)
+
+
+@keyword('waitForText')
+def wait_for_text(text):
+    """
+    wait for text
+    :param text:
+    :return:
+    """
+    return var_cache['proxy'].wait_for_text(text)
+
+
+@keyword('getListItem')
+def get_list_item(view, index):
+    """
+    get item from listView by index
+    :param view:
+    :param index:
+    :return:
+    """
+    return var_cache['proxy'].get_list_item(view, index)
+
+
+@keyword('loadMore')
+def load_more(view):
+    """
+    load more
+    :param view:
+    :return:
+    """
+    return var_cache['proxy'].load_more(view)
+
+
+@keyword('refreshContent')
+def refresh_content(view):
+    """
+    refresh content for listView
+    :param view:
+    :return:
+    """
+    return var_cache['proxy'].refresh_content(view)
+
+
+@keyword('getTitle')
+def get_title(view, title_id):
+    """
+    get listView Item's title
+    :param view: item's view
+    :param title_id:title's id
+    :return:
+    """
+    return var_cache['proxy'].get_title(view, title_id)
