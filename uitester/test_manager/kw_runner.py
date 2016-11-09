@@ -495,7 +495,9 @@ class KWCore:
         if hasattr(m, 'var_cache'):
             m.var_cache['proxy'] = device_proxy
             m.var_cache['reflection'] = reflection_proxy
-        self.kw_func.update(m.kw_func)
+        # register all kw func from keywords.kw_func
+        kw = __import__('keywords')
+        self.kw_func.update(kw.kw_func)
 
     def _check(self, expected, actual):
         """

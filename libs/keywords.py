@@ -1,0 +1,26 @@
+kw_func = {}
+
+var_cache = {}
+
+
+def keyword(name):
+    def _register(func):
+        kw_func[name] = func
+        return func
+    return _register
+
+
+def call(remote_object, method, *args):
+    return var_cache['reflection'].remote_call(remote_object, method, *args)
+
+
+def call_static(remote_class, method, *args):
+    return var_cache['reflection'].remote_call_static(remote_class, method, *args)
+
+
+def new(remote_class, *args):
+    return var_cache['reflection'].remote_new(remote_class, *args)
+
+
+def delete(remote_object):
+    return var_cache['reflection'].remote_delete(remote_object)

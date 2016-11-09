@@ -1,22 +1,4 @@
-kw_func = {}
-
-var_cache = {}
-
-
-def keyword(name):
-    def _register(func):
-        kw_func[name] = func
-        return func
-    return _register
-
-
-class View:
-
-    def __init__(self):
-        self.id = ''
-        self.clazz = ''
-        self.text = ''
-        self.hash = 0
+from keywords import var_cache, keyword
 
 
 @keyword('getView')
