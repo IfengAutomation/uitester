@@ -132,7 +132,14 @@ class KWRunner:
             return
 
         self.listener.update(StatusMsg(StatusMsg.AGENT_START, device_id=device.id))
-        instrument_res, instrument_output = adb.start_agent(get_local_ip(), self.dm.context.config.port, device.id)
+
+        instrument_res, instrument_output = adb.start_agent(
+            get_local_ip(),
+            self.dm.context.config.port,
+            device.id,
+            debug=self.dm.context.config.debug,
+            target_package=self.dm.context.config.target_package
+        )
         if instrument_res:
             self.listener.update(StatusMsg(StatusMsg.AGENT_STOP, device_id=device.id))
         else:
@@ -252,7 +259,14 @@ class KWDebugRunner:
             StatusMsg.AGENT_START,
             device_id=device.id
         ))
-        instrument_res, instrument_output = adb.start_agent(get_local_ip(), self.dm.context.config.port, device.id)
+
+        instrument_res, instrument_output = adb.start_agent(
+            get_local_ip(),
+            self.dm.context.config.port,
+            device.id,
+            debug=self.dm.context.config.debug,
+            target_package=self.dm.context.config.target_package
+        )
         if instrument_res:
             self.listener.update(StatusMsg(
                 StatusMsg.AGENT_STOP,
@@ -551,7 +565,7 @@ class KWCore:
         var = None
         for char in kw_line:
             if char == self.SPACE and not in_quotation and cache:
-                kw_items.append(cache)
+                kw_items.append(cache.strip())
                 cache = None
             elif char == self.QUOTE:
                 in_quotation = not in_quotation
@@ -561,7 +575,7 @@ class KWCore:
                 else:
                     cache += char
         if cache:
-            kw_items.append(cache)
+            kw_items.append(cache.strip())
 
         if in_quotation:
             raise ValueError('Missing quote. {}'.format(kw_line), line_number)
@@ -578,7 +592,13 @@ class KWCore:
 
         for item in kw_items:
             if item.startswith(self.VAR) and len(item) > 1 and item[1:] not in self.kw_var:
-                raise ValueError('Var {} not defined'.format(item[1:]))
+                if '.' in item:
+                    split_item = item[1:].split('.')
+                    if split_item[0] not in self.kw_var:
+                        raise ValueError('Var {} not defined'.format(item[1:]))
+                else:
+                    if item[1:] not in self.kw_var:
+                        raise ValueError('Var {} not defined'.format(item[1:]))
 
         line.items = kw_items
         line.var = var

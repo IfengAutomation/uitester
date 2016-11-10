@@ -13,7 +13,8 @@ class Config:
     Config.save() save settings in json file
     """
     def __init__(self):
-        self.sdk = ''
+        self.debug = False
+        self.target_package = "com.ifeng.at.testagent"
         self.libs = os.path.abspath(os.path.join(app_dir, 'libs'))
         self.port = 11800
         self.images = os.path.abspath(os.path.join(app_dir, 'images'))

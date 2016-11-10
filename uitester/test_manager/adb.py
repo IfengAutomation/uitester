@@ -36,7 +36,11 @@ def uninstall(package_name):
         return False, _output
 
 
-def start_agent(host, port, device_id):
+def start_agent(host, port, device_id, debug=False, target_package='com.ifeng.at.testagent'):
+    is_debug = 'false'
+    if debug:
+        is_debug = 'true'
+
     cmd = [
         _adb,
         'shell',
@@ -44,11 +48,12 @@ def start_agent(host, port, device_id):
         'instrument',
         '-w',
         '-r',
+        '-e', 'debug', is_debug,
         '-e', 'host', host,
         '-e', 'port', str(port),
         '-e', 'id', device_id,
         '-e', 'class', 'com.ifeng.at.testagent.Agent#start',
-        'com.ifeng.newvideo.test/android.support.test.runner.AndroidJUnitRunner']
+        target_package+'.test/android.support.test.runner.AndroidJUnitRunner']
 
     p = subprocess.run(cmd, stdout=subprocess.PIPE)
     _output = p.stdout.decode()
