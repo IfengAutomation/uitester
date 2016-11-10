@@ -24,3 +24,44 @@ def new(remote_class, *args):
 
 def delete(remote_object):
     return var_cache['reflection'].remote_delete(remote_object)
+
+
+class RemoteObject:
+    """
+    Attr list:
+
+    =Object= ----------
+    hash
+    class_name
+
+    =View= ---------
+    resource_id
+    package_name
+
+    =TextView= ----------
+    text
+
+    """
+
+    @classmethod
+    def from_dict(cls, attr_dict):
+        obj = cls()
+        obj.__dict__ = attr_dict
+        return obj
+
+
+class RemoteClass:
+    """
+    Attr list:
+    -----------
+    class_name
+
+    """
+    def __init__(self):
+        self.class_name = ''
+
+    @classmethod
+    def from_class_name(cls, class_name):
+        remote_class = cls()
+        remote_class.class_name = class_name
+        return remote_class

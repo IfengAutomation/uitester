@@ -7,7 +7,7 @@ import queue
 
 logger = logging.getLogger('Tester')
 
-Timeout = 30
+Timeout = 120
 Port = 11800
 
 

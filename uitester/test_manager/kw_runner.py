@@ -132,7 +132,7 @@ class KWRunner:
             return
 
         self.listener.update(StatusMsg(StatusMsg.AGENT_START, device_id=device.id))
-        instrument_res, instrument_output = adb.start_agent(get_local_ip(), 11800, device.id)
+        instrument_res, instrument_output = adb.start_agent(get_local_ip(), self.dm.context.config.port, device.id)
         if instrument_res:
             self.listener.update(StatusMsg(StatusMsg.AGENT_STOP, device_id=device.id))
         else:
@@ -252,7 +252,7 @@ class KWDebugRunner:
             StatusMsg.AGENT_START,
             device_id=device.id
         ))
-        instrument_res, instrument_output = adb.start_agent(get_local_ip(), 11800, device.id)
+        instrument_res, instrument_output = adb.start_agent(get_local_ip(), self.dm.context.config.port, device.id)
         if instrument_res:
             self.listener.update(StatusMsg(
                 StatusMsg.AGENT_STOP,
@@ -491,12 +491,14 @@ class KWCore:
         line 2. call function test_str() in custom_lib.
 
         """
-        m = __import__(module_name)
-        if hasattr(m, 'var_cache'):
-            m.var_cache['proxy'] = device_proxy
-            m.var_cache['reflection'] = reflection_proxy
-        # register all kw func from keywords.kw_func
+        # load keywords
         kw = __import__('keywords')
+        # set real rpc proxy
+        kw.var_cache['proxy'] = device_proxy
+        kw.var_cache['reflection'] = reflection_proxy
+        # load script
+        __import__(module_name)
+        # register all kw func from keywords.kw_func
         self.kw_func.update(kw.kw_func)
 
     def _check(self, expected, actual):
