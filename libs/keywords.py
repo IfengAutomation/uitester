@@ -37,6 +37,7 @@ class RemoteObject:
     =View= ---------
     resource_id
     package_name
+    content_desc
 
     =TextView= ----------
     text
@@ -47,6 +48,12 @@ class RemoteObject:
     def from_dict(cls, attr_dict):
         obj = cls()
         obj.__dict__ = attr_dict
+        return obj
+
+    @classmethod
+    def from_object(cls, remote_obj):
+        obj = cls()
+        obj.__dict__ = remote_obj.__dict__
         return obj
 
 
