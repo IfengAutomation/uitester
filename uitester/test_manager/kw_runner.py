@@ -197,6 +197,8 @@ class KWRunner:
             device_id=device.id
         ))
 
+        device.agent.close()
+
     def stop(self):
         self.run_signal.stop = True
 
@@ -230,6 +232,7 @@ class KWDebugRunner:
         self.core.parse(script_str)
 
     def execute(self, script_str=None, data_line=0):
+        self.dm.selected_devices[0].agent = None
         setup_t = threading.Thread(target=self._setup_devices)
         setup_t.start()
         t = threading.Thread(target=self._thread_execute, args=(script_str, data_line))
@@ -315,6 +318,8 @@ class KWDebugRunner:
                     message=e
                 ))
 
+        self.dm.selected_devices[0].agent.close()
+
     def _execute(self, script_str=None, data_row=None):
         self.run_signal.stop = False
         if script_str:
@@ -322,7 +327,7 @@ class KWDebugRunner:
             self.core.set_data(data_row)
             self.core.parse(script_str)
         agent = self.dm.selected_devices[0].agent
-        self.core.execute(agent, self.listener, thread=True)
+        self.core.execute(agent, self.listener)
 
     def stop(self):
         self.run_signal.stop = True
