@@ -214,3 +214,31 @@ def get_list_count(view):
     if len(response.args) == 0:
         return None
     return response.args[0]
+
+
+def current_activity(acticity_desc):
+    """
+    :param acticity_desc:video_player or topic_player or live or vr_live or pic_player or local_player
+    :return:
+    """
+    response = context.agent.call('CurrentActivity', acticity_desc)
+    if response.name == 'Fail':
+        raise ValueError(*response.args)
+    if len(response.args) == 0:
+        return None
+
+    return response.args[0]
+
+
+def change_video_state(player_name, state):
+    """
+    :param player_name: video_player or topic_player or live or vr_live or pic_player or local_player
+    :param state: play or pause
+    :return:
+    """
+    response = context.agent.call('ChangeVideoState', player_name, state)
+    if response.name == 'Fail':
+        raise ValueError(*response.args)
+    if len(response.args) == 0:
+        return None
+    return response.args[0]
