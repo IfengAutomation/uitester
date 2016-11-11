@@ -82,12 +82,44 @@ def refresh_content(view):
     return var_cache['proxy'].refresh_content(view)
 
 
-@keyword('getTitle')
-def get_title(view, title_id):
+@keyword('findViewById')
+def find_view_by_id(parent_view, view_id):
     """
-    get listView Item's title
-    :param view: item's view
-    :param title_id:title's id
+    get view by id
+    :param parent_view:
+    :param view_id:
     :return:
     """
-    return var_cache['proxy'].get_title(view, title_id)
+    return var_cache['proxy'].find_view_by_id(parent_view, view_id)
+
+
+@keyword('switchToTab')
+def switch_to_tab(view, index):
+    """
+    switch to tab
+    :param view:
+    :param index:
+    :return:
+    """
+    return var_cache['proxy'].switch_to_tab(view, index)
+
+
+@keyword('enterText')
+def enter_text(view, text):
+    """
+    enter text into TextView
+    :param view:
+    :param text:
+    :return:
+    """
+    return var_cache['proxy'].enter_text(view, text)
+
+
+@keyword('getListCount')
+def get_list_count(view):
+    """
+    get listView's count
+    :param view:
+    :return:
+    """
+    return var_cache['proxy'].get_list_count(view)
