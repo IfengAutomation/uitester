@@ -2,6 +2,10 @@ from keywords import keyword, new, call, call_static, RemoteObject, RemoteClass
 
 instrument_registry = 'android.support.test.InstrumentationRegistry'
 solo_class_name = 'com.robotium.solo.Solo'
+android_view = 'android.view.View'
+android_edit_text = 'android.widget.EditText'
+java_float = 'java.lang.Float'
+java_object = 'java.lang.Object'
 
 
 class Intent(RemoteObject):
@@ -149,6 +153,7 @@ class Solo(RemoteObject):
         :param view: the {@link View} to click
         :return:
         """
+        view.class_name = android_view
         return call(self, "clickOnView", view)
 
     def click_long_on_view(self, view):
@@ -157,6 +162,7 @@ class Solo(RemoteObject):
         :param view: the {@link View} to long click
         :return:
         """
+        view.class_name = android_view
         return call(self, "clickLongOnView", view)
 
     def click_on_text(self, text):
@@ -193,6 +199,7 @@ class Solo(RemoteObject):
         :param edit_text_view: the {@link EditText} to enter text in
         :param text: the text to enter in the {@link EditText} field
         """
+        edit_text_view.class_name = android_edit_text
         return call(self, "editText", edit_text_view, text)
 
     def clear_edit_text(self, edit_text_view):
@@ -200,6 +207,7 @@ class Solo(RemoteObject):
         Clears the value of an EditText.
         :param edit_text_view: the {@link EditText} to clear
         """
+        edit_text_view.class_name = android_edit_text
         return call(self, "clearEditText", edit_text_view)
 
     def get_text(self, text):
@@ -302,5 +310,7 @@ def run_reflection_test():
     solo = Solo(InstrumentationRegistry.get_instrumentation())
     v = solo.get_view(res_id="com.ifeng.at.testagent:id/email_sign_in_button")
     print(v.class_name)
+    solo.click_long_on_view(v)
+    solo.sleep(5)
 
 
