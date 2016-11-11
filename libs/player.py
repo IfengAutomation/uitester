@@ -15,7 +15,7 @@ def current_activity(acticity_desc):
 @keyword('change_video_state')
 def change_video_state(player_name, state):
     """
-    :param player_name: player_name or topic_player or live or vr_live or pic_player or local_player
+    :param player_name: player_name or topic_player or live or pic_player or local_player
     :param state: play or pause
     :return:
     """
