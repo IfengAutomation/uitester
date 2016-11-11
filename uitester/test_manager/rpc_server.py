@@ -43,7 +43,7 @@ class RPCHandler(StreamRequestHandler):
                 msg = RPCMessage.from_json(line)
                 if not self.has_register:
                     self.handle_register(msg)
-                elif msg.name == 'unregister':
+                elif msg.msg_type == RPCMessage.RPC_KILL_SIGNAL:
                     self.handle_unregister()
                 else:
                     self.handle_message(msg)
@@ -139,12 +139,14 @@ class RPCAgent:
             raise TimeoutError("RPC Call timeout")
 
     def close(self):
-        self.connection.close()
+        msg = RPCMessage.get_kill_signal()
+        self.wfile.write(msg.to_bytes())
 
 
 class RPCMessage:
     RPC_CALL = 1
     RPC_RESULT = 2
+    RPC_KILL_SIGNAL = 99
 
     def __init__(self):
         self.msg_type = None
@@ -152,6 +154,13 @@ class RPCMessage:
         self.version = 1
         self.name = None
         self.args = []
+
+    @classmethod
+    def get_kill_signal(cls):
+        msg = cls()
+        msg.name = 'kill'
+        msg.msg_type = RPCMessage.RPC_KILL_SIGNAL
+        return msg
 
     @classmethod
     def from_json(cls, json_str):
