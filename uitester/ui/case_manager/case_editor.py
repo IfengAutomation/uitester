@@ -519,6 +519,8 @@ class EditorWidget(QWidget):
         parse all the 'import' and 'as' block in the case content
         :return:
         """
+        self.debug_runner.core.kw_func.clear()
+        self.debug_runner.core.kw_func = {**self.debug_runner.core.default_func}
         import_list = set()  # import list
         as_list = set()  # as list
         content_list = self.dBCommandLineHelper.query_case_by_id(self.case_id).content.split("\n")
@@ -527,20 +529,16 @@ class EditorWidget(QWidget):
         for line in content_list:
             if line.strip().find("import") == 0:
                 import_list.add(line.strip())
+                try:
+                    self.debug_runner.core.parse_line(line)
+                except Exception as e:
+                    self.add_info_console("<font color='red'>" + str(e) + "</font>")
             elif " as " in line.strip():
                 as_list.add(line.strip())
-        self.debug_runner.core.kw_func.clear()
-        self.debug_runner.core.kw_func = {**self.debug_runner.core.default_func}
-        for import_line in import_list:
-            try:
-                self.debug_runner.core.parse_line(import_line)
-            except Exception as e:
-                self.add_info_console("<font color='red'>" + str(e) + "</font>")
-        for as_line in as_list:
-            try:
-                self.debug_runner.core.parse_line(as_line)
-            except Exception as e:
-                self.add_info_console("<font color='red'>" + str(e) + "</font>")
+                try:
+                    self.debug_runner.core.parse_line(line)
+                except Exception as e:
+                    self.add_info_console("<font color='red'>" + str(e) + "</font>")
 
     def set_tag_name_completer(self):
         """
