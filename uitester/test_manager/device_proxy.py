@@ -213,7 +213,10 @@ def get_list_count(view):
         raise ValueError(*response.args)
     if len(response.args) == 0:
         return None
-    return response.args[0]
+    view_dict = response.args[0]
+    v = View()
+    v.__dict__ = view_dict
+    return v
 
 
 def current_activity(acticity_desc):
