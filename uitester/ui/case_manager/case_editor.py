@@ -521,20 +521,16 @@ class EditorWidget(QWidget):
         """
         self.debug_runner.core.kw_func.clear()
         self.debug_runner.core.kw_func = {**self.debug_runner.core.default_func}
-        import_list = set()  # import list
-        as_list = set()  # as list
         content_list = self.dBCommandLineHelper.query_case_by_id(self.case_id).content.split("\n")
         if not content_list:
             return
         for line in content_list:
-            if line.strip().find("import") == 0:
-                import_list.add(line.strip())
+            if line.strip().find("import") == 0:  # parse 'import'
                 try:
                     self.debug_runner.core.parse_line(line)
                 except Exception as e:
                     self.add_info_console("<font color='red'>" + str(e) + "</font>")
-            elif " as " in line.strip():
-                as_list.add(line.strip())
+            elif " as " in line.strip():  # parse 'as'
                 try:
                     self.debug_runner.core.parse_line(line)
                 except Exception as e:
