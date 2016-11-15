@@ -308,6 +308,12 @@ class Solo(RemoteObject):
         """
         call(self, "takeScreenshot", name)
 
+    def scroll_to_right(self):
+        call(self, "scrollToSide", 22)
+
+    def scroll_to_left(self):
+        call(self, "scrollToSide", 21)
+
 
 @keyword("runReflection")
 def run_reflection_test():

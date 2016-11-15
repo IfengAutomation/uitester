@@ -8,6 +8,7 @@ INT = '02'
 CLASS = '03'
 OBJECT = '04'
 FLOAT = '05'
+BOOL = '06'
 
 
 class RemoteObject:
@@ -59,6 +60,8 @@ def _make_arg(arg):
         return STRING+arg
     elif arg_type == int:
         return INT+str(arg)
+    elif arg_type == bool:
+        return BOOL+str(arg)
     elif hasattr(arg, 'remote_type') and arg.remote_type == OBJECT:
         return OBJECT+str(arg.hash)+':'+arg.class_name
     elif hasattr(arg, 'remote_type') and arg.remote_type == CLASS:
