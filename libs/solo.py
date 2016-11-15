@@ -6,6 +6,7 @@ android_view = 'android.view.View'
 android_edit_text = 'android.widget.EditText'
 java_float = 'java.lang.Float'
 java_object = 'java.lang.Object'
+activity_class_name = 'android.app.Activity'
 
 
 class Intent(RemoteObject):
@@ -56,11 +57,15 @@ class InstrumentationRegistry(RemoteObject):
 
 class Solo(RemoteObject):
 
-    def __init__(self, instrumentation):
+    def __init__(self, instrumentation, activity=None):
         super().__init__()
         solo_class = RemoteObject.from_class_name(solo_class_name)
         instrumentation.class_name = 'android.app.Instrumentation'
-        remote_solo = new(solo_class, instrumentation)
+        if activity:
+            activity.class_name = activity_class_name
+            remote_solo = new(solo_class, instrumentation, activity)
+        else:
+            remote_solo = new(solo_class, instrumentation)
         self.__dict__.update(remote_solo.__dict__)
 
     def get_view(self, res_id=None, class_name=None, index=None):
