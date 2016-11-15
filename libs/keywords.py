@@ -46,6 +46,10 @@ def set_field(remote_object, field_name, value):
     return var_cache['reflection'].remote_set_field(remote_object, field_name, value)
 
 
+def get_field(remote_object, field_name):
+    return var_cache['reflection'].remote_get_field(remote_object, field_name)
+
+
 class RemoteObject:
     """
     Attr list:
@@ -96,3 +100,6 @@ class RemoteObject:
 
     def set_field(self, field, value):
         set_field(self, field, value)
+
+    def get_field(self, field):
+        return get_field(self, field)

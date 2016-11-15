@@ -61,7 +61,7 @@ class Solo(RemoteObject):
         solo_class = RemoteObject.from_class_name(solo_class_name)
         instrumentation.class_name = 'android.app.Instrumentation'
         remote_solo = new(solo_class, instrumentation)
-        self.__dict__ = remote_solo.__dict__
+        self.__dict__.update(remote_solo.__dict__)
 
     def get_view(self, res_id=None, class_name=None):
         if res_id:
