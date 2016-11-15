@@ -75,14 +75,19 @@ def _call(*args, **kwargs):
         raise ValueError(*response.args)
     if len(response.args) == 0:
         return None
+    elif len(response.args) == 1:
+        return _make_remote_object(response.args[0])
     else:
-        result = response.args[0]
-        if type(result) == dict:
-            obj = RemoteObject()
-            obj.__dict__ = result
-            return obj
-        else:
-            return result
+        return [_make_remote_object(arg) for arg in response.args]
+
+
+def _make_remote_object(arg):
+    if type(arg) == dict:
+        obj = RemoteObject()
+        obj.__dict__.update(arg)
+        return obj
+    else:
+        return arg
 
 
 def remote_call(remote_instance, method_name, *args, **kwargs):
