@@ -1,4 +1,5 @@
 # -*- encoding: UTF-8 -*-
+import logging
 import re
 from PyQt5.QtCore import pyqtSignal, Qt, QPoint
 from PyQt5.QtGui import QTextCursor
@@ -7,6 +8,7 @@ from PyQt5.QtWidgets import QTextEdit, QCompleter
 
 from uitester.ui.case_manager.completer_widget import CompleterWidget
 
+logger = logging.getLogger("Tester")
 
 class TextEdit(QTextEdit):
     insert_func_name_signal = pyqtSignal(str, str, name="insert_func_name_signal")
@@ -255,7 +257,8 @@ class TextEdit(QTextEdit):
         item_text = self.popup_widget.func_list_widget.currentItem().text()
         item_desc = ""
         if item_text in self.cmp.get_func_name_list(self.kw_core.kw_func):
-            item_desc = self.cmp.func_dict[item_text].__doc__
+            if self.cmp.func_dict[item_text].__doc__:
+                item_desc = self.cmp.func_dict[item_text].__doc__
         self.popup_widget.selected_func_name_signal.emit(item_text, item_desc)
 
     def current_item_up(self, current_row):
@@ -271,7 +274,8 @@ class TextEdit(QTextEdit):
         item_text = self.popup_widget.func_list_widget.currentItem().text()
         item_desc = ""
         if item_text in self.kw_core.kw_func:
-            item_desc = self.cmp.func_dict[item_text].__doc__
+            if self.cmp.func_dict[item_text].__doc__:
+                item_desc = self.cmp.func_dict[item_text].__doc__
         self.popup_widget.selected_func_name_signal.emit(item_text, item_desc)
 
 
@@ -324,7 +328,8 @@ class Completer(QCompleter):
         item_text = self.popup_widget.func_list_widget.currentItem().text()
         item_desc = ""
         if item_text in self.func_name_list:
-            item_desc = self.func_dict[item_text].__doc__
+            if self.func_dict[item_text].__doc__:
+                item_desc = self.func_dict[item_text].__doc__
         self.popup_widget.selected_func_name_signal.emit(item_text, item_desc)
 
     def get_func_name_list(self, func_dict):

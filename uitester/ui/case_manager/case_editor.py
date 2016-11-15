@@ -350,11 +350,8 @@ class EditorWidget(QWidget):
         self.device_and_data_signal.connect(self.add_device_widget.add_radio_to_widget, Qt.QueuedConnection)
         self.add_device_widget.run_editor_signal.connect(self.run_case, Qt.QueuedConnection)
         devices = []
-        if self.check_null():
-            return
         if self.is_running:
             self.stop_case()
-            return
         try:
             devices = self.tester.devices()
         except Exception as e:
