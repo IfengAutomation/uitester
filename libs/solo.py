@@ -1,4 +1,4 @@
-from keywords import keyword, new, call, call_static, RemoteObject, RemoteClass
+from keywords import keyword, new, call, call_static, RemoteObject
 
 instrument_registry = 'android.support.test.InstrumentationRegistry'
 solo_class_name = 'com.robotium.solo.Solo'
@@ -45,11 +45,11 @@ class Instrumentation(RemoteObject):
         return Context.from_object(obj)
 
 
-class InstrumentationRegistry(RemoteClass):
+class InstrumentationRegistry(RemoteObject):
 
     @staticmethod
     def get_instrumentation():
-        instrument_registry_class = RemoteClass.from_class_name(instrument_registry)
+        instrument_registry_class = RemoteObject.from_class_name(instrument_registry)
         remote_obj = call_static(instrument_registry_class, "getInstrumentation")
         return Instrumentation.from_object(remote_obj)
 
@@ -57,7 +57,8 @@ class InstrumentationRegistry(RemoteClass):
 class Solo(RemoteObject):
 
     def __init__(self, instrumentation):
-        solo_class = RemoteClass.from_class_name(solo_class_name)
+        super().__init__()
+        solo_class = RemoteObject.from_class_name(solo_class_name)
         instrumentation.class_name = 'android.app.Instrumentation'
         remote_solo = new(solo_class, instrumentation)
         self.__dict__ = remote_solo.__dict__
@@ -66,7 +67,7 @@ class Solo(RemoteObject):
         if res_id:
             return call(self, "getView", res_id)
         if class_name:
-            return call(self, "getView", RemoteClass.from_class_name(class_name))
+            return call(self, "getView", RemoteObject.from_class_name(class_name))
 
     def wait_for_text(self, text):
         """
@@ -116,7 +117,7 @@ class Solo(RemoteObject):
         :param x: the x coordinate
         :param y: the y coordinate
         """
-        return call(self, "clickOnScreen", x, y)
+        return call(self, "clickOnScreen", RemoteObject.from_float(x), RemoteObject.from_float(y))
 
     def click_long_on_screen(self, x, y):
         """
@@ -124,7 +125,7 @@ class Solo(RemoteObject):
         :param x: the x coordinate
         :param y: the y coordinate
         """
-        return call(self, "clickLongOnScreen", x, y)
+        return call(self, "clickLongOnScreen", RemoteObject.from_float(x), RemoteObject.from_float(y))
 
     def click_on_button(self, text):
         """
@@ -191,7 +192,8 @@ class Solo(RemoteObject):
         :param to_y : y coordinate of the drag destination, in screen coordinates
         :param step_count : how many move steps to include in the drag. Less steps results in a faster drag
         """
-        return call(self, from_x, to_x, from_y, to_y, step_count)
+        return call(self, "drag", RemoteObject.from_float(from_x), RemoteObject.from_float(to_x),
+                    RemoteObject.from_float(from_y), RemoteObject.from_float(to_y), step_count)
 
     def enter_text(self, edit_text_view, text):
         """
@@ -300,6 +302,10 @@ class Solo(RemoteObject):
 
 @keyword("runReflection")
 def run_reflection_test():
+    """
+    Keywords test
+    :return:
+    """
     instrumentation = InstrumentationRegistry.get_instrumentation()
     intent = instrumentation\
         .get_context()\
