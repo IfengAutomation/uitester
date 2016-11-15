@@ -29,7 +29,7 @@ class RemoteObject:
 
     """
     def __init__(self):
-        self.remote_type = ''
+        self.remote_type = OBJECT
 
     @classmethod
     def from_float(cls, float_input):
@@ -83,9 +83,7 @@ def _call(*args, **kwargs):
 
 def _make_remote_object(arg):
     if type(arg) == dict:
-        obj = RemoteObject()
-        obj.__dict__.update(arg)
-        return obj
+        return RemoteObject.from_dict(arg)
     else:
         return arg
 
