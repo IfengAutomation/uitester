@@ -108,3 +108,7 @@ def remote_delete(remote_instance, **kwargs):
 
 def remote_set_field(remote_object, field_name, value):
     return _call('set', remote_object, field_name, value)
+
+
+def remote_get_field(remote_object, field_name):
+    return _call('get', remote_object, field_name)

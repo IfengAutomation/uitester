@@ -63,10 +63,14 @@ class Solo(RemoteObject):
         remote_solo = new(solo_class, instrumentation)
         self.__dict__.update(remote_solo.__dict__)
 
-    def get_view(self, res_id=None, class_name=None):
+    def get_view(self, res_id=None, class_name=None, index=None):
         if res_id:
+            if index:
+                return call(self, "getView", res_id, index)
             return call(self, "getView", res_id)
         if class_name:
+            if index:
+                return call(self, "getView", RemoteObject.from_class_name(class_name), index)
             return call(self, "getView", RemoteObject.from_class_name(class_name))
 
     def wait_for_text(self, text):
