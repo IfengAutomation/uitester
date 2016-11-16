@@ -1,12 +1,15 @@
 from keywords import keyword, new, call, call_static, RemoteObject
 
 instrument_registry = 'android.support.test.InstrumentationRegistry'
+instrumentation_class_name = 'android.app.Instrumentation'
 solo_class_name = 'com.robotium.solo.Solo'
 android_view = 'android.view.View'
 android_edit_text = 'android.widget.EditText'
 java_float = 'java.lang.Float'
 java_object = 'java.lang.Object'
 activity_class_name = 'android.app.Activity'
+ui_device_class_name = 'android.support.test.uiautomator.UiDevice'
+
 
 
 class Intent(RemoteObject):
@@ -60,7 +63,7 @@ class Solo(RemoteObject):
     def __init__(self, instrumentation, activity=None):
         super().__init__()
         solo_class = RemoteObject.from_class_name(solo_class_name)
-        instrumentation.class_name = 'android.app.Instrumentation'
+        instrumentation.class_name = instrumentation_class_name
         if activity:
             activity.class_name = activity_class_name
             remote_solo = new(solo_class, instrumentation, activity)
@@ -313,6 +316,18 @@ class Solo(RemoteObject):
 
     def scroll_to_left(self):
         call(self, "scrollToSide", 21)
+
+
+class UIDevice(RemoteObject):
+
+    @classmethod
+    def get_instance(cls, instrumentation):
+        instrumentation.class_name = instrumentation_class_name
+        ui_device_class = RemoteObject.from_class_name(ui_device_class_name)
+        return UIDevice.from_object(call_static(ui_device_class, "getInstance", instrumentation))
+
+    def press_home(self):
+        call(self, "pressHome")
 
 
 @keyword("runReflection")
