@@ -1,21 +1,14 @@
-from keywords import keyword, RemoteObject, get_local_ip
-from solo import InstrumentationRegistry
+from keywords import keyword, RemoteObject, get_local_ip, call_static, set_var, get_var
+from solo import InstrumentationRegistry, Solo
 
-data_interface_class_name = "com.ifeng.video.dao.db.constants.DataInterface"
-FIELD_VCIS = "HTTP_VCIS_IFENG_COM"
-FIELD_VCSP = "HTTP_VCSP_IFENG_COM"
-FIELD_V = "HTTP_V_IFENG_COM"
-FIELD_COMMENT = "HTTP_COMMENT_IFENG_COM"
+data_interface_class_name = "com.ifeng.at.testagent.reflect.DataInterfaceHelper"
 
 
 @keyword("set_host")
 def set_host():
-    host = get_local_ip() + ':8080'
+    host = get_local_ip()
     data_interface = RemoteObject.from_class_name(data_interface_class_name)
-    data_interface.set_field(FIELD_VCIS, host)
-    data_interface.set_field(FIELD_VCSP, host)
-    data_interface.set_field(FIELD_COMMENT, host)
-    data_interface.set_field(FIELD_V, host)
+    call_static(data_interface, "setHost", host)
 
 
 @keyword("start_video")
@@ -26,9 +19,18 @@ def start_ifengvideo():
         .get_package_manager() \
         .get_launch_intent_for_package("com.ifeng.newvideo")
     activity = instrumentation.start_activity_sync(intent)
+    solo = Solo(instrumentation, activity)
+    set_var("solo", solo)
 
 
 @keyword("wait")
-def wait_debug():
+def wait_debug(wait_time):
     import time
-    time.sleep(120)
+    time.sleep(int(wait_time))
+
+
+@keyword("get_host")
+def get_host():
+    data_interface = RemoteObject.from_class_name("com.ifeng.video.dao.db.constants.DataInterface")
+    v = data_interface.get_field("LIVE_CHANNEL_INFO")
+    print(v)

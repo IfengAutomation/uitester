@@ -9,6 +9,7 @@ INT = '02'
 CLASS = '03'
 OBJECT = '04'
 FLOAT = '05'
+BOOL = '06'
 
 
 def keyword(name):
@@ -104,6 +105,13 @@ class RemoteObject:
         obj = cls()
         obj.remote_type = FLOAT
         obj.value = float_input
+        return obj
+
+    @classmethod
+    def from_bool(cls, bool_input):
+        obj = cls()
+        obj.remote_type = BOOL
+        obj.value = bool_input
         return obj
 
     def set_field(self, field, value):
