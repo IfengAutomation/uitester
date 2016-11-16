@@ -11,9 +11,11 @@ activity_class_name = 'android.app.Activity'
 ui_device_class_name = 'android.support.test.uiautomator.UiDevice'
 
 
-
 class Intent(RemoteObject):
-    pass
+    FLAG_ACTIVITY_NEW_TASK = 0x10000000
+
+    def add_flags(self, flag):
+        call(self, 'addFlags', flag)
 
 
 class Context(RemoteObject):
@@ -21,6 +23,9 @@ class Context(RemoteObject):
     def get_package_manager(self):
         obj = call(self, 'getPackageManager')
         return PackageManager.from_object(obj)
+
+    def start_activity(self, intent):
+        call(self, 'startActivity', intent)
 
 
 class Activity(RemoteObject):
