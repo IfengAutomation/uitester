@@ -219,7 +219,7 @@ class Solo(RemoteObject):
         :param text: the text to enter in the {@link EditText} field
         """
         edit_text_view.class_name = android_edit_text
-        return call(self, "editText", edit_text_view, text)
+        return call(self, "enterText", edit_text_view, text)
 
     def clear_edit_text(self, edit_text_view):
         """
