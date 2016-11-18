@@ -322,6 +322,14 @@ class Solo(RemoteObject):
     def scroll_to_left(self):
         call(self, "scrollToSide", 21)
 
+    def scroll_view_to_right(self, view):
+        view.class_name = android_view
+        call(self, "scrollViewToSide", view, 22)
+
+    def scroll_view_to_left(self, view):
+        view.class_name = android_view
+        call(self, "scrollViewToSide", android_view, 21)
+
 
 class UIDevice(RemoteObject):
 
@@ -333,6 +341,27 @@ class UIDevice(RemoteObject):
 
     def press_home(self):
         call(self, "pressHome")
+
+    def press_menu(self):
+        """
+        Simulates a short press on the MENU button.
+        :return:
+        """
+        call(self, "pressMenu")
+
+    def press_recent_apps(self):
+        """
+        Simulates a short press on the Recent Apps button.
+        :return:
+        """
+        call(self, "pressRecentApps")
+
+    def press_back(self):
+        """
+        Simulates a short press on the BACK button.
+        :return:
+        """
+        call(self, "pressBack")
 
 
 @keyword("runReflection")

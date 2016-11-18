@@ -6,6 +6,8 @@ from player import *
 from mine import *
 from pic_page import *
 from example import *
+from start import *
+
 data_interface_class_name = "com.ifeng.at.testagent.reflect.DataInterfaceHelper"
 
 
