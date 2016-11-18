@@ -1,7 +1,7 @@
 from keywords import var_cache, keyword
 
 
-@keyword('getView')
+@keyword('get_view')
 def get_view(view_id):
     """
 
@@ -11,7 +11,7 @@ def get_view(view_id):
     return var_cache['proxy'].get_view(view_id)
 
 
-@keyword('clickOnText')
+@keyword('click_on_text')
 def click_on_text(text):
     """
 
@@ -21,7 +21,7 @@ def click_on_text(text):
     return var_cache['proxy'].click_on_text(text)
 
 
-@keyword('clickOnView')
+@keyword('click_on_view')
 def click_on_view(view):
     """
 
@@ -41,7 +41,7 @@ def launch_app(package_name):
     return var_cache['proxy'].launch_app(package_name)
 
 
-@keyword('waitForText')
+@keyword('wait_for_text')
 def wait_for_text(text):
     """
     wait for text
@@ -51,7 +51,7 @@ def wait_for_text(text):
     return var_cache['proxy'].wait_for_text(text)
 
 
-@keyword('getListItem')
+@keyword('get_list_item')
 def get_list_item(view, index):
     """
     get item from listView by index
@@ -62,7 +62,7 @@ def get_list_item(view, index):
     return var_cache['proxy'].get_list_item(view, index)
 
 
-@keyword('loadMore')
+@keyword('load_more')
 def load_more(view):
     """
     load more
@@ -72,7 +72,7 @@ def load_more(view):
     return var_cache['proxy'].load_more(view)
 
 
-@keyword('refreshContent')
+@keyword('refresh_content')
 def refresh_content(view):
     """
     refresh content for listView
@@ -82,7 +82,7 @@ def refresh_content(view):
     return var_cache['proxy'].refresh_content(view)
 
 
-@keyword('findViewById')
+@keyword('find_view_by_id')
 def find_view_by_id(parent_view, view_id):
     """
     get view by id
@@ -93,7 +93,7 @@ def find_view_by_id(parent_view, view_id):
     return var_cache['proxy'].find_view_by_id(parent_view, view_id)
 
 
-@keyword('switchToTab')
+@keyword('switch_to_tab')
 def switch_to_tab(view, index):
     """
     switch to tab
@@ -104,7 +104,7 @@ def switch_to_tab(view, index):
     return var_cache['proxy'].switch_to_tab(view, index)
 
 
-@keyword('enterText')
+@keyword('enter_text')
 def enter_text(view, text):
     """
     enter text into TextView
@@ -115,7 +115,7 @@ def enter_text(view, text):
     return var_cache['proxy'].enter_text(view, text)
 
 
-@keyword('getListCount')
+@keyword('get_list_count')
 def get_list_count(view):
     """
     get listView's count
