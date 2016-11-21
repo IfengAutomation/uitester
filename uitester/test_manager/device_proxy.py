@@ -219,19 +219,6 @@ def get_list_count(view):
     return v
 
 
-def check_current_page(player_page, expect_result):
-    """
-    :param acticity_desc:video_player or topic_player or live or vr_live or pic_player or local_player
-    :return:
-    """
-    response = context.agent.call('CheckCurrentPage', player_page, expect_result)
-    if response.name == 'Fail':
-        raise ValueError(*response.args)
-    if len(response.args) == 0:
-        return None
-
-    return response.args[0]
-
 
 def change_video_state(player_name, state):
     """
