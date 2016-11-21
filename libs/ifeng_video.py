@@ -15,7 +15,14 @@ data_interface_class_name = "com.ifeng.at.testagent.reflect.DataInterfaceHelper"
 def set_host():
     host = get_local_ip()
     data_interface = RemoteObject.from_class_name(data_interface_class_name)
-    call_static(data_interface, "setHost", host)
+    call_static(data_interface, "setHost", host+':8080/mock')
+
+
+@keyword("set_proxy")
+def set_proxy():
+    host = get_local_ip()
+    data_interface = RemoteObject.from_class_name(data_interface_class_name)
+    call_static(data_interface, "setHost", host+':8080/proxy')
 
 
 @keyword("start_video")
