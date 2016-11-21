@@ -11,6 +11,8 @@ from uitester.test_manager import adb
 from uitester.test_manager import path_helper
 
 
+_MAX_LENGTH = 80
+
 
 logger = logging.getLogger('Tester')
 
@@ -367,7 +369,18 @@ class KWCore:
     DATA = 'data'
 
     def __init__(self, run_signal=None):
-        self.default_func = {'import': self._import, 'check': self._check}
+        self.default_func = {
+            'import': self._import,
+            'check': self._check,
+            'assert_true': self.assert_true,
+            'assert_false': self.assert_false,
+            'assert_equal': self.assert_equal,
+            'assert_not_equal': self.assert_not_equal,
+            'assert_less': self.assert_less,
+            'assert_less_equal': self.assert_less_equal,
+            'assert_greater': self.assert_greater,
+            'assert_greater_equal': self.assert_greater_equal
+        }
         self.kw_func = {**self.default_func}
         self.kw_var = {}
         self.kw_lines = []
@@ -527,7 +540,52 @@ class KWCore:
         check some_view.text some_text
         if this view's text is not some_text, then this case will be record as failed
         """
+
         assert expected == actual, 'Assert fail. expected={} but actual={}'.format(expected, actual)
+
+    def assert_false(self, expr):
+        """Check that the expression is false."""
+        if expr:
+            raise AssertionError('%s is not false' % str(expr))
+
+    def assert_true(self, expr, msg=None):
+        """Check that the expression is true."""
+        if not expr:
+            raise AssertionError('%s is not true' % str(expr))
+
+    def assert_equal(self, first, second):
+        """Fail if the two objects are unequal as determined by the '=='
+           operator.
+        """
+        if first != second:
+            raise AssertionError('%s and %s not equal' % (str(first), str(second)))
+
+    def assert_not_equal(self, first, second):
+        """Fail if the two objects are equal as determined by the '!='
+           operator.
+        """
+        if not first != second:
+            raise AssertionError('%s and %s is equal' % (str(first), str(second)))
+
+    def assert_less(self, a, b):
+        """Just like self.assertTrue(a < b), but with a nicer default message."""
+        if not a < b:
+            raise AssertionError('%s not less than %s' % (str(a), str(b)))
+
+    def assert_less_equal(self, a, b):
+        """Just like self.assertTrue(a <= b), but with a nicer default message."""
+        if not a <= b:
+            raise AssertionError('%s not less than or equal to %s' % (str(a), str(b)))
+
+    def assert_greater(self, a, b):
+        """Just like self.assertTrue(a > b), but with a nicer default message."""
+        if not a > b:
+            raise AssertionError('%s not greater than %s' % (str(a), str(b)))
+
+    def assert_greater_equal(self, a, b):
+        """Just like self.assertTrue(a >= b), but with a nicer default message."""
+        if not a >= b:
+            raise AssertionError('%s not greater than or equal to %s' % (str(a), str(b)))
 
     def _execute_line(self, kw_line):
         if kw_line.is_comment:
