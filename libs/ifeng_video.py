@@ -6,8 +6,8 @@ from mine import *
 from pic_page import *
 from example import *
 from start import *
-from base_keywords import *
-from common_keywords import *
+from primary import *
+from common import *
 data_interface_class_name = "com.ifeng.at.testagent.reflect.DataInterfaceHelper"
 
 
@@ -35,11 +35,6 @@ def start_ifengvideo():
     activity = instrumentation.start_activity_sync(intent)
     solo = Solo(instrumentation, activity)
     set_var("solo", solo)
-    # Context
-    # mContext = InstrumentationRegistry.getTargetContext().getSystemService
-    # InputMethodManager
-    # imm = (InputMethodManager)
-    # mContext.getSystemService(Context.INPUT_METHOD_SERVICE);
 
 @keyword("wait")
 def wait_debug(wait_time):
