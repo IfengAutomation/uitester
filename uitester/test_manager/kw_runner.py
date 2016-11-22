@@ -379,7 +379,9 @@ class KWCore:
             'assert_less': self.assert_less,
             'assert_less_equal': self.assert_less_equal,
             'assert_greater': self.assert_greater,
-            'assert_greater_equal': self.assert_greater_equal
+            'assert_greater_equal': self.assert_greater_equal,
+            'assert_is_none': self.assert_is_none,
+            'assert_is_not_none': self.assert_is_not_none
         }
         self.kw_func = {**self.default_func}
         self.kw_var = {}
@@ -586,6 +588,16 @@ class KWCore:
         """Just like self.assertTrue(a >= b), but with a nicer default message."""
         if not a >= b:
             raise AssertionError('%s not greater than or equal to %s' % (str(a), str(b)))
+
+    def assert_is_none(self, obj):
+        """Same as self.assertTrue(obj is None), with a nicer default message."""
+        if obj is not None:
+            raise AssertionError('%s is not None' % (str(obj),))
+
+    def assert_is_not_none(self, obj):
+        """Included for symmetry with assertIsNone."""
+        if obj is None:
+            raise AssertionError('unexpectedly None')
 
     def _execute_line(self, kw_line):
         if kw_line.is_comment:
