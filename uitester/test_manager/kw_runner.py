@@ -665,7 +665,7 @@ class KWCore:
                 var = kw_items[as_index + 1]
                 kw_items = kw_items[:as_index]
 
-        for item in kw_items:
+        for index, item in enumerate(kw_items):
             if item.startswith(self.VAR) and len(item) > 1 and item[1:] not in self.kw_var:
                 if '.' in item:
                     split_item = item[1:].split('.')
@@ -677,7 +677,7 @@ class KWCore:
             else:
                 # if kw item is int
                 try:
-                    item = int(item)
+                    kw_items[index] = int(item)
                 except ValueError:
                     pass
         line.items = kw_items
