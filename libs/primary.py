@@ -3,7 +3,7 @@ from keywords import get_var, keyword, call
 
 
 @keyword("click_id")
-def click_id(view_id, index="0"):
+def click_id(view_id, index=0):
     solo = get_var("solo")
     solo.sleep(3000)
     view = get_view(view_id, index)
@@ -23,19 +23,19 @@ def click_view(view):
 
 
 @keyword("get_view")
-def get_view(view_id, index="0"):
+def get_view(view_id, index=0):
     solo = get_var("solo")
-    return solo.get_view(res_id=view_id, index=int(index))
+    return solo.get_view(res_id=view_id, index=index)
 
 
 @keyword("get_view_text")
-def get_text(view_id, index="0"):
+def get_text(view_id, index=0):
     solo = get_var("solo")
-    view = solo.get_view(res_id=view_id, index=int(index))
+    view = solo.get_view(res_id=view_id, index=index)
     return call(view, "getText")
 
 
 @keyword("sleep")
 def sleep(milliseconds):
     solo = get_var("solo")
-    solo.sleep(int(milliseconds))
+    solo.sleep(milliseconds)

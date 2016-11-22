@@ -31,7 +31,7 @@ def check_current_page(page_name):
 
 
 @keyword("get_current_progress")
-def get_current_progress(index="0"):
+def get_current_progress(index=0):
     """
     功能：获取s播放器播放进度
     :param index:"0"
@@ -40,7 +40,7 @@ def get_current_progress(index="0"):
     seekbar_id = "com.ifeng.newvideo:id/control_seekBar"
     solo = get_var("solo")
     solo.sleep(3000)
-    view = solo.get_view(res_id=seekbar_id, index=int(index))
+    view = solo.get_view(res_id=seekbar_id, index=index)
     mSeekBarView = get_field(view, "mSeekBarView")
     progress = call(mSeekBarView, "getProgress")
     return progress
@@ -73,7 +73,11 @@ def switch_tab(tab_name):
     solo.click_on_view(view)
 
 
-
-
-
-
+@keyword("get_group_child_count")
+def get_group_child_count(view_group):
+    """
+    功能：获取viewGroup child 数量
+    :param view_group:
+    :return:
+    """
+    return call(view_group, "getChildCount")
