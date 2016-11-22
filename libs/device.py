@@ -1,7 +1,7 @@
 from keywords import var_cache, keyword
 
 
-@keyword('get_view')
+@keyword('get_list_view')
 def get_view(view_id):
     """
 
