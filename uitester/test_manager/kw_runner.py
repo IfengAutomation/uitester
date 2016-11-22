@@ -611,7 +611,9 @@ class KWCore:
         # make args, change var name to var object
         args = []
         for item in kw_line.items[1:]:
-            if item.startswith(self.VAR):
+            if type(item) is int:
+                args.append(item)
+            elif type(item) is str and item.startswith(self.VAR):
                 arg_str = item[1:]
                 index = arg_str.find(self.DOT)
                 if index == -1:
