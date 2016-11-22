@@ -674,7 +674,12 @@ class KWCore:
                 else:
                     if item[1:] not in self.kw_var:
                         raise ValueError('Var {} not defined'.format(item[1:]))
-
+            else:
+                # if kw item is int
+                try:
+                    item = int(item)
+                except ValueError:
+                    pass
         line.items = kw_items
         line.var = var
         return line
