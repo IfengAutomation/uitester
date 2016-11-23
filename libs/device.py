@@ -4,7 +4,8 @@ from keywords import var_cache, keyword
 @keyword('get_list_view')
 def get_view(view_id):
     """
-
+    get list view
+    version 1
     :param view_id:
     :return:
     """
@@ -14,7 +15,8 @@ def get_view(view_id):
 @keyword('click_on_text')
 def click_on_text(text):
     """
-
+    click on the special text
+    version 1
     :param text:
     :return:
     """
@@ -24,7 +26,8 @@ def click_on_text(text):
 @keyword('click_on_view')
 def click_on_view(view):
     """
-
+    click on the special view
+    version 1
     :param view:
     :return:
     """
@@ -34,7 +37,8 @@ def click_on_view(view):
 @keyword('launch_app')
 def launch_app(package_name):
     """
-
+    launch app
+    version 1
     :param package_name:
     :return:
     """
@@ -45,6 +49,7 @@ def launch_app(package_name):
 def wait_for_text(text):
     """
     wait for text
+    version 1
     :param text:
     :return:
     """
@@ -55,6 +60,7 @@ def wait_for_text(text):
 def get_list_item(view, index):
     """
     get item from listView by index
+    version 1
     :param view:
     :param index:
     :return:
@@ -66,6 +72,7 @@ def get_list_item(view, index):
 def load_more(view):
     """
     load more
+    version 1
     :param view:
     :return:
     """
@@ -76,6 +83,7 @@ def load_more(view):
 def refresh_content(view):
     """
     refresh content for listView
+    version 1
     :param view:
     :return:
     """
@@ -86,6 +94,7 @@ def refresh_content(view):
 def find_view_by_id(parent_view, view_id):
     """
     get view by id
+    version 1
     :param parent_view:
     :param view_id:
     :return:
@@ -97,6 +106,7 @@ def find_view_by_id(parent_view, view_id):
 def switch_to_tab(view, index):
     """
     switch to tab
+    version 1
     :param view:
     :param index:
     :return:
@@ -108,6 +118,7 @@ def switch_to_tab(view, index):
 def enter_text(view, text):
     """
     enter text into TextView
+    version 1
     :param view:
     :param text:
     :return:
@@ -119,6 +130,7 @@ def enter_text(view, text):
 def get_list_count(view):
     """
     get listView's count
+    version 1
     :param view:
     :return:
     """
