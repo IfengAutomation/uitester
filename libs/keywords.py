@@ -80,7 +80,8 @@ def activate_mock(interface_name):
     :param interface_name:
     :return: True or False
     """
-    return var_cache['local'].activate_mock_interface(interface_name)
+    if not var_cache['local'].activate_mock_interface(interface_name):
+        raise AssertionError('activate '+interface_name+' fail')
 
 
 @keyword('deactivate_mock')
@@ -90,7 +91,8 @@ def deactivate_mock(interface_name):
     :param interface_name:
     :return: True or False
     """
-    return var_cache['local'].deactivate_mock_interface(interface_name)
+    if not var_cache['local'].deactivate_mock_interface(interface_name):
+        raise AssertionError('deactivate '+interface_name+' fail')
 
 
 @keyword('reset_mock')
@@ -99,7 +101,8 @@ def reset_mock():
     Reset mock server, all default mock interface will be active , and other interfaces will be set to inactive
     :return: True or False
     """
-    return var_cache['local'].reset_mock_interface()
+    if not var_cache['local'].reset_mock_interface():
+        raise AssertionError('reset mock server fail')
 
 
 class RemoteObject:

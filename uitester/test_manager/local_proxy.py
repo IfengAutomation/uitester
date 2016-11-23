@@ -34,7 +34,7 @@ def _uninstall_package():
 
 
 def activate_mock_interface(interface_name):
-    r = requests.get('http://'+local_ip+':8080/active/'+interface_name+'/true')
+    r = requests.get('http://'+local_ip+':8080/api/active/'+interface_name+'/true')
     if r.status_code != 200:
         return False
     if r.text.strip() == 'OK':
@@ -44,7 +44,7 @@ def activate_mock_interface(interface_name):
 
 
 def deactivate_mock_interface(interface_name):
-    r = requests.get('http://'+local_ip+':8080/active/'+interface_name+'/false')
+    r = requests.get('http://'+local_ip+':8080/api/active/'+interface_name+'/false')
     if r.status_code != 200:
         return False
     if r.text.strip() == 'OK':
@@ -54,7 +54,7 @@ def deactivate_mock_interface(interface_name):
 
 
 def reset_mock_interface():
-    r = requests.get('http://'+local_ip+':8080/reset')
+    r = requests.get('http://'+local_ip+':8080/api/reset')
     if r.status_code != 200:
         return False
     if r.text.strip() == 'OK':
