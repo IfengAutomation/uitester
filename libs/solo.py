@@ -19,7 +19,6 @@ class Intent(RemoteObject):
 
 
 class Context(RemoteObject):
-
     def get_package_manager(self):
         obj = call(self, 'getPackageManager')
         return PackageManager.from_object(obj)
@@ -33,14 +32,12 @@ class Activity(RemoteObject):
 
 
 class PackageManager(RemoteObject):
-
     def get_launch_intent_for_package(self, package_name):
         obj = call(self, 'getLaunchIntentForPackage', package_name)
         return Intent.from_object(obj)
 
 
 class Instrumentation(RemoteObject):
-
     def start_activity_sync(self, intent):
         obj = call(self, 'startActivitySync', intent)
         return Activity.from_object(obj)
@@ -55,7 +52,6 @@ class Instrumentation(RemoteObject):
 
 
 class InstrumentationRegistry(RemoteObject):
-
     @staticmethod
     def get_instrumentation():
         instrument_registry_class = RemoteObject.from_class_name(instrument_registry)
@@ -64,7 +60,6 @@ class InstrumentationRegistry(RemoteObject):
 
 
 class Solo(RemoteObject):
-
     def __init__(self, instrumentation, activity=None):
         super().__init__()
         solo_class = RemoteObject.from_class_name(solo_class_name)
@@ -93,6 +88,15 @@ class Solo(RemoteObject):
         @return {@code true} if text is displayed and {@code false} if it is not displayed before the timeout
         """
         return call(self, "waitForText", text)
+
+    def wait_for_view(self, class_name):
+        """
+        Waits for a View matching the specified class. Default timeout is 20 seconds.
+        :param class_name:viewClass the {@link View} class to wait for
+        :return:{@code true} if the {@link View} is displayed and {@code false} if it is not displayed before the timeout
+        """
+
+        return call(self, "waitForView", RemoteObject.from_class_name(class_name))
 
     def get_current_activity(self):
         """
@@ -332,7 +336,6 @@ class Solo(RemoteObject):
 
 
 class UIDevice(RemoteObject):
-
     @classmethod
     def get_instance(cls, instrumentation):
         instrumentation.class_name = instrumentation_class_name
@@ -371,9 +374,9 @@ def run_reflection_test():
     :return:
     """
     instrumentation = InstrumentationRegistry.get_instrumentation()
-    intent = instrumentation\
-        .get_context()\
-        .get_package_manager()\
+    intent = instrumentation \
+        .get_context() \
+        .get_package_manager() \
         .get_launch_intent_for_package("com.ifeng.at.testagent")
     activity = instrumentation.start_activity_sync(intent)
     print(activity.class_name)
@@ -382,5 +385,3 @@ def run_reflection_test():
     print(v.class_name)
     solo.click_long_on_view(v)
     solo.sleep(5)
-
-

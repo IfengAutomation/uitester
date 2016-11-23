@@ -24,7 +24,7 @@ def check_current_page(page_name):
     """
     solo = get_var("solo")
     expect_page = page_name_ui_controller[page_name]
-    solo.sleep(3000)
+    # solo.sleep(3000)
     current_activity = solo.get_current_activity()
     result = expect_page == current_activity.class_name
     assert result, "非{}页面".format(page_name)
@@ -39,7 +39,7 @@ def get_current_progress(index=0):
     """
     seekbar_id = "com.ifeng.newvideo:id/control_seekBar"
     solo = get_var("solo")
-    solo.sleep(3000)
+    # solo.sleep(3000)
     view = solo.get_view(res_id=seekbar_id, index=index)
     mSeekBarView = get_field(view, "mSeekBarView")
     progress = call(mSeekBarView, "getProgress")
@@ -54,7 +54,6 @@ def check_video_state(state):
     :return:
     """
     solo = get_var("solo")
-    solo.sleep(3000)
     video_skin = solo.get_view("com.ifeng.newvideo:id/video_skin")
     description = call(video_skin, "getContentDescription")
     assert description == state, "视频状态非{}".format(state)
@@ -81,3 +80,33 @@ def get_group_child_count(view_group):
     :return:
     """
     return call(view_group, "getChildCount")
+
+
+@keyword("get_soft_input_state")
+def get_soft_input_state(edit_text_view):
+    solo = get_var("solo")
+    context = call(edit_text_view, "getContext")
+    input_manager = call(context, "getSystemService", "input_method")
+    return call(input_manager, "isActive")
+
+
+@keyword("assert_string_empty")
+def assert_string_empty(text):
+    if text:
+        raise AssertionError('% not empty' % text)
+
+
+@keyword("assert_text_exist")
+def assert_exist_text(text):
+    solo = get_var("solo")
+    exist = solo.wait_for_text(text)
+    if not exist:
+        raise AssertionError('%s is not exist' % text)
+
+
+@keyword("assert_text_not_exist")
+def assert_exist_text(text):
+    solo = get_var("solo")
+    exist = solo.wait_for_text(text)
+    if exist:
+        raise AssertionError('%s is exist' % text)

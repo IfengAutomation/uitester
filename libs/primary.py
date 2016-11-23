@@ -5,7 +5,7 @@ from keywords import get_var, keyword, call
 @keyword("click_id")
 def click_id(view_id, index=0):
     solo = get_var("solo")
-    solo.sleep(3000)
+    # solo.sleep(3000)
     view = get_view(view_id, index)
     click_view(view)
 
@@ -39,3 +39,14 @@ def get_text(view_id, index=0):
 def sleep(milliseconds):
     solo = get_var("solo")
     solo.sleep(milliseconds)
+
+
+@keyword("wait_for_view")
+def wait_for_text(class_name):
+    solo = get_var("solo")
+    return solo.wait_for_view(class_name)
+
+
+@keyword("get_text_view_line_count")
+def get_text_view_line_count(view):
+    return call(view, "getLineCount")
