@@ -6,6 +6,7 @@ import logging
 import socket
 from uitester.test_manager import device_proxy
 from uitester.test_manager import reflection_proxy
+from uitester.test_manager import local_proxy
 from uitester.test_manager import context
 from uitester.test_manager import adb
 from uitester.test_manager import path_helper
@@ -530,6 +531,7 @@ class KWCore:
         # set real rpc proxy
         kw.var_cache['proxy'] = device_proxy
         kw.var_cache['reflection'] = reflection_proxy
+        kw.var_cache['local'] = local_proxy
         # load script
         __import__(module_name)
         # register all kw func from keywords.kw_func

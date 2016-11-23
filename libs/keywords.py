@@ -27,6 +27,13 @@ def get_local_ip():
     return ip
 
 
+"""
+
+    =====     Remote reflection api     ======
+
+"""
+
+
 def call(remote_object, method, *args):
     return var_cache['reflection'].remote_call(remote_object, method, *args)
 
@@ -57,6 +64,42 @@ def set_var(name, value):
 
 def get_var(name):
     return var_cache.get(name)
+
+
+"""
+
+     ======     Local api     =====
+
+"""
+
+
+@keyword('activate_mock')
+def activate_mock(interface_name):
+    """
+    Activate mock interface
+    :param interface_name:
+    :return: True or False
+    """
+    return var_cache['local'].activate_mock_interface(interface_name)
+
+
+@keyword('deactivate_mock')
+def deactivate_mock(interface_name):
+    """
+    Deactivate mock interface
+    :param interface_name:
+    :return: True or False
+    """
+    return var_cache['local'].deactivate_mock_interface(interface_name)
+
+
+@keyword('reset_mock')
+def reset_mock():
+    """
+    Reset mock server, all default mock interface will be active , and other interfaces will be set to inactive
+    :return: True or False
+    """
+    return var_cache['local'].reset_mock_interface()
 
 
 class RemoteObject:
