@@ -111,13 +111,3 @@ def assert_exist_text(text):
     if exist:
         raise AssertionError('%s is exist' % text)
 
-
-@keyword("finish_app")
-def finish_app():
-    """
-    finish app
-    :return:
-    """
-    solo = get_var("solo")
-    solo.finish_opened_activities()
-

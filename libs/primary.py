@@ -50,3 +50,13 @@ def wait_for_text(class_name):
 @keyword("get_text_view_line_count")
 def get_text_view_line_count(view):
     return call(view, "getLineCount")
+
+
+@keyword("finish_app")
+def finish_app():
+    """
+    finish app
+    :return:
+    """
+    solo = get_var("solo")
+    solo.finish_opened_activities()
