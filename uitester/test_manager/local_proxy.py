@@ -1,5 +1,6 @@
 import socket
 import requests
+import json
 
 
 def get_local_ip():
@@ -61,3 +62,17 @@ def reset_mock_interface():
         return True
     else:
         return False
+
+
+def get_request_list():
+    r = requests.get('http://'+local_ip+':8080/api/request_list')
+    if r.status_code != 200:
+        raise ValueError('Get request list failed. status code = '+str(r.status_code))
+    return r.json()
+
+
+def clear_request_list():
+    r = requests.get('http://'+local_ip+':8080/api/clear_request_list')
+    if r.status_code != 200:
+        raise ValueError('Clear request list failed. status code = '+str(r.status_code))
+    return r.text.strip() == 'OK'

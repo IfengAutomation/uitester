@@ -639,21 +639,22 @@ class KWCore:
             return line
 
         kw_items = []
-        cache = None
+        cache = ''
         in_quotation = False
         var = None
         for char in kw_line:
             if char == self.SPACE and not in_quotation and cache:
                 kw_items.append(cache.strip())
-                cache = None
+                cache = ''
             elif char == self.QUOTE:
                 in_quotation = not in_quotation
+                cache += char
             else:
                 if not cache:
                     cache = char
                 else:
                     cache += char
-        if cache:
+        if len(cache) > 0:
             kw_items.append(cache.strip())
 
         if in_quotation:
@@ -667,6 +668,8 @@ class KWCore:
                 raise ValueError('Keywords "as" need one variable after it', line_number)
             else:
                 var = kw_items[as_index + 1]
+                if var.find(self.QUOTE) != -1:
+                    raise ValueError('Keywords "as" parse error. var name should not have any " in it.')
                 kw_items = kw_items[:as_index]
 
         for index, item in enumerate(kw_items):
@@ -678,12 +681,16 @@ class KWCore:
                 else:
                     if item[1:] not in self.kw_var:
                         raise ValueError('Var {} not defined'.format(item[1:]))
-            else:
+            elif item.find('"') == -1:
                 # if kw item is int
                 try:
                     kw_items[index] = int(item)
                 except ValueError:
                     pass
+            else:
+                item = item.replace('"', '')
+                kw_items[index] = item
+
         line.items = kw_items
         line.var = var
         return line

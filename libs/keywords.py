@@ -105,6 +105,31 @@ def reset_mock():
         raise AssertionError('reset mock server fail')
 
 
+@keyword('count_request_contains_str')
+def count_request_contains_str(sting_input):
+    """
+    Count requests url in mock server's request log ,which contains string_input
+    :param sting_input:
+    :return: int request count
+    """
+    request_list = var_cache['local'].get_request_list()
+    match_count = 0
+    for url in request_list:
+        if url.find(sting_input) > -1:
+            match_count += 1
+    return match_count
+
+
+@keyword('clear_request_log')
+def clear_request_log():
+    """
+    clear mock server's request log
+    :return:
+    """
+    if not var_cache['local'].clear_request_list():
+        raise ValueError('Clear request log failed.')
+
+
 class RemoteObject:
     """
     Attr list:

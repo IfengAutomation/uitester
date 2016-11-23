@@ -2,3 +2,4 @@ colorama
 sqlalchemy
 pyqt5
 pandas
+requests
