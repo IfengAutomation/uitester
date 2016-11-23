@@ -328,7 +328,7 @@ class Solo(RemoteObject):
 
     def scroll_view_to_left(self, view):
         view.class_name = android_view
-        call(self, "scrollViewToSide", android_view, 21)
+        call(self, "scrollViewToSide", view, 21)
 
 
 class UIDevice(RemoteObject):
