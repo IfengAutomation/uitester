@@ -334,6 +334,14 @@ class Solo(RemoteObject):
         view.class_name = android_view
         call(self, "scrollViewToSide", view, 21)
 
+    def set_progress_bar(self, index, progress):
+        """
+        Sets the progress of a ProgressBar matching the specified index. Examples of ProgressBars are: {@link android.widget.SeekBar} and {@link android.widget.RatingBar}.
+        :param index: the index of the {@link ProgressBar}
+        :param progress: the progress to set the {@link ProgressBar}
+        """
+        call(self, "setProgressBar", index, progress)
+
 
 class UIDevice(RemoteObject):
     @classmethod
