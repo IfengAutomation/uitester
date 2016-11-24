@@ -13,7 +13,7 @@ login_back = "com.ifeng.newvideo:id/back"
 from keywords import get_var, keyword, call
 
 
-@keyword("login_in")
+@keyword("login")
 def login_et(account, pwd):
     solo = get_var("solo")
     et_account_view = solo.get_view(login_et_account_id)
@@ -24,7 +24,8 @@ def login_et(account, pwd):
     login_btn = solo.get_view(login_btn_id)
     solo.click_on_view(login_btn)
 
-@keyword("exit_login")
+
+@keyword("logout")
 def exit_login():
     solo = get_var("solo")
     solo.sleep(1000)
