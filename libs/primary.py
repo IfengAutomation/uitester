@@ -60,3 +60,23 @@ def finish_app():
     """
     solo = get_var("solo")
     solo.finish_opened_activities()
+
+
+@keyword("scroll_to_right")
+def scroll_to_right():
+    """
+    scroll to right
+    :return:
+    """
+    solo = get_var("solo")
+    solo.scroll_to_right()
+
+
+@keyword("scroll_to_left")
+def scroll_to_left():
+    """
+    scroll to left
+    :return:
+    """
+    solo = get_var("solo")
+    solo.scroll_to_left()
