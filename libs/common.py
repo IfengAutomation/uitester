@@ -39,7 +39,6 @@ def get_current_progress(index=0):
     """
     seekbar_id = "com.ifeng.newvideo:id/control_seekBar"
     solo = get_var("solo")
-    # solo.sleep(3000)
     view = solo.get_view(res_id=seekbar_id, index=index)
     mSeekBarView = get_field(view, "mSeekBarView")
     progress = call(mSeekBarView, "getProgress")
@@ -111,3 +110,32 @@ def assert_exist_text(text):
     if exist:
         raise AssertionError('%s is exist' % text)
 
+
+# @keyword("set_progress_bar")
+# def set_progress_bar(progres, index=0):
+#     solo = get_var("solo")
+#     solo.set_progress_bar(index, progres)
+
+
+@keyword("click_long_on_view")
+def click_long_on_view(view):
+    solo = get_var("solo")
+    solo.click_long_on_view(view)
+
+
+@keyword("go_back")
+def click_long_on_view():
+    solo = get_var("solo")
+    solo.go_back()
+
+
+@keyword("set_edit_text")
+def set_edit_text(view, text):
+    solo = get_var("solo")
+    solo.enter_text(view, text)
+
+
+@keyword("clear_edit_text")
+def clear_edit_text(view):
+    solo = get_var("solo")
+    solo.clear_edit_text(view)
