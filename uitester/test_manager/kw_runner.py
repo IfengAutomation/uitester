@@ -414,7 +414,7 @@ class KWCore:
         """
         lines = script_str.split('\n')
         for line in lines:
-            self.parse_line(line)
+            self.parse_line(line.strip())
 
     def parse_line(self, line):
         """
