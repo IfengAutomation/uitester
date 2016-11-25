@@ -80,3 +80,22 @@ def scroll_to_left():
     """
     solo = get_var("solo")
     solo.scroll_to_left()
+
+
+@keyword("get_text_from_parent")
+def get_text_from_parent(view, text, index=0):
+    """
+    获取父级view下的指定文本,返回TextView
+
+    用法示例:
+    get_text_from_parent parent_view text 1
+    
+    注：index不输入时，默认为0
+    :param view:
+    :param text:
+    :param index:
+    :return:
+    """
+    solo = get_var("solo")
+    view = solo.get_text_from_parent(view, text, index)
+    return view

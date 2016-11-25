@@ -362,6 +362,7 @@ class Solo(RemoteObject):
         :param index:
         :return:
         """
+        parent.class_name = android_view
         return call(self, "getTextFromParent", parent, text, index)
 
     def get_view_from_parent(self, parent, res_id, index):
