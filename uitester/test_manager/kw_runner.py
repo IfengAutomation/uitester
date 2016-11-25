@@ -118,7 +118,7 @@ class KWRunner:
 
     def execute(self, cases, devices):
         self.run_signal.stop = False
-
+        self.dm.selected_devices[0].agent = None
         for device in devices:
             instrument_thread = threading.Thread(target=self._setup_agent, args=(device,))
             instrument_thread.start()
@@ -200,7 +200,7 @@ class KWRunner:
             device_id=device.id
         ))
 
-        device.agent.close()
+        context.agent.close()
 
     def stop(self):
         self.run_signal.stop = True
@@ -451,6 +451,9 @@ class KWCore:
             threading.Thread(target=self._execute, args=(agent, listener)).start()
         else:
             self._execute(agent, listener)
+            # stop app
+            if 'finish_app' in self.kw_func:
+                self.kw_func['finish_app']()
 
     def _execute(self, agent, listener):
         self.status_listener = listener
