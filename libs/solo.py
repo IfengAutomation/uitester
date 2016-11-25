@@ -342,6 +342,46 @@ class Solo(RemoteObject):
         """
         call(self, "setProgressBar", index, progress)
 
+    def drag_in_view(self, start_x, start_y, end_x, end_y, step_count):
+        """
+        Drag in view rect.
+        :param start_x: start position on x, input percent value. e.g. 40 --> 40%
+        :param start_y:
+        :param end_x:
+        :param end_y:
+        :param step_count:
+        :return:
+        """
+        call(self, "dragInView", start_x, start_y, end_x, end_y, step_count)
+
+    def get_text_from_parent(self, parent, text, index):
+        """
+        get TextView from parent view's children by text
+        :param parent:
+        :param text:
+        :param index:
+        :return:
+        """
+        return call(self, "getTextFromParent", parent, text, index)
+
+    def get_view_from_parent(self, parent, res_id, index):
+        """
+        get View from parent view's children by view id string
+        :param parent:
+        :param res_id:
+        :param index:
+        :return:
+        """
+        return call(self, "getViewFromParent", parent, res_id, index)
+
+    def get_displayed_views(self, res_id):
+        """
+        get views in window rect by view id str
+        :param res_id:
+        :return:
+        """
+        return call(self, "getDisplayedViews", res_id)
+
 
 class UIDevice(RemoteObject):
     @classmethod
