@@ -342,7 +342,7 @@ class Solo(RemoteObject):
         """
         call(self, "setProgressBar", index, progress)
 
-    def drag_in_view(self, start_x, start_y, end_x, end_y, step_count):
+    def drag_in_view(self, view, start_x, start_y, end_x, end_y, step_count):
         """
         Drag in view rect.
         :param start_x: start position on x, input percent value. e.g. 40 --> 40%
@@ -352,7 +352,8 @@ class Solo(RemoteObject):
         :param step_count:
         :return:
         """
-        call(self, "dragInView", start_x, start_y, end_x, end_y, step_count)
+        view.class_name = android_view
+        call(self, "dragInView", view, start_x, start_y, end_x, end_y, step_count)
 
     def get_text_from_parent(self, parent, text, index):
         """
@@ -373,6 +374,7 @@ class Solo(RemoteObject):
         :param index:
         :return:
         """
+        parent.class_name = android_view
         return call(self, "getViewFromParent", parent, res_id, index)
 
     def get_displayed_views(self, res_id):
@@ -382,6 +384,14 @@ class Solo(RemoteObject):
         :return:
         """
         return call(self, "getDisplayedViews", res_id)
+
+    def set_activity_orientation(self, orientation):
+        """
+        Sets the Orientation (Landscape/Portrait) for the current Activity.
+        :param orientation: the orientation to set. <code>Solo.</code>{@link #LANDSCAPE} for landscape or <code>Solo.</code>{@link #PORTRAIT} for portrait.
+        :return:
+        """
+        return call(self, "setActivityOrientation", orientation)
 
 
 class UIDevice(RemoteObject):
