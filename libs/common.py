@@ -2,6 +2,7 @@
 # @Author  : lixintong
 from keywords import keyword, get_var, get_field, call
 from primary import get_view
+from solo import InstrumentationRegistry
 
 tab_view_pos = {
     '首页': 0,
@@ -13,6 +14,8 @@ page_name_ui_controller = {'点播底页': 'com.ifeng.newvideo.videoplayer.activ
                            '自媒体': 'com.ifeng.newvideo.ui.subscribe.WeMediaHomePageActivity',
                            '登录': 'com.ifeng.newvideo.login.activity.LoginMainActivity'
                            }
+SCREEN_ORIENTATION_LANDSCAPE = 0
+SCREEN_ORIENTATION_PORTRAIT = 1
 
 
 @keyword("check_current_page")
@@ -111,10 +114,38 @@ def assert_exist_text(text):
         raise AssertionError('%s is exist' % text)
 
 
+@keyword("assert_view_is_show")
+def assert_view_hidden(view):
+    isShown = call(view, "isShown")
+    if not isShown:
+        raise AssertionError('%s is not show' % view)
+
+
+@keyword("assert_view_not_show")
+def assert_view_not_show(view):
+    isShown = call(view, "isShown")
+    if isShown:
+        raise AssertionError('%s is show' % view)
+
+
 # @keyword("set_progress_bar")
 # def set_progress_bar(progres, index=0):
 #     solo = get_var("solo")
 #     solo.set_progress_bar(index, progres)
+
+@keyword("set_screen_landscape")
+def assert_exist_text():
+    solo = get_var("solo")
+    # current_activity = solo.get_current_activity()
+    # solo
+    call(solo, "setActivityOrientation", SCREEN_ORIENTATION_LANDSCAPE)
+
+
+@keyword("set_screen_portrait")
+def assert_exist_text():
+    solo = get_var("solo")
+    current_activity = solo.get_current_activity()
+    call(current_activity, "setRequestedOrientation", SCREEN_ORIENTATION_PORTRAIT)
 
 
 @keyword("click_long_on_view")
@@ -139,3 +170,9 @@ def set_edit_text(view, text):
 def clear_edit_text(view):
     solo = get_var("solo")
     solo.clear_edit_text(view)
+
+
+@keyword("drag_progress_bar")
+def drag_progress_bar(view, start_x, end_x, step_count):
+    solo = get_var("solo")
+    solo.drag_in_view(view, start_x, 50, end_x, 50, step_count)
