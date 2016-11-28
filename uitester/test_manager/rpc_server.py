@@ -48,7 +48,7 @@ class RPCHandler(StreamRequestHandler):
                 else:
                     self.handle_message(msg)
             except Exception as e:
-                print(e.message)
+                print(e.args)
                 continue
         if self.has_register:
             self.server.rm_agent(self.agent_proxy.device_id)
