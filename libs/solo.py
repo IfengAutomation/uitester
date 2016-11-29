@@ -425,6 +425,13 @@ class UIDevice(RemoteObject):
         """
         call(self, "pressBack")
 
+    def get_current_package_name(self):
+        """
+        Retrieves the name of the last package to report accessibility events.
+        :return: str
+        """
+        return call(self, "getCurrentPackageName")
+
 
 @keyword("runReflection")
 def run_reflection_test():

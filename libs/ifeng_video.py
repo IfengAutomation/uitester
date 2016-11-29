@@ -36,6 +36,11 @@ def start_ifengvideo():
     solo = Solo(instrumentation, activity)
     set_var("solo", solo)
 
+    # add ui_device to var_cache
+    ui_device = UIDevice.get_instance(instrumentation)
+    set_var("ui_device", ui_device)
+
+
 @keyword("wait")
 def wait_debug(wait_time):
     import time

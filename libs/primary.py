@@ -1,5 +1,6 @@
 # @Time    : 2016/11/18 16:32
 from keywords import get_var, keyword, call
+from solo import InstrumentationRegistry, UIDevice
 
 
 @keyword("click_id")
@@ -99,3 +100,25 @@ def get_text_from_parent(view, text, index=0):
     solo = get_var("solo")
     view = solo.get_text_from_parent(view, text, index)
     return view
+
+
+@keyword("get_current_package_name")
+def get_current_package_name():
+    """
+    获取当前应用的包名
+    返回包名
+    :return: str
+    """
+    ui_device = get_var("ui_device")
+    package_name = ui_device.get_current_package_name()
+    return package_name
+
+
+@keyword("press_home_button")
+def press_home_button():
+    """
+    点击home键
+    :return:
+    """
+    ui_device = get_var("ui_device")
+    ui_device.press_home()
