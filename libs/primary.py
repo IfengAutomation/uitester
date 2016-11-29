@@ -2,6 +2,9 @@
 from keywords import get_var, keyword, call
 from solo import InstrumentationRegistry, UIDevice
 
+SCREEN_ORIENTATION_LANDSCAPE = 0
+SCREEN_ORIENTATION_PORTRAIT = 1
+
 
 @keyword("click_id")
 def click_id(view_id, index=0):
@@ -122,3 +125,93 @@ def press_home_button():
     """
     ui_device = get_var("ui_device")
     ui_device.press_home()
+
+
+@keyword("get_group_child_count")
+def get_group_child_count(view_group):
+    """
+    功能：获取viewGroup child 数量
+    :param view_group:
+    :return:
+    """
+    return call(view_group, "getChildCount")
+
+
+@keyword("get_soft_input_state")
+def get_soft_input_state(edit_text_view):
+    context = call(edit_text_view, "getContext")
+    input_manager = call(context, "getSystemService", "input_method")
+    return call(input_manager, "isActive")
+
+
+@keyword("assert_string_empty")
+def assert_string_empty(text):
+    if text:
+        raise AssertionError('% not empty' % text)
+
+
+@keyword("assert_text_exist")
+def assert_exist_text(text):
+    solo = get_var("solo")
+    exist = solo.wait_for_text(text)
+    if not exist:
+        raise AssertionError('%s is not exist' % text)
+
+
+@keyword("assert_text_not_exist")
+def assert_exist_text(text):
+    solo = get_var("solo")
+    exist = solo.wait_for_text(text)
+    if exist:
+        raise AssertionError('%s is exist' % text)
+
+
+@keyword("assert_view_is_show")
+def assert_view_hidden(view):
+    isShown = call(view, "isShown")
+    if not isShown:
+        raise AssertionError('%s is not show' % view)
+
+
+@keyword("assert_view_not_show")
+def assert_view_not_show(view):
+    isShown = call(view, "isShown")
+    if isShown:
+        raise AssertionError('%s is show' % view)
+
+
+@keyword("set_screen_landscape")
+def assert_exist_text():
+    solo = get_var("solo")
+    call(solo, "setActivityOrientation", SCREEN_ORIENTATION_LANDSCAPE)
+
+
+@keyword("set_screen_portrait")
+def assert_exist_text():
+    solo = get_var("solo")
+    current_activity = solo.get_current_activity()
+    call(current_activity, "setRequestedOrientation", SCREEN_ORIENTATION_PORTRAIT)
+
+
+@keyword("click_long_on_view")
+def click_long_on_view(view):
+    solo = get_var("solo")
+    solo.click_long_on_view(view)
+
+
+@keyword("go_back")
+def click_long_on_view():
+    solo = get_var("solo")
+    solo.go_back()
+
+
+@keyword("set_edit_text")
+def set_edit_text(view, text):
+    solo = get_var("solo")
+    solo.enter_text(view, text)
+
+
+@keyword("clear_edit_text")
+def clear_edit_text(view):
+    solo = get_var("solo")
+    solo.clear_edit_text(view)
