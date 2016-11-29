@@ -20,6 +20,7 @@ class CompleterWidget(QWidget):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool)
 
         self.func_list_widget = QListWidget()
+        self.func_list_widget.setFixedWidth(200)
         self.func_list_widget.setSizeAdjustPolicy(QListWidget.AdjustToContents)
         self.func_list_layout.insertWidget(0, self.func_list_widget)
         self.desc_text_browser.setSizeAdjustPolicy(QTextBrowser.AdjustToContents)
