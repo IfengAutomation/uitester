@@ -14,7 +14,7 @@ from keywords import get_var, keyword, call
 
 
 @keyword("login")
-def login_et(account, pwd):
+def login(account, pwd):
     solo = get_var("solo")
     et_account_view = solo.get_view(login_et_account_id)
     et_pwd_view = solo.get_view(login_et_pwd_id)
@@ -26,7 +26,7 @@ def login_et(account, pwd):
 
 
 @keyword("logout")
-def exit_login():
+def logout():
     solo = get_var("solo")
     solo.sleep(1000)
     switch_tab("我的")

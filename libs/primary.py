@@ -27,7 +27,7 @@ def get_view(view_id, index=0):
 
 
 @keyword("get_view_text")
-def get_text(view_id, index=0):
+def get_view_text(view_id, index=0):
     view = get_solo().get_view(res_id=view_id, index=index)
     return call(view, "getText")
 
@@ -38,7 +38,12 @@ def sleep(milliseconds):
 
 
 @keyword("wait_for_view")
-def wait_for_text(class_name):
+def wait_for_view(class_name):
+    """
+
+    :param class_name:
+    :return:
+    """
     return get_solo().wait_for_view(class_name)
 
 
@@ -209,7 +214,7 @@ def assert_string_empty(text):
 
 
 @keyword("assert_text_exist")
-def assert_exist_text(text):
+def assert_text_exist(text):
     solo = get_solo()
     exist = solo.wait_for_text(text)
     if not exist:
@@ -217,7 +222,7 @@ def assert_exist_text(text):
 
 
 @keyword("assert_text_not_exist")
-def assert_exist_text(text):
+def assert_text_not_exist(text):
     solo = get_solo()
     exist = solo.wait_for_text(text)
     if exist:
@@ -225,7 +230,7 @@ def assert_exist_text(text):
 
 
 @keyword("assert_view_is_show")
-def assert_view_hidden(view):
+def assert_view_is_show(view):
     is_shown = call(view, "isShown")
     if not is_shown:
         raise AssertionError('%s is not show' % view)
@@ -239,13 +244,13 @@ def assert_view_not_show(view):
 
 
 @keyword("set_screen_landscape")
-def assert_exist_text():
+def set_screen_landscape():
     solo = get_solo()
     call(solo, "setActivityOrientation", SCREEN_ORIENTATION_LANDSCAPE)
 
 
 @keyword("set_screen_portrait")
-def assert_exist_text():
+def set_screen_portrait():
     solo = get_solo()
     current_activity = solo.get_current_activity()
     call(current_activity, "setRequestedOrientation", SCREEN_ORIENTATION_PORTRAIT)
@@ -258,7 +263,7 @@ def click_long_on_view(view):
 
 
 @keyword("go_back")
-def click_long_on_view():
+def go_back():
     solo = get_solo()
     solo.go_back()
 
