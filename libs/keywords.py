@@ -66,6 +66,20 @@ def get_var(name):
     return var_cache.get(name)
 
 
+def get_solo():
+    solo = var_cache.get("solo")
+    if not solo:
+        raise ValueError("You should use start_video to create solo instance before tests")
+    return solo
+
+
+def get_ui_device():
+    device = var_cache.get("ui_device")
+    if not device:
+        raise ValueError("You should use start_video to create UiDevice instance before tests")
+    return device
+
+
 """
 
      ======     Local api     =====

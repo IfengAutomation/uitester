@@ -9,6 +9,7 @@ java_float = 'java.lang.Float'
 java_object = 'java.lang.Object'
 activity_class_name = 'android.app.Activity'
 ui_device_class_name = 'android.support.test.uiautomator.UiDevice'
+android_abs_list_view = 'android.widget.AbsListView'
 
 
 class Intent(RemoteObject):
@@ -392,6 +393,60 @@ class Solo(RemoteObject):
         :return:
         """
         return call(self, "setActivityOrientation", orientation)
+
+    def scroll_down(self):
+        """
+        Scrolls down the screen.
+        :return: {@code true} if more scrolling can be performed and {@code false} if it is at the end of the screen
+        """
+        return call(self, "scrollDown")
+
+    def scroll_to_bottom(self):
+        """
+        Scrolls to the bottom of the screen.
+        """
+        return call(self, "scrollToBottom")
+
+    def scroll_up(self):
+        """
+        Scrolls up the screen.
+        :return: {@code true} if more scrolling can be performed and {@code false} if it is at the top of the screen
+        """
+        return call(self, "scrollUp")
+
+    def scroll_to_top(self):
+        """
+        Scrolls to the top of the screen.
+        """
+        return call(self, "scrollToTop")
+
+    def scroll_list_to_bottom(self, list_view):
+        """
+        Scrolls to the bottom of the specified AbsListView.
+        :param list_view: the {@link AbsListView} to scroll
+        :return: {@code true} if more scrolling can be performed
+        """
+        list_view.class_name = android_abs_list_view
+        return call(self, "scrollListToBottom", list_view)
+
+    def scroll_list_to_top(self, list_view):
+        """
+        Scrolls to the top of the specified AbsListView.
+        :param list_view: the {@link AbsListView} to scroll
+        :return: {@code true} if more scrolling can be performed
+        """
+        list_view.class_name = android_abs_list_view
+        return call(self, "scrollListToTop", list_view)
+
+    def wait_text_in_list(self, list_view, text):
+        """
+        Scroll list one screen by one. Not scroll line by line
+        :param list_view:
+        :param text:
+        :return:
+        """
+        list_view.class_name = android_abs_list_view
+        return call(self, "waitTextInList", list_view, text)
 
 
 class UIDevice(RemoteObject):

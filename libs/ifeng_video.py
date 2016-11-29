@@ -13,6 +13,9 @@ data_interface_class_name = "com.ifeng.at.testagent.reflect.DataInterfaceHelper"
 
 @keyword("set_host")
 def set_host():
+    """
+    Set Ifeng video request host to local mock server.
+    """
     host = get_local_ip()
     data_interface = RemoteObject.from_class_name(data_interface_class_name)
     call_static(data_interface, "setHost", host+':8080/mock')
@@ -20,6 +23,9 @@ def set_host():
 
 @keyword("set_proxy")
 def set_proxy():
+    """
+    Set Ifeng video request host to local proxy server.
+    """
     host = get_local_ip()
     data_interface = RemoteObject.from_class_name(data_interface_class_name)
     call_static(data_interface, "setHost", host+':8080/proxy')
@@ -27,6 +33,9 @@ def set_proxy():
 
 @keyword("start_video")
 def start_ifengvideo():
+    """
+    Start Ifeng Video app. Add init test var.
+    """
     instrumentation = InstrumentationRegistry.get_instrumentation()
     intent = instrumentation \
         .get_target_context() \
@@ -43,6 +52,10 @@ def start_ifengvideo():
 
 @keyword("wait")
 def wait_debug(wait_time):
+    """
+    Wait for sec
+    :param wait_time: sec
+    """
     import time
     time.sleep(int(wait_time))
 
