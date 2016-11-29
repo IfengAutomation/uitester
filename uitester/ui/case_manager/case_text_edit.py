@@ -33,8 +33,10 @@ class TextEdit(QTextEdit):
         editor content change event
         :return:
         """
-        completion_prefix = self.text_under_cursor().strip()
+        completion_prefix = self.text_under_cursor()
         if not completion_prefix:
+            if self.popup_widget.isVisible():
+                self.popup_widget.hide()
             return
         prefix_or_special = len(completion_prefix) < 2 and completion_prefix != "$"
         if prefix_or_special:
@@ -145,7 +147,7 @@ class TextEdit(QTextEdit):
 
         is_shortcut = ((e.modifiers() & Qt.ControlModifier) and e.key() == Qt.Key_E)  # shortcut key:ctrl + e
         if is_shortcut:
-            self.cmp.update(completion_prefix, self.popup_widget)
+            self.cmp.update("", self.popup_widget)
             self.update_popup_widget_position()
             self.activateWindow()
             return
