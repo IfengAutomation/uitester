@@ -1,5 +1,8 @@
 # @Time    : 2016/11/18 16:32
-from keywords import keyword, call, get_solo , get_ui_device
+from keywords import keyword, call, get_solo, get_ui_device
+
+SCREEN_ORIENTATION_LANDSCAPE = 0
+SCREEN_ORIENTATION_PORTRAIT = 1
 
 
 @keyword("click_id")
@@ -180,3 +183,93 @@ def get_displayed_views(id):
     :return:
     """
     return get_solo().get_displayed_views(id)
+
+
+@keyword("get_group_child_count")
+def get_group_child_count(view_group):
+    """
+    功能：获取viewGroup child 数量
+    :param view_group:
+    :return:
+    """
+    return call(view_group, "getChildCount")
+
+
+@keyword("get_soft_input_state")
+def get_soft_input_state(edit_text_view):
+    context = call(edit_text_view, "getContext")
+    input_manager = call(context, "getSystemService", "input_method")
+    return call(input_manager, "isActive")
+
+
+@keyword("assert_string_empty")
+def assert_string_empty(text):
+    if text:
+        raise AssertionError('% not empty' % text)
+
+
+@keyword("assert_text_exist")
+def assert_exist_text(text):
+    solo = get_solo()
+    exist = solo.wait_for_text(text)
+    if not exist:
+        raise AssertionError('%s is not exist' % text)
+
+
+@keyword("assert_text_not_exist")
+def assert_exist_text(text):
+    solo = get_solo()
+    exist = solo.wait_for_text(text)
+    if exist:
+        raise AssertionError('%s is exist' % text)
+
+
+@keyword("assert_view_is_show")
+def assert_view_hidden(view):
+    is_shown = call(view, "isShown")
+    if not is_shown:
+        raise AssertionError('%s is not show' % view)
+
+
+@keyword("assert_view_not_show")
+def assert_view_not_show(view):
+    is_shown = call(view, "isShown")
+    if is_shown:
+        raise AssertionError('%s is show' % view)
+
+
+@keyword("set_screen_landscape")
+def assert_exist_text():
+    solo = get_solo()
+    call(solo, "setActivityOrientation", SCREEN_ORIENTATION_LANDSCAPE)
+
+
+@keyword("set_screen_portrait")
+def assert_exist_text():
+    solo = get_solo()
+    current_activity = solo.get_current_activity()
+    call(current_activity, "setRequestedOrientation", SCREEN_ORIENTATION_PORTRAIT)
+
+
+@keyword("click_long_on_view")
+def click_long_on_view(view):
+    solo = get_solo()
+    solo.click_long_on_view(view)
+
+
+@keyword("go_back")
+def click_long_on_view():
+    solo = get_solo()
+    solo.go_back()
+
+
+@keyword("set_edit_text")
+def set_edit_text(view, text):
+    solo = get_solo()
+    solo.enter_text(view, text)
+
+
+@keyword("clear_edit_text")
+def clear_edit_text(view):
+    solo = get_solo()
+    solo.clear_edit_text(view)
