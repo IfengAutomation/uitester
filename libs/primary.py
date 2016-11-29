@@ -79,6 +79,18 @@ def scroll_to_left():
     get_solo().scroll_to_left()
 
 
+@keyword("get_view_from_parent")
+def get_view_from_parent(parent, res_id):
+    """
+    get View from parent view's children by view id string
+    :param parent:
+    :param res_id:
+    :param index:
+    :return:
+    """
+    return get_solo().get_view_from_parent(parent, res_id)
+
+
 @keyword("get_text_from_parent")
 def get_text_from_parent(view, text, index=0):
     """
@@ -175,7 +187,7 @@ def wait_text_in_list(list_view, text):
      Scroll list one screen by one. Not scroll line by line
      :param list_view:
      :param text:
-     :return:
+     :return: True if found the text
      """
     return get_solo().wait_text_in_list(list_view, text)
 

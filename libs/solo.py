@@ -367,7 +367,7 @@ class Solo(RemoteObject):
         parent.class_name = android_view
         return call(self, "getTextFromParent", parent, text, index)
 
-    def get_view_from_parent(self, parent, res_id, index):
+    def get_view_from_parent(self, parent, res_id):
         """
         get View from parent view's children by view id string
         :param parent:
@@ -376,7 +376,7 @@ class Solo(RemoteObject):
         :return:
         """
         parent.class_name = android_view
-        return call(self, "getViewFromParent", parent, res_id, index)
+        return call(self, "getViewFromParent", parent, res_id)
 
     def get_displayed_views(self, res_id):
         """
