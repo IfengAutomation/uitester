@@ -1,6 +1,6 @@
 
 from keywords import keyword, get_var
-from solo import UIDevice, InstrumentationRegistry
+from remote_classes import UIDevice, InstrumentationRegistry
 
 
 @keyword('scroll_into_main')

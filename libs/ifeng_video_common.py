@@ -1,7 +1,7 @@
 # @Time    : 2016/11/21 12:15
 # @Author  : lixintong
 from keywords import keyword, get_field, call, get_solo
-from primary import get_view
+from instrument import get_view
 
 tab_view_pos = {
     '首页': 0,

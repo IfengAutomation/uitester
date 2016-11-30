@@ -488,10 +488,9 @@ class UIDevice(RemoteObject):
         return call(self, "getCurrentPackageName")
 
 
-@keyword("runReflection")
-def run_reflection_test():
+def example():
     """
-    Keywords test
+    Keywords test example
     :return:
     """
     instrumentation = InstrumentationRegistry.get_instrumentation()

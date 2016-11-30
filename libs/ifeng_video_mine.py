@@ -1,7 +1,8 @@
 # # @Time    : 2016/11/17 14:52
 # # @Author  : lixintong
 
-from common import switch_tab
+from ifeng_video_common import switch_tab
+from keywords import get_var, keyword, call
 
 login_et_account_id = "com.ifeng.newvideo:id/login_et_account"
 login_et_pwd_id = "com.ifeng.newvideo:id/login_et_pwd"
@@ -9,8 +10,6 @@ login_btn_id = "com.ifeng.newvideo:id/tv_login_btn"
 login_name = "com.ifeng.newvideo:id/tv_login"
 login_out_id = "com.ifeng.newvideo:id/setting_login_out"
 login_back = "com.ifeng.newvideo:id/back"
-
-from keywords import get_var, keyword, call
 
 
 @keyword("login")
