@@ -50,8 +50,6 @@ class RPCHandler(StreamRequestHandler):
             except Exception as e:
                 print(e.args)
                 continue
-        if self.has_register:
-            self.server.rm_agent(self.agent_proxy.device_id)
 
     def handle_register(self, msg):
         if msg.msg_type == RPCMessage.RPC_CALL and msg.name == 'register':
