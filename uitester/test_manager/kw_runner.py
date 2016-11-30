@@ -1,5 +1,6 @@
 import threading
 import time
+import datetime
 import sys
 from os.path import dirname, abspath, pardir, join
 import logging
@@ -10,6 +11,7 @@ from uitester.test_manager import local_proxy
 from uitester.test_manager import context
 from uitester.test_manager import adb
 from uitester.test_manager import path_helper
+from uitester.task_redord_manager import task_record_manager
 
 
 _MAX_LENGTH = 80
@@ -172,6 +174,7 @@ class KWRunner:
                     device_id=device.id
                 ))
 
+        recorder = task_record_manager.get_task_recorder()
         for _case in cases:
             core = KWCore()
             core.case_id = _case.id
@@ -182,10 +185,10 @@ class KWRunner:
                         core.reset()
                         core.set_data(data_row)
                         core.parse(_case.content)
-                        core.execute(context.agent, self.listener)
+                        core.execute(context.agent, self.listener, recorder=recorder)
                 else:
                     core.parse(_case.content)
-                    core.execute(context.agent, self.listener)
+                    core.execute(context.agent, self.listener, recorder=recorder)
             except Exception as e:
                 if self.listener:
                     self.listener.update(StatusMsg(
@@ -391,6 +394,7 @@ class KWCore:
         self.line_count = 0
         self.case_id = 0
         self.run_signal = run_signal
+        self._have_record_res = False
 
     def reset(self):
         """
@@ -401,8 +405,10 @@ class KWCore:
         self.kw_lines = []
         self.status_listener = None
         self.line_count = 0
+        self.case_id = 0
         if self.run_signal:
             self.run_signal.stop = False
+        self._have_record_res = False
 
     def set_data(self, data_row):
         self.kw_var[self.DATA] = data_row
@@ -446,16 +452,17 @@ class KWCore:
         # add kw line to cache
         self.kw_lines.append(kw_line)
 
-    def execute(self, agent, listener, thread=False):
+    def execute(self, agent, listener, thread=False, recorder=None):
         if thread:
-            threading.Thread(target=self._execute, args=(agent, listener)).start()
+            threading.Thread(target=self._execute, args=(agent, listener, recorder)).start()
         else:
-            self._execute(agent, listener)
+            self._execute(agent, listener, recorder)
             # stop app
             if 'finish_app' in self.kw_func:
                 self.kw_func['finish_app']()
 
-    def _execute(self, agent, listener):
+    def _execute(self, agent, listener, recorder):
+        start_time = datetime.datetime.now()
         self.status_listener = listener
         context.agent = agent
         # run all kw line in cache
@@ -499,6 +506,9 @@ class KWCore:
                         line_number=line.line_number,
                         case_id=self.case_id
                     ))
+                if recorder:
+                    recorder.add_record(self.case_id, agent.device_id, start_time, -1, expect=str(e.args))
+                    self._have_record_res = True
                 break
             if self.status_listener:
                 # -- Line end --
@@ -515,6 +525,8 @@ class KWCore:
                 device_id=agent.device_id,
                 case_id=self.case_id
             ))
+        if not self._have_record_res:
+            recorder.add_record(self.case_id, agent.device_id, start_time, 0)
 
     def _import(self, module_name):
         """
