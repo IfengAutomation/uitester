@@ -11,9 +11,9 @@ tab_view_pos = {
 }
 page_name_ui_controller = {'点播底页': 'com.ifeng.newvideo.videoplayer.activity.ActivityVideoPlayerDetail',
                            '自媒体': 'com.ifeng.newvideo.ui.subscribe.WeMediaHomePageActivity',
-                           '登录': 'com.ifeng.newvideo.login.activity.LoginMainActivity'
+                           '登录': 'com.ifeng.newvideo.login.activity.LoginMainActivity',
+                           '专辑底页': 'com.ifeng.newvideo.videoplayer.activity.ActivityTopicPlayer'
                            }
-
 
 
 @keyword("check_current_page")
