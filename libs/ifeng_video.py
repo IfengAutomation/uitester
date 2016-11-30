@@ -1,13 +1,8 @@
-from keywords import keyword, RemoteObject, get_local_ip, call_static, set_var, get_var
-from solo import InstrumentationRegistry, Solo
-from we_media import *
-from video_page import *
-from mine import *
-from pic_page import *
-from example import *
-from start import *
-from primary import *
 from common import *
+from keywords import RemoteObject, get_local_ip, call_static, set_var
+from solo import Solo
+from start import *
+
 data_interface_class_name = "com.ifeng.at.testagent.reflect.DataInterfaceHelper"
 
 
