@@ -1,4 +1,10 @@
 from common import *
+from keywords import keyword, RemoteObject, get_local_ip, call_static, set_var, get_var
+from solo import InstrumentationRegistry, Solo
+from mine import *
+from example import *
+from start import *
+from primary import *
 from keywords import RemoteObject, get_local_ip, call_static, set_var
 from solo import Solo
 from start import *
