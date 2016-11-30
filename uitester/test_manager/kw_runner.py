@@ -525,7 +525,7 @@ class KWCore:
                 device_id=agent.device_id,
                 case_id=self.case_id
             ))
-        if not self._have_record_res:
+        if recorder and not self._have_record_res:
             recorder.add_record(self.case_id, agent.device_id, start_time, 0)
 
     def _import(self, module_name):
