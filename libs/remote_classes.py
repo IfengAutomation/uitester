@@ -11,6 +11,68 @@ activity_class_name = 'android.app.Activity'
 ui_device_class_name = 'android.support.test.uiautomator.UiDevice'
 android_abs_list_view = 'android.widget.AbsListView'
 
+VISIBLE = 0x00000000
+INVISIBLE = 0x00000004
+GONE = 0x00000008
+
+
+class View(RemoteObject):
+
+    def get_visibility(self):
+        """
+        Returns the visibility status for this view.
+        :return: One of VISIBLE, INVISIBLE or GONE.
+        """
+        return call(self, 'getVisibility')
+
+    def is_clickable(self):
+        """
+        Indicates whether this view reacts to click events or not.
+        :return: true if the view is clickable, false otherwise
+        """
+        return call(self, 'isClickable')
+
+    def get_width(self):
+        """
+        Return the width of the your view.
+        :return: The width of your view, in pixels.
+        """
+        return call(self, 'getWidth')
+
+    def get_height(self):
+        """
+        Return the height of your view.
+        :return: The height of your view, in pixels.
+        """
+        return call(self, 'getHeight')
+
+
+class AdapterView(View):
+
+    def get_count(self):
+        """
+        :return: The number of items owned by the Adapter associated with this
+        AdapterView. (This is the number of data items, which may be
+        larger than the number of visible views.)
+        """
+        return call(self, 'getCount')
+
+    def get_first_visible_position(self):
+        """
+        Returns the position within the adapter's data set for the first item
+        displayed on screen.
+        :return: The position within the adapter's data set
+        """
+        return call(self, 'getFirstVisiblePosition')
+
+    def get_last_visible_position(self):
+        """
+        Returns the position within the adapter's data set for the last item
+        displayed on screen.
+        :return: The position within the adapter's data set
+        """
+        return call(self, 'getLastVisiblePosition')
+
 
 class Intent(RemoteObject):
     FLAG_ACTIVITY_NEW_TASK = 0x10000000
