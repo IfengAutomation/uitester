@@ -7,48 +7,86 @@ SCREEN_ORIENTATION_PORTRAIT = 1
 
 @keyword("click_id")
 def click_id(view_id, index=0):
+    """
+    click a view matching the specified resource view_id
+    :param view_id:id the id of the {@link View}
+    :param index:the index of the {@link View}. {@code 0} if only one is available
+    :return:
+    """
     view = get_view(view_id, index)
     click_view(view)
 
 
 @keyword("click_text")
 def click_text(text):
+    """
+    Clicks a View or WebElement displaying the specified text. Will automatically scroll when needed.
+    :param text:the text to click. The parameter will be interpreted as a regular expression
+    :return:
+    """
     get_solo().click_on_text(text)
 
 
 @keyword("click_view")
 def click_view(view):
+    """
+    Clicks the specified View.
+    :param view:the {@link View} to click
+    :return:
+    """
     get_solo().click_on_view(view)
 
 
 @keyword("get_view")
 def get_view(view_id, index=0):
+    """
+    Returns a View matching the specified resource id and index.
+    :param view_id:the view_id of the {@link View}
+    :param index:the index of the {@link View}. {@code 0} if only one is available
+    :return:a {@link View} matching the specified id and index
+    """
     return get_solo().get_view(res_id=view_id, index=index)
 
 
 @keyword("get_view_text")
 def get_view_text(view_id, index=0):
+    """
+    Returns a TextView matching the specified index.
+    :param view_id:the view_id of the {@link View}
+    :param index:the index of the {@link TextView}. {@code 0} if only one is available
+    :return:a {@link TextView} matching the specified index
+    """
     view = get_solo().get_view(res_id=view_id, index=index)
     return call(view, "getText")
 
 
 @keyword("sleep")
 def sleep(milliseconds):
+    """
+    Robotium will sleep for the specified time.
+    :param milliseconds:the time in milliseconds that Robotium should sleep
+    :return:
+    """
     get_solo().sleep(milliseconds)
 
 
 @keyword("wait_for_view")
 def wait_for_view(class_name):
     """
-
-    :param class_name:
-    :return:
+     Waits for a View matching the specified class. Default timeout is 20 seconds.
+    :param class_name:the {@link View} class to wait for
+    :return:{@code true} if the {@link View} is displayed and {@code false} if it is not displayed before the timeout
     """
     return get_solo().wait_for_view(class_name)
 
 
 @keyword("get_text_view_line_count")
 def get_text_view_line_count(view):
+    """
+    get textView line count
+    :param view:the type of textView
+    :return:
+    """
     return call(view, "getLineCount")
 
 
@@ -214,6 +252,11 @@ def get_group_child_count(view_group):
 
 @keyword("get_soft_input_state")
 def get_soft_input_state(edit_text_view):
+    """
+    get textView soft input state
+    :param edit_text_view: type of textView
+    :return: false or true;false means soft input is not active  ;true means soft input is active
+    """
     context = call(edit_text_view, "getContext")
     input_manager = call(context, "getSystemService", "input_method")
     return call(input_manager, "isActive")
@@ -221,12 +264,22 @@ def get_soft_input_state(edit_text_view):
 
 @keyword("assert_string_empty")
 def assert_string_empty(text):
+    """
+    assert text is empty
+    :param text:
+    :return:
+    """
     if text:
         raise AssertionError('% not empty' % text)
 
 
 @keyword("assert_text_exist")
 def assert_text_exist(text):
+    """
+    assert text is existed
+    :param text:
+    :return:
+    """
     solo = get_solo()
     exist = solo.wait_for_text(text)
     if not exist:
@@ -235,6 +288,11 @@ def assert_text_exist(text):
 
 @keyword("assert_text_not_exist")
 def assert_text_not_exist(text):
+    """
+    assert text is not existed
+    :param text:
+    :return:
+    """
     solo = get_solo()
     exist = solo.wait_for_text(text)
     if exist:
@@ -243,6 +301,11 @@ def assert_text_not_exist(text):
 
 @keyword("assert_view_is_show")
 def assert_view_is_show(view):
+    """
+    assert view is shown
+    :param view:
+    :return:
+    """
     is_shown = call(view, "isShown")
     if not is_shown:
         raise AssertionError('%s is not show' % view)
@@ -250,6 +313,11 @@ def assert_view_is_show(view):
 
 @keyword("assert_view_not_show")
 def assert_view_not_show(view):
+    """
+    assert view is hidden
+    :param view:
+    :return:
+    """
     is_shown = call(view, "isShown")
     if is_shown:
         raise AssertionError('%s is show' % view)
@@ -257,12 +325,20 @@ def assert_view_not_show(view):
 
 @keyword("set_screen_landscape")
 def set_screen_landscape():
+    """
+    set screen landscape
+    :return:
+    """
     solo = get_solo()
     call(solo, "setActivityOrientation", SCREEN_ORIENTATION_LANDSCAPE)
 
 
 @keyword("set_screen_portrait")
 def set_screen_portrait():
+    """
+    set screen portrait
+    :return:
+    """
     solo = get_solo()
     current_activity = solo.get_current_activity()
     call(current_activity, "setRequestedOrientation", SCREEN_ORIENTATION_PORTRAIT)
@@ -270,23 +346,69 @@ def set_screen_portrait():
 
 @keyword("click_long_on_view")
 def click_long_on_view(view):
-    solo = get_solo()
-    solo.click_long_on_view(view)
+    """
+    Long clicks the specified View.
+    :param view:the {@link View} to long click
+    :return:
+    """
+    get_solo().click_long_on_view(view)
 
 
 @keyword("go_back")
 def go_back():
-    solo = get_solo()
-    solo.go_back()
+    """
+    Simulates pressing the hardware back key.
+    :return:
+    """
+    get_solo().go_back()
 
 
 @keyword("set_edit_text")
-def set_edit_text(view, text):
-    solo = get_solo()
-    solo.enter_text(view, text)
+def set_edit_text(edit_text_view, text):
+    """
+    Enters text in the specified EditText.
+    :param edit_text_view: the {@link EditText} to enter text in
+    :param text: the text to enter in the {@link EditText} field
+    """
+    get_solo().enter_text(edit_text_view, text)
 
 
 @keyword("clear_edit_text")
-def clear_edit_text(view):
-    solo = get_solo()
-    solo.clear_edit_text(view)
+def clear_edit_text(edit_text_view):
+    """
+    Clears the value of an EditText.
+    :param edit_text_view: the {@link EditText} to clear
+    """
+    get_solo().clear_edit_text(edit_text_view)
+
+
+@keyword("click_on_screen")
+def click_on_screen(x, y):
+    """
+    Clicks the specified coordinates.
+    :param x: the x coordinate
+    :param y: the y coordinate
+    """
+    get_solo().click_on_screen(x, y)
+
+
+@keyword("get_web_url")
+def get_web_url():
+    """
+    Returns the current web page URL.
+    :return:the current web page URL
+    """
+    return call(get_solo(), "getWebUrl")
+
+
+@keyword("assert_contain_text")
+def assert_contain_text(src_text, desc_text):
+    """
+    assert src_text contain desc_text
+    :param src_text:
+    :param desc_text:
+    :return:
+    """
+    is_contain_text = desc_text in src_text
+    if not is_contain_text:
+        raise AssertionError('% not contain %' % (src_text, desc_text))
