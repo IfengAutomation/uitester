@@ -12,6 +12,7 @@ from uitester.test_manager import context
 from uitester.test_manager import adb
 from uitester.test_manager import path_helper
 from uitester.task_redord_manager import task_record_manager
+import traceback
 
 
 _MAX_LENGTH = 80
@@ -507,7 +508,8 @@ class KWCore:
                         case_id=self.case_id
                     ))
                 if recorder:
-                    recorder.add_record(self.case_id, agent.device_id, start_time, -1, expect=str(e.args))
+                    trace = traceback.format_exc()
+                    recorder.add_record(self.case_id, agent.device_id, start_time, -1, trace)
                     self._have_record_res = True
                 break
             if self.status_listener:
@@ -526,7 +528,7 @@ class KWCore:
                 case_id=self.case_id
             ))
         if recorder and not self._have_record_res:
-            recorder.add_record(self.case_id, agent.device_id, start_time, 0)
+            recorder.add_record(self.case_id, agent.device_id, start_time, 0, '')
 
     def _import(self, module_name):
         """

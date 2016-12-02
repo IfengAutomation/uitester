@@ -46,6 +46,13 @@ class View(RemoteObject):
         """
         return call(self, 'getHeight')
 
+    def is_focused(self):
+        """
+        Returns true if this view has focus
+        :return: True if this view has focus, false otherwise.
+        """
+        return call(self, 'isFocused')
+
 
 class AdapterView(View):
 
