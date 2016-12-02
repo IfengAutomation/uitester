@@ -1,5 +1,6 @@
 # @Time    : 2016/11/18 16:32
 from keywords import keyword, call, get_solo, get_ui_device
+from remote_classes import AdapterView
 
 SCREEN_ORIENTATION_LANDSCAPE = 0
 SCREEN_ORIENTATION_PORTRAIT = 1
@@ -412,3 +413,23 @@ def assert_contain_text(src_text, desc_text):
     is_contain_text = desc_text in src_text
     if not is_contain_text:
         raise AssertionError('% not contain %' % (src_text, desc_text))
+
+
+@keyword("scroll_view_to_left")
+def scroll_view_to_left(view):
+    """
+    scroll view to left
+    :param view:
+    :return:
+    """
+    get_solo().scroll_view_to_left(view)
+
+
+@keyword("scroll_view_to_right")
+def scroll_view_to_right(view):
+    """
+    scroll view to right
+    :param view:
+    :return:
+    """
+    get_solo().scroll_view_to_right(view)
