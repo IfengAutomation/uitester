@@ -1,6 +1,6 @@
 # @Time    : 2016/11/18 16:32
 from keywords import keyword, call, get_solo, get_ui_device
-from remote_classes import AdapterView
+from remote_classes import AdapterView, View
 
 SCREEN_ORIENTATION_LANDSCAPE = 0
 SCREEN_ORIENTATION_PORTRAIT = 1
@@ -433,3 +433,17 @@ def scroll_view_to_right(view):
     :return:
     """
     get_solo().scroll_view_to_right(view)
+
+
+@keyword("assert_view_is_focused")
+def assert_view_is_focused(view):
+    """
+    验证指定view的isFocused属性是否为True
+    :param view:
+    :return:
+    """
+    view = View.from_object(view)
+    is_focused = view.is_focused()
+
+    if not is_focused:
+        AssertionError('%s is not focused' % view)
