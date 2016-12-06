@@ -8,8 +8,6 @@ from PyQt5.QtGui import QIcon, QPixmap, QBrush, QColor
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSplitter
 
 from uitester.case_manager.database import DBCommandLineHelper
-from uitester.kw.kw_runner import KWCase
-from uitester.test_manager import rpc_agent
 from uitester.ui.case_run.add_case import AddCaseWidget
 from uitester.ui.case_run.add_device import AddDeviceWidget
 from uitester.ui.case_run.case_run_status_listener import CaseRunStatusListener
@@ -243,3 +241,9 @@ class RunWidget(QWidget):
             item = self.case_widget.dataTableWidget.item(row_index, column_index)
             item.setForeground(brush_red_color)
 
+
+class KWCase:
+    id = None
+    name = None
+    tags = None
+    content = None
