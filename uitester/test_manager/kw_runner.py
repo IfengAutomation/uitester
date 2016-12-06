@@ -133,8 +133,10 @@ class KWRunner:
         res, output = adb.install(path_helper.agent_apk)
         if res:
             self.listener.update(StatusMsg(StatusMsg.INSTALL_FINISH, device_id=device.id))
+            logger.debug('KWRunner: Install finish')
         else:
             self.listener.update(StatusMsg(StatusMsg.INSTALL_FAIL, device_id=device.id, message=output))
+            logger.debug('KWRunner: Install fail')
             return
 
         self.listener.update(StatusMsg(StatusMsg.AGENT_START, device_id=device.id))
@@ -148,8 +150,10 @@ class KWRunner:
         )
         if instrument_res:
             self.listener.update(StatusMsg(StatusMsg.AGENT_STOP, device_id=device.id))
+            logger.debug('KWRunner: agent stop')
         else:
             self.listener.update(StatusMsg(StatusMsg.AGENT_ERROR, device_id=device.id, message=instrument_output))
+            logger.debug('KWRunner: agent error')
 
     def _run_cases_on_device(self, cases, device):
 

@@ -14,6 +14,7 @@ Port = 11800
 class RPCServer(ThreadingTCPServer):
 
     def __init__(self, server_address, RequestHandlerClass, bind_and_activate=True):
+        self.allow_reuse_address = True
         super().__init__(server_address, RequestHandlerClass, bind_and_activate)
         self._agents = {}
 
@@ -135,6 +136,10 @@ class RPCAgent:
             return res
         except queue.Empty:
             raise TimeoutError("RPC Call timeout")
+
+    @property
+    def closed(self):
+        return self.wfile.closed
 
     def close(self):
         msg = RPCMessage.get_kill_signal()
