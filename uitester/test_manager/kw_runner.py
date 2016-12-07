@@ -166,8 +166,9 @@ class KWRunner:
                         line_number=core.line_count,
                         message=e
                     ))
-            if context.agent:
+            if context.agent and not context.agent.closed:
                 context.agent.close()
+            context.agent = None
         self.listener.update(StatusMsg(
             StatusMsg.TEST_END,
             device_id=device.id
