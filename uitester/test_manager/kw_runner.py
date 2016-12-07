@@ -129,6 +129,7 @@ class KWRunner:
                     device_id=device.id,
                     message=traceback.format_exc()
                 ))
+            return
         self.listener.update(StatusMsg(StatusMsg.INSTALL_FINISH, device_id=device.id))
 
         self.listener.update(StatusMsg(
@@ -157,18 +158,18 @@ class KWRunner:
                 else:
                     core.parse(_case.content)
                     core.execute(context.agent, self.listener, recorder=recorder)
-            except Exception as e:
+            except Exception:
+                trace = traceback.format_exc()
                 if self.listener:
                     self.listener.update(StatusMsg(
                         StatusMsg.ERROR,
                         device_id=device.id,
                         case_id=_case.id,
                         line_number=core.line_count,
-                        message=e
+                        message=trace
                     ))
-            if context.agent and not context.agent.closed:
-                context.agent.close()
-            context.agent = None
+                logger.debug('KWRunner: Run case failed. Catch exception\n'+trace)
+            self.dm.stop_agent(device)
         self.listener.update(StatusMsg(
             StatusMsg.TEST_END,
             device_id=device.id

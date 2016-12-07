@@ -79,8 +79,7 @@ class DeviceManager:
     def _update_device_status(self, device, device_status):
         if device_status == 'device':
             agent = self.server.get_agent(device.id)
-            if agent:
-                device.agent = agent
+            device.agent = agent
             device.status = Device.ONLINE
         else:
             device.status = Device.OFFLINE
@@ -128,5 +127,18 @@ class DeviceManager:
             target_package=self.context.config.target_package
         )
         logger.debug('Device: %s agent stop.\nRes:\n%s' % (device.id, output))
+
+    def stop_agent(self, device):
+        if device.agent and not device.agent.closed:
+            device.agent.close()
+        wait_time_count = 0
+        while True:
+            self.update_devices()
+            if not device.agent or device.agent.closed:
+                break
+            elif wait_time_count > AGENT_CONN_TIMEOUT:
+                raise TimeoutError('Device: close agent timeout')
+            time.sleep(1)
+            wait_time_count += 1
 
 
