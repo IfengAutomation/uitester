@@ -53,6 +53,13 @@ class View(RemoteObject):
         """
         return call(self, 'isFocused')
 
+    def is_enabled(self):
+        """
+        Returns the enabled status for this view.
+        :return: True if this view is enabled, false otherwise.
+        """
+        return call(self, 'isEnabled')
+
 
 class AdapterView(View):
 

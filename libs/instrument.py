@@ -447,3 +447,31 @@ def assert_view_is_focused(view):
 
     if not is_focused:
         AssertionError('%s is not focused' % view)
+
+
+@keyword("assert_view_is_enabled")
+def assert_view_is_enabled(view):
+    """
+    验证指定view的isEnabled属性是否为True
+    :param view:
+    :return:
+    """
+    view = View.from_object(view)
+    is_enabled = view.is_enabled()
+
+    if not is_enabled:
+        AssertionError('%s is not enabled' % view)
+
+
+@keyword("assert_view_is_not_enabled")
+def assert_view_is_not_enabled(view):
+    """
+    验证指定view的isEnabled属性是否为False
+    :param view:
+    :return:
+    """
+    view = View.from_object(view)
+    is_enabled = view.is_enabled()
+
+    if is_enabled:
+        AssertionError('%s is enabled' % view)
