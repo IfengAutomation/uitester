@@ -12,8 +12,11 @@ else:
     _adb = 'adb'
 
 
-def install(apk_file):
+def install(apk_file, device_id=None):
     cmd = [_adb, 'install', '-r', apk_file]
+    if device_id:
+        cmd.insert(1, '-s')
+        cmd.insert(2, device_id)
     p = subprocess.run(cmd, stdout=subprocess.PIPE)
     _output = p.stdout.decode()
     if 'Success' in _output:
@@ -24,8 +27,11 @@ def install(apk_file):
         return False, _output
 
 
-def uninstall(package_name):
+def uninstall(package_name, device_id=None):
     cmd = [_adb, 'uninstall', package_name]
+    if device_id:
+        cmd.insert(1, '-s')
+        cmd.insert(2, device_id)
     p = subprocess.run(cmd, stdout=subprocess.PIPE)
     _output = p.stdout.decode()
     if 'Success' in _output:
@@ -43,6 +49,8 @@ def start_agent(host, port, device_id, debug=False, target_package='com.ifeng.at
 
     cmd = [
         _adb,
+        '-s',
+        device_id,
         'shell',
         'am',
         'instrument',
@@ -86,13 +94,3 @@ def devices():
                 _devices[device[0].strip()] = device[1].strip()
     return _devices
 
-
-if __name__ == '__main__':
-    res, output = install('/Users/zhaoye/github/uitester/apk/agent.apk')
-    print('TEST INSTALL:', res, '\n', output)
-    res, output = start_agent('172.30.20.51', 11800, '123')
-    print('TEST INSTRUMENT', res, '\n', output)
-    res, output = uninstall('com.ifeng.at.testagent.test')
-    print('TEST UNINSTALL', res, '\n', output)
-    device_list = devices()
-    print(device_list)

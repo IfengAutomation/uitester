@@ -3,6 +3,7 @@ import json
 from threading import Thread
 import logging
 import queue
+import traceback
 
 
 logger = logging.getLogger('Tester')
@@ -36,9 +37,11 @@ class RPCHandler(StreamRequestHandler):
         super().__init__(request, client_address, server)
 
     def handle(self):
+        logger.debug('RPCHandler: client handler start')
         while True:
             line = self.rfile.readline().decode().strip()
             if len(line) == 0:
+                logger.debug('RPCHandler: client disconnected.')
                 break
             try:
                 msg = RPCMessage.from_json(line)
@@ -48,9 +51,10 @@ class RPCHandler(StreamRequestHandler):
                     self.handle_unregister()
                 else:
                     self.handle_message(msg)
-            except Exception as e:
-                print(e.args)
+            except Exception:
+                logger.debug('RPCHandler: catch exception\n%s' % traceback.format_exc())
                 continue
+        logger.debug('RPCHandler: client handler stop')
 
     def handle_register(self, msg):
         if msg.msg_type == RPCMessage.RPC_CALL and msg.name == 'register':

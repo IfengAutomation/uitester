@@ -4,7 +4,7 @@ import datetime
 import sys
 from os.path import dirname, abspath, pardir, join
 import logging
-import socket
+from uitester.test_manager import utils
 from uitester.test_manager import device_proxy
 from uitester.test_manager import reflection_proxy
 from uitester.test_manager import local_proxy
@@ -23,14 +23,6 @@ logger = logging.getLogger('Tester')
 script_dir = dirname(abspath(__file__))
 libs_dir = join(join(join(script_dir, pardir), pardir), 'libs')
 sys.path.append(libs_dir)
-
-
-def get_local_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("google.com", 80))
-    ip = s.getsockname()[0]
-    s.close()
-    return ip
 
 
 class StatusMsg:
@@ -123,56 +115,21 @@ class KWRunner:
         self.run_signal.stop = False
         self.dm.selected_devices[0].agent = None
         for device in devices:
-            instrument_thread = threading.Thread(target=self._setup_agent, args=(device,))
-            instrument_thread.start()
             t = threading.Thread(target=self._run_cases_on_device, args=(cases, device))
             t.start()
 
-    def _setup_agent(self, device):
-        self.listener.update(StatusMsg(StatusMsg.INSTALL_START, device_id=device.id))
-        res, output = adb.install(path_helper.agent_apk)
-        if res:
-            self.listener.update(StatusMsg(StatusMsg.INSTALL_FINISH, device_id=device.id))
-            logger.debug('KWRunner: Install finish')
-        else:
-            self.listener.update(StatusMsg(StatusMsg.INSTALL_FAIL, device_id=device.id, message=output))
-            logger.debug('KWRunner: Install fail')
-            return
-
-        self.listener.update(StatusMsg(StatusMsg.AGENT_START, device_id=device.id))
-
-        instrument_res, instrument_output = adb.start_agent(
-            get_local_ip(),
-            self.dm.context.config.port,
-            device.id,
-            debug=self.dm.context.config.debug,
-            target_package=self.dm.context.config.target_package
-        )
-        if instrument_res:
-            self.listener.update(StatusMsg(StatusMsg.AGENT_STOP, device_id=device.id))
-            logger.debug('KWRunner: agent stop')
-        else:
-            self.listener.update(StatusMsg(StatusMsg.AGENT_ERROR, device_id=device.id, message=instrument_output))
-            logger.debug('KWRunner: agent error')
-
     def _run_cases_on_device(self, cases, device):
-
-        wait_count = 0
-        while True:
-            if wait_count > 30:
-                self.listener.update(
-                    StatusMsg(
-                        StatusMsg.AGENT_ERROR,
-                        device_id=device.id,
-                        message='agent not register'))
-                return
-            if self.dm.selected_devices[0].agent:
-                break
-            else:
-                time.sleep(1)
-                wait_count += 1
-
-        context.agent = self.dm.selected_devices[0].agent
+        self.listener.update(StatusMsg(StatusMsg.INSTALL_START, device_id=device.id))
+        try:
+            self.dm.install_agent(device)
+        except Exception:
+            self.listener.update(
+                StatusMsg(
+                    StatusMsg.INSTALL_FAIL,
+                    device_id=device.id,
+                    message=traceback.format_exc()
+                ))
+        self.listener.update(StatusMsg(StatusMsg.INSTALL_FINISH, device_id=device.id))
 
         self.listener.update(StatusMsg(
                     StatusMsg.TEST_START,
@@ -184,6 +141,12 @@ class KWRunner:
             core = KWCore()
             core.case_id = _case.id
             try:
+                self.dm.start_agent(device)
+                self.listener.update(StatusMsg(
+                    StatusMsg.AGENT_START,
+                    device_id=device.id
+                ))
+                context.agent = device.agent
                 if len(_case.data) >= 2:
                     data_rows = DataRow.from_list(_case.data[0], _case.data[1:])
                     for data_row in data_rows:
@@ -203,12 +166,12 @@ class KWRunner:
                         line_number=core.line_count,
                         message=e
                     ))
+            if context.agent:
+                context.agent.close()
         self.listener.update(StatusMsg(
             StatusMsg.TEST_END,
             device_id=device.id
         ))
-
-        context.agent.close()
 
     def stop(self):
         self.run_signal.stop = True
@@ -244,72 +207,46 @@ class KWDebugRunner:
 
     def execute(self, script_str=None, data_line=0):
         self.dm.selected_devices[0].agent = None
-        setup_t = threading.Thread(target=self._setup_devices)
-        setup_t.start()
         t = threading.Thread(target=self._thread_execute, args=(script_str, data_line))
         t.start()
 
-    def _setup_devices(self):
+    def _thread_execute(self, script_str=None, data_line=0):
         device = self.dm.selected_devices[0]
-
+        # Install agent
         self.listener.update(StatusMsg(
             StatusMsg.INSTALL_START,
             device_id=device.id
         ))
-        res, output = adb.install(path_helper.agent_apk)
-        if res:
-            self.listener.update(StatusMsg(
-                StatusMsg.INSTALL_FINISH,
-                device_id=device.id
-            ))
-        else:
+        try:
+            self.dm.install_agent(device)
+        except Exception:
             self.listener.update(StatusMsg(
                 StatusMsg.INSTALL_FAIL,
                 device_id=device.id,
-                message=output
+                message=traceback.format_exc()
             ))
+            return
+        self.listener.update(StatusMsg(
+            StatusMsg.INSTALL_FINISH,
+            device_id=device.id
+        ))
 
+        # Start agent
+        try:
+            self.dm.start_agent(device)
+        except Exception:
+            self.listener.update(StatusMsg(
+                StatusMsg.AGENT_ERROR,
+                device_id=device.id,
+                message=traceback.format_exc()
+            ))
+            return
         self.listener.update(StatusMsg(
             StatusMsg.AGENT_START,
             device_id=device.id
         ))
 
-        instrument_res, instrument_output = adb.start_agent(
-            get_local_ip(),
-            self.dm.context.config.port,
-            device.id,
-            debug=self.dm.context.config.debug,
-            target_package=self.dm.context.config.target_package
-        )
-        if instrument_res:
-            self.listener.update(StatusMsg(
-                StatusMsg.AGENT_STOP,
-                device_id=device.id
-            ))
-        else:
-            self.listener.update(StatusMsg(
-                StatusMsg.AGENT_ERROR,
-                device_id=device.id,
-                message=instrument_output
-            ))
-
-    def _thread_execute(self, script_str=None, data_line=0):
         try:
-            wait_agent_time_count = 0
-            while True:
-                if wait_agent_time_count > 30:
-                    self.listener.update(StatusMsg(
-                        StatusMsg.AGENT_ERROR,
-                        device_id=self.dm.selected_devices[0].id,
-                        message='Start test failed, Not found agent, timeout'
-                    ))
-                    return
-                if self.dm.selected_devices[0].agent:
-                    break
-                else:
-                    time.sleep(1)
-                    wait_agent_time_count += 1
-
             if data_line == 0:
                 if self.data is None or len(self.data) < 2:
                     self._execute(script_str=script_str)
