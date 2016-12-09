@@ -75,3 +75,15 @@ def switch_tab(tab_name):
 def drag_progress_bar(view, start_x, end_x, step_count):
     solo = get_solo()
     solo.drag_in_view(view, start_x, 50, end_x, 50, step_count)
+
+@keyword("check_player_type")
+def check_player_type(player_type):
+    """
+    确定当前播放器类型
+    :param player_type: video  视频播放器;audio  音频播放器
+    :return:
+    """
+    solo = get_solo()
+    video_skin = solo.get_view("com.ifeng.newvideo:id/video_skin")
+    description = call(video_skin, "getContentDescription")
+    assert  player_type in description, "播放器类型非{}".format(player_type)

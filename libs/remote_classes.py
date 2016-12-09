@@ -524,6 +524,17 @@ class Solo(RemoteObject):
         list_view.class_name = android_abs_list_view
         return call(self, "waitTextInList", list_view, text)
 
+    def perform_click_on_view(self, view):
+        """
+        Call this view's OnClickListener, if it is defined.  Performs all normal
+        actions associated with clicking: reporting accessibility event, playing
+        a sound, etc.
+        :param view:
+        :return:
+        """
+        view.class_name = android_view
+        return call(self, "performClickOnView", view)
+
 
 class UIDevice(RemoteObject):
     @classmethod

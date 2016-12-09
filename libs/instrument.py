@@ -475,3 +475,21 @@ def assert_view_is_not_enabled(view):
 
     if is_enabled:
         AssertionError('%s is enabled' % view)
+
+
+@keyword("get_child_view")
+def get_child_view(parent_view, index=1):
+    """
+    通过parent_view 获取 index 位置的view
+    :param parent_view: 父级view,view继承ViewGroup
+    :param index:第index位置
+    :return:
+    """
+    return call(parent_view, "getChildAt", index - 1)
+
+@keyword("perform_click_view")
+def perform_click_view(view):
+    get_solo().perform_click_on_view(view)
+
+
+
